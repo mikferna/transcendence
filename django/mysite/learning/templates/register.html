@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro - Matrix</title>
+  <style>
+    /* Estilos generales */
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: 'Courier New', Courier, monospace;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* Contenedor del formulario */
+    .matrix-form {
+      background-color: #111;
+      padding: 2rem;
+      border: 1px solid #0f0;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+      width: 300px;
+    }
+
+    /* Título */
+    .matrix-form h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      text-transform: uppercase;
+    }
+
+    /* Campos de entrada */
+    .matrix-form input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #0f0;
+      background-color: #000;
+      color: #0f0;
+      font-family: 'Courier New', Courier, monospace;
+      outline: none;
+    }
+
+    /* Botón de registro */
+    .matrix-form button {
+      width: 100%;
+      padding: 0.7rem;
+      background-color: #0f0;
+      color: #000;
+      border: none;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .matrix-form button:hover {
+      background-color: #0c0;
+    }
+
+    /* Efecto de texto parpadeante */
+    .blinking-text {
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="matrix-form">
+    <h2>Registro <span class="blinking-text">_</span></h2>
+    <form>
+      <!-- Campo de usuario -->
+      <input type="text" placeholder="Usuario" required>
+      <!-- Campo de email -->
+      <input type="email" placeholder="Email" required>
+      <!-- Campo de contraseña -->
+      <input type="password" placeholder="Contraseña" required>
+      <!-- Campo de repetir contraseña -->
+      <input type="password" placeholder="Repetir Contraseña" required>
+      <!-- Botón de registro -->
+      <button type="submit">Registrarse</button>
+    </form>
+  </div>
+</body>
+</html>

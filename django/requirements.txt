@@ -1,0 +1,14 @@
+Django==3.1.7
+psycopg2>=2.8
+markdown
+django-filter
+djangorestframework
+django-cors-headers
+Pillow
+djangorestframework-simplejwt
+importlib_metadata==8.4.0
+gunicorn
+daphne
+channels
+channels-redis==4.1.0
+python-dotenv

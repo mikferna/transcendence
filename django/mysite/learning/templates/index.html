@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Pong</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 10px #0f0;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #matrix-canvas {
+            opacity: 0.2;
+        }
+        
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        #score-display {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            text-shadow: 0 0 5px #0f0;
+        }
+        
+        #power-up-display {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 18px;
+            text-shadow: 0 0 5px #0f0;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+        
+        #game-over h2 {
+            font-size: 36px;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+            margin-bottom: 30px;
+        }
+        
+        #restart-btn {
+            background-color: transparent;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 0 5px #0f0;
+            pointer-events: auto;
+        }
+        
+        #restart-btn:hover {
+            background-color: rgba(0, 255, 0, 0.2);
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 14px;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            pointer-events: none;
+        }
+        
+        #mode-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 5px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 5px #0f0;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="matrix-canvas"></canvas>
+        <canvas id="game-canvas"></canvas>
+        <div id="ui-layer">
+            <div id="score-display">0 : 0</div>
+            <div id="power-up-display"></div>
+            <button id="mode-toggle">AI MODE</button>
+            <div id="controls">PLAYER: W/S KEYS</div>
+            <div id="game-over">
+                <h2 id="winner-text">GAME OVER</h2>
+                <button id="restart-btn">RELOAD MATRIX</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const gameCanvas = document.getElementById('game-canvas');
+        const ctx = gameCanvas.getContext('2d');
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        const container = document.getElementById('game-container');
+        
+        // Set canvas dimensions
+        gameCanvas.width = container.clientWidth;
+        gameCanvas.height = container.clientHeight;
+        matrixCanvas.width = container.clientWidth;
+        matrixCanvas.height = container.clientHeight;
+        
+        // UI elements
+        const scoreDisplay = document.getElementById('score-display');
+        const powerUpDisplay = document.getElementById('power-up-display');
+        const gameOverScreen = document.getElementById('game-over');
+        const winnerText = document.getElementById('winner-text');
+        const restartBtn = document.getElementById('restart-btn');
+        const modeToggle = document.getElementById('mode-toggle');
+        const controlsInfo = document.getElementById('controls');
+        
+        // Game constants and variables
+        const PADDLE_WIDTH = 12;
+        const BALL_SIZE = 8;
+        const WINNING_SCORE = 10;
+        
+        // These need to be variables (not constants) since power-ups modify them
+        let PADDLE_HEIGHT = 80;
+        let PLAYER_SPEED = 8;
+        let AI_SPEED = 6;
+        
+        // Game state variables
+        let playerY = 0;
+        let aiY = 0;
+        let ballX = 0;
+        let ballY = 0;
+        let ballSpeedX = 0;
+        let ballSpeedY = 0;
+        let ballColor = '#0f0';
+        let playerScore = 0;
+        let aiScore = 0;
+        let isPlaying = true;
+        let aiMode = true;
+        
+        // Paddle height variables (for power-ups)
+        let playerPaddleHeight = PADDLE_HEIGHT;
+        let aiPaddleHeight = PADDLE_HEIGHT;
+        
+        // Glitching effects for power-ups
+        let playerGlitching = false;
+        let aiGlitching = false;
+        
+        // Input tracking
+        const keys = {
+            w: false,
+            s: false,
+            up: false,
+            down: false
+        };
+        
+        // Power-up variables
+        const POWER_UP_SIZE = 15;
+        const POWER_UP_DURATION = 8000; // 8 seconds
+        let powerUpX = 0;
+        let powerUpY = 0;
+        let powerUpSpeedX = 2;
+        let powerUpSpeedY = 2;
+        let powerUpActive = false;
+        let currentPowerUp = '';
+        let powerUpVisible = false;
+        let powerUpTimer = 0;
+        
+        // Power-ups
+        const powerUps = [
+            { 
+                name: 'BULLET TIME', 
+                effect: function(player) {
+                    // Slow down opponent and ball
+                    if (player === 'player') {
+                        AI_SPEED = 3;
+                    } else {
+                        PLAYER_SPEED = 4;
+                    }
+                    // Slow down ball
+                    ballSpeedX = ballSpeedX * 0.7;
+                    ballSpeedY = ballSpeedY * 0.7;
+                }, 
+                color: '#87CEEB' 
+            },
+            { 
+                name: 'PADDLE GROWTH', 
+                effect: function(player) {
+                    // Increase paddle size
+                    if (player === 'player') {
+                        playerPaddleHeight = PADDLE_HEIGHT * 1.8;
+                    } else {
+                        aiPaddleHeight = PADDLE_HEIGHT * 1.8;
+                    }
+                }, 
+                color: '#FFD700' 
+            },
+            { 
+                name: 'AGENT SMITH', 
+                effect: function(player) {
+                    // Increase ball speed
+                    ballSpeedX = ballSpeedX * 1.5;
+                    ballSpeedY = ballSpeedY * 1.5;
+                }, 
+                color: '#FF4500' 
+            },
+            { 
+                name: 'GLITCH', 
+                effect: function(player) {
+                    // Opponent's paddle occasionally glitches
+                    if (player === 'player') {
+                        aiGlitching = true;
+                    } else {
+                        playerGlitching = true;
+                    }
+                }, 
+                color: '#9932CC' 
+            }
+        ];
+        
+        // Matrix effect characters
+        const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+        const columns = Math.floor(matrixCanvas.width / 20);
+        const drops = [];
+        
+        // Initialize matrix effect
+        function initMatrix() {
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.floor(Math.random() * -20);
+            }
+        }
+        
+        // Draw matrix rain effect
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            
+            matrixCtx.fillStyle = '#0f0';
+            matrixCtx.font = '15px monospace';
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                matrixCtx.fillText(text, i * 20, drops[i] * 20);
+                
+                if (drops[i] * 20 > matrixCanvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+        }
+        
+        // Create power-up at random intervals
+        function createPowerUp() {
+            if (!powerUpVisible && !powerUpActive && Math.random() < 0.005) {
+                powerUpVisible = true;
+                powerUpX = Math.random() * (gameCanvas.width - 100) + 50;
+                powerUpY = Math.random() * (gameCanvas.height - 100) + 50;
+                powerUpSpeedX = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 3 + 1);
+                powerUpSpeedY = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 3 + 1);
+            }
+        }
+        
+        // Move and draw power-up
+        function updatePowerUp() {
+            if (powerUpVisible) {
+                // Move power-up
+                powerUpX += powerUpSpeedX;
+                powerUpY += powerUpSpeedY;
+                
+                // Bounce off walls
+                if (powerUpY <= POWER_UP_SIZE || powerUpY >= gameCanvas.height - POWER_UP_SIZE) {
+                    powerUpSpeedY = -powerUpSpeedY;
+                }
+                
+                if (powerUpX <= POWER_UP_SIZE || powerUpX >= gameCanvas.width - POWER_UP_SIZE) {
+                    powerUpSpeedX = -powerUpSpeedX;
+                }
+                
+                // Draw power-up
+                const hue = (Date.now() / 15) % 360;
+                const gradient = ctx.createRadialGradient(
+                    powerUpX, powerUpY, 0,
+                    powerUpX, powerUpY, POWER_UP_SIZE
+                );
+                gradient.addColorStop(0, 'white');
+                gradient.addColorStop(1, `hsl(${hue}, 100%, 50%)`);
+                
+                ctx.beginPath();
+                ctx.arc(powerUpX, powerUpY, POWER_UP_SIZE, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Power-up collision with ball
+                const dx = powerUpX - ballX;
+                const dy = powerUpY - ballY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < POWER_UP_SIZE + BALL_SIZE) {
+                    powerUpVisible = false;
+                    
+                    // Select a random power-up
+                    const powerUp = powerUps[Math.floor(Math.random() * powerUps.length)];
+                    
+                    // Determine which player gets the power-up based on ball direction
+                    const player = ballSpeedX > 0 ? 'player' : 'ai';
+                    
+                    activatePowerUp(powerUp, player);
+                }
+            }
+        }
+        
+        // Activate a power-up
+        function activatePowerUp(powerUp, player) {
+            // Reset any active power-ups
+            resetPowerUps();
+            
+            // Apply new power-up
+            currentPowerUp = powerUp.name;
+            powerUpActive = true;
+            ballColor = powerUp.color;
+            
+            // Display power-up message
+            powerUpDisplay.textContent = `${player.toUpperCase()} GOT: ${powerUp.name}`;
+            powerUpDisplay.style.color = powerUp.color;
+            
+            // Apply effect
+            powerUp.effect(player);
+        }
+        
+        // Reset power-ups
+        function resetPowerUps() {
+            powerUpActive = false;
+            currentPowerUp = '';
+            powerUpTimer = 0;
+            ballColor = '#0f0';
+            
+            // Reset all power-up effects
+            playerPaddleHeight = PADDLE_HEIGHT;
+            aiPaddleHeight = PADDLE_HEIGHT;
+            playerGlitching = false;
+            aiGlitching = false;
+            PLAYER_SPEED = 8;
+            AI_SPEED = 6;
+            
+            powerUpDisplay.textContent = '';
+        }
+        
+        // AI prediction with error margin - only predicts one bounce
+        function predictBallPosition() {
+            // If ball is moving away from AI, return to center position
+            if (ballSpeedX <= 0) {
+                return gameCanvas.height / 2;
+            }
+            
+            // Clone ball position and speed for prediction
+            let predictX = ballX;
+            let predictY = ballY;
+            let predictSpeedX = ballSpeedX;
+            let predictSpeedY = ballSpeedY;
+            
+            // Predict only up to one bounce
+            let hasBounced = false;
+            
+            // Predict ball trajectory
+            while (predictX < gameCanvas.width - PADDLE_WIDTH - BALL_SIZE) {
+                predictX += predictSpeedX;
+                predictY += predictSpeedY;
+                
+                // Check for bounce off top/bottom walls
+                if ((predictY < BALL_SIZE || predictY > gameCanvas.height - BALL_SIZE) && !hasBounced) {
+                    predictSpeedY = -predictSpeedY;
+                    hasBounced = true; // Mark that we've predicted one bounce
+                }
+                
+                // If we've already predicted one bounce, add significant error
+                if (hasBounced) {
+                    // Add large error margin after the bounce
+                    const largeError = gameCanvas.height / 4; // 25% of screen height error
+                    return predictY + (Math.random() * largeError * 2) - largeError;
+                }
+            }
+            
+            // Add standard error margin based on ball speed
+            const errorMargin = Math.abs(ballSpeedX) * 5;
+            const randomError = (Math.random() * errorMargin * 2) - errorMargin;
+            
+            return predictY + randomError;
+        }
+        
+        // Update AI position
+        function moveAI() {
+            if (aiGlitching && Math.random() < 0.1) {
+                // Randomly glitch the AI paddle position
+                aiY = Math.random() * (gameCanvas.height - aiPaddleHeight);
+                return;
+            }
+            
+            const targetY = predictBallPosition() - aiPaddleHeight / 2;
+            
+            // Move AI paddle towards predicted position
+            if (aiY + 10 < targetY) {
+                aiY += AI_SPEED;
+            } else if (aiY - 10 > targetY) {
+                aiY -= AI_SPEED;
+            }
+            
+            // Keep AI paddle in bounds
+            aiY = Math.max(0, Math.min(gameCanvas.height - aiPaddleHeight, aiY));
+        }
+        
+        // Reset ball to center after scoring
+        function resetBall() {
+            ballX = gameCanvas.width / 2;
+            ballY = gameCanvas.height / 2;
+            
+            // Randomize direction, slightly towards the player who just lost
+            ballSpeedX = playerScore > aiScore ? -5 : 5;
+            ballSpeedY = (Math.random() * 6 - 3);
+            
+            // Reset any active power-ups
+            resetPowerUps();
+        }
+        
+        // Initialize game state
+        function initGame() {
+            playerY = gameCanvas.height / 2 - PADDLE_HEIGHT / 2;
+            aiY = gameCanvas.height / 2 - PADDLE_HEIGHT / 2;
+            playerScore = 0;
+            aiScore = 0;
+            isPlaying = true;
+            
+            // Initialize matrix effect
+            initMatrix();
+            
+            // Set score display
+            updateScore();
+            
+            // Reset ball position
+            resetBall();
+            
+            // Hide game over screen if visible
+            gameOverScreen.style.display = 'none';
+        }
+        
+        // Update game state
+        function update() {
+            if (!isPlaying) return;
+            
+            // Move player paddle based on key input
+            if (keys.w && !playerGlitching) {
+                playerY = Math.max(0, playerY - PLAYER_SPEED);
+            }
+            if (keys.s && !playerGlitching) {
+                playerY = Math.min(gameCanvas.height - playerPaddleHeight, playerY + PLAYER_SPEED);
+            }
+            
+            // Move AI or second player paddle
+            if (aiMode) {
+                moveAI();
+            } else {
+                // Second player controls
+                if (keys.up) {
+                    aiY = Math.max(0, aiY - PLAYER_SPEED);
+                }
+                if (keys.down) {
+                    aiY = Math.min(gameCanvas.height - aiPaddleHeight, aiY + PLAYER_SPEED);
+                }
+            }
+            
+            // Apply glitching effect to player if active
+            if (playerGlitching && Math.random() < 0.05) {
+                playerY = Math.random() * (gameCanvas.height - playerPaddleHeight);
+            }
+            
+            // Move ball
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            
+            // Ball collision with top and bottom walls
+            if (ballY < BALL_SIZE || ballY > gameCanvas.height - BALL_SIZE) {
+                ballSpeedY = -ballSpeedY;
+                // Ensure ball doesn't get stuck in walls
+                ballY = ballY < BALL_SIZE ? BALL_SIZE : gameCanvas.height - BALL_SIZE;
+            }
+            
+            // Ball collision with player paddle
+            if (ballX - BALL_SIZE < PADDLE_WIDTH && 
+                ballY > playerY && 
+                ballY < playerY + playerPaddleHeight &&
+                ballSpeedX < 0) {  // Only collide when ball is moving left
+                
+                // Calculate angle based on where ball hits paddle
+                const hitPosition = (ballY - playerY) / playerPaddleHeight;
+                const angle = (hitPosition - 0.5) * Math.PI * 0.7; // -35 to +35 degrees
+                
+                // Set new ball direction and increase speed slightly
+                const speed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+                ballSpeedX = Math.cos(angle) * speed * 1.05; // 5% faster on each hit
+                ballSpeedY = Math.sin(angle) * speed * 1.05;
+                
+                // Ensure ball moves to the right
+                if (ballSpeedX < 0) ballSpeedX = -ballSpeedX;
+                
+                // Move ball out of paddle
+                ballX = PADDLE_WIDTH + BALL_SIZE;
+            }
+            
+            // Ball collision with AI paddle
+            if (ballX + BALL_SIZE > gameCanvas.width - PADDLE_WIDTH && 
+                ballY > aiY && 
+                ballY < aiY + aiPaddleHeight &&
+                ballSpeedX > 0) {  // Only collide when ball is moving right
+                
+                // Calculate angle based on where ball hits paddle
+                const hitPosition = (ballY - aiY) / aiPaddleHeight;
+                const angle = (hitPosition - 0.5) * Math.PI * 0.7; // -35 to +35 degrees
+                
+                // Set new ball direction and increase speed slightly
+                const speed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+                ballSpeedX = Math.cos(angle) * speed * 1.05; // 5% faster on each hit
+                ballSpeedY = Math.sin(angle) * speed * 1.05;
+                
+                // Ensure ball moves to the left
+                if (ballSpeedX > 0) ballSpeedX = -ballSpeedX;
+                
+                // Move ball out of paddle
+                ballX = gameCanvas.width - PADDLE_WIDTH - BALL_SIZE;
+            }
+            
+            // Scoring
+            if (ballX < 0) {
+                aiScore++;
+                updateScore();
+                resetBall();
+            } else if (ballX > gameCanvas.width) {
+                playerScore++;
+                updateScore();
+                resetBall();
+            }
+            
+            // Check for game over
+            if (playerScore >= WINNING_SCORE || aiScore >= WINNING_SCORE) {
+                isPlaying = false;
+                winnerText.textContent = playerScore >= WINNING_SCORE ? 
+                    "YOU ARE THE ONE" : 
+                    "THE MACHINES HAVE WON";
+                gameOverScreen.style.display = "flex";
+            }
+            
+            // Power-ups remain active until point is finished
+            // No timer decrementation here
+            
+            // Create and update power-ups
+            createPowerUp();
+            updatePowerUp();
+        }
+        
+        // Update the score display
+        function updateScore() {
+            scoreDisplay.textContent = `${playerScore} : ${aiScore}`;
+        }
+        
+        // Draw the game
+        function draw() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+            
+            // Draw center line (dashed)
+            ctx.beginPath();
+            ctx.setLineDash([5, 10]);
+            ctx.moveTo(gameCanvas.width / 2, 0);
+            ctx.lineTo(gameCanvas.width / 2, gameCanvas.height);
+            ctx.strokeStyle = '#0f0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw paddles
+            // Player paddle
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(0, playerY, PADDLE_WIDTH, playerPaddleHeight);
+            
+            // AI/Player 2 paddle
+            ctx.fillRect(gameCanvas.width - PADDLE_WIDTH, aiY, PADDLE_WIDTH, aiPaddleHeight);
+            
+            // Add Matrix-style glowing effect to paddles
+            ctx.shadowColor = '#0f0';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            
+            ctx.fillRect(0, playerY, PADDLE_WIDTH, playerPaddleHeight);
+            ctx.fillRect(gameCanvas.width - PADDLE_WIDTH, aiY, PADDLE_WIDTH, aiPaddleHeight);
+            
+            ctx.shadowBlur = 0;
+            
+            // Draw ball with Matrix-style effect
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, BALL_SIZE, 0, Math.PI * 2);
+            ctx.fillStyle = ballColor;
+            ctx.shadowColor = ballColor;
+            ctx.shadowBlur = 15;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Draw code lines following the ball
+            ctx.beginPath();
+            ctx.moveTo(ballX, 0);
+            ctx.lineTo(ballX, gameCanvas.height);
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, ballY);
+            ctx.lineTo(gameCanvas.width, ballY);
+            ctx.stroke();
+            
+            // Power-up indicator (not a timer anymore)
+            if (powerUpActive) {
+                // Show glowing bar at the bottom to indicate active power-up
+                ctx.fillStyle = ballColor;
+                ctx.shadowColor = ballColor;
+                ctx.shadowBlur = 10;
+                ctx.fillRect(0, gameCanvas.height - 3, gameCanvas.width, 3);
+                ctx.shadowBlur = 0;
+            }
+            
+            // Draw "Bullet Time" effect if active
+            if (powerUpActive && currentPowerUp === 'BULLET TIME') {
+                // Draw ball trajectory prediction
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                
+                // Clone ball position and velocity for prediction
+                let predX = ballX;
+                let predY = ballY;
+                let predSpeedX = ballSpeedX;
+                let predSpeedY = ballSpeedY;
+                
+                // Draw predicted path
+                ctx.moveTo(predX, predY);
+                for (let i = 0; i < 10; i++) {
+                    predX += predSpeedX;
+                    predY += predSpeedY;
+                    
+                    // Bounce prediction off walls
+                    if (predY < BALL_SIZE || predY > gameCanvas.height - BALL_SIZE) {
+                        predSpeedY = -predSpeedY;
+                    }
+                    
+                    ctx.lineTo(predX, predY);
+                }
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+        
+        // Main game loop
+        function gameLoop() {
+            update();
+            draw();
+            drawMatrix();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Keyboard input handling
+        window.addEventListener('keydown', function(e) {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key === 'ArrowUp') keys.up = true;
+            if (e.key === 'ArrowDown') keys.down = true;
+            
+            // Prevent default behavior for game keys to avoid page scrolling
+            if (['w', 's', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        
+        window.addEventListener('keyup', function(e) {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key === 'ArrowUp') keys.up = false;
+            if (e.key === 'ArrowDown') keys.down = false;
+        });
+        
+        // Toggle between AI and Player 2 mode
+        modeToggle.addEventListener('click', function() {
+            aiMode = !aiMode;
+            modeToggle.textContent = aiMode ? 'AI MODE' : 'PLAYER 2 MODE';
+            controlsInfo.textContent = aiMode ? 
+                'PLAYER: W/S KEYS' : 
+                'PLAYER 1: W/S KEYS | PLAYER 2: ARROW KEYS';
+        });
+        
+        // Restart game
+        restartBtn.addEventListener('click', function() {
+            initGame();
+        });
+        
+        // Initialize and start the game
+        initGame();
+        gameLoop();
+    </script>
+</body>
+</html>

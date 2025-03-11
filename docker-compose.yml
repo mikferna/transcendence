@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: elephant
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - miknet
+
+  django:
+    container_name: django
+    build:
+      context: ./django
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    networks:
+      - miknet
+    depends_on:
+      - postgres
+
+  angular:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/pong-app:/usr/src/app/pong-app/app
+    ports:
+      - "4200:4200"  # Puerto del servidor Angular
+    networks:
+      - miknet
+    depends_on:
+      - django
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - miknet
+    depends_on:
+      - postgres
+    restart: always
+
+networks:
+  miknet:
+    driver: bridge
