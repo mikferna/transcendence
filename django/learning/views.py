@@ -16,6 +16,7 @@ from rest_framework import generics
 from django.db import transaction
 from django.db.models import Q
 import logging
+import re
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ class login(GenericAPIView):
                 })
             else:
                 return Response(
-                    {'detail': 'Invalid credentials'},
+                    {'error': 'Invalid credentials'},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
         
@@ -73,7 +74,7 @@ class userDetail(APIView):
 
         if not user:
             return Response(
-                {'detail': 'User not found'},
+                {'error': 'User not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
         avatar_url = user.avatar.url if user.avatar else None
@@ -106,7 +107,7 @@ class logout(APIView):
             # Still return success as the user should be considered logged out
             
         return Response(
-            {'detail': 'User logged out successfully'},
+            {'message': 'User logged out successfully'},
             status=status.HTTP_200_OK
         )
 
@@ -114,10 +115,10 @@ class deleteProfile(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        confirm = request.data.get('confirm')
-        if confirm != 'yes':
+        confirm_username = request.data.get('confirm_username')
+        if not confirm_username or confirm_username != request.user.username:
             return Response(
-                {'detail': 'Please confirm profile deletion by setting confirm=yes'},
+                {'error': 'Please confirm profile deletion by providing your exact username'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -125,7 +126,7 @@ class deleteProfile(APIView):
         user.delete()
 
         return Response(
-            {'detail': 'Profile deleted successfully'},
+            {'message': 'Profile deleted successfully'},
             status=status.HTTP_200_OK
         )
 
@@ -141,18 +142,44 @@ class updateProfile(UpdateAPIView):
         instance = self.get_object()
 
         data_to_update = {}
+        
+        # Validate tournament_name
         if 'tournament_name' in request.data:
-            data_to_update['tournament_name'] = request.data['tournament_name']
+            tournament_name = request.data['tournament_name']
+            if tournament_name and len(tournament_name) > 50:  # Example validation
+                return Response(
+                    {'error': 'Tournament name cannot exceed 50 characters'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            data_to_update['tournament_name'] = tournament_name
+        
+        # Validate email
         if 'email' in request.data:
-            data_to_update['email'] = request.data['email']
+            email = request.data['email']
+            email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+            if email and not re.match(email_pattern, email):
+                return Response(
+                    {'error': 'Invalid email format'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            data_to_update['email'] = email
+        
+        # Validate avatar size if present
         if 'avatar' in request.FILES:
-            data_to_update['avatar'] = request.FILES['avatar']
+            avatar = request.FILES['avatar']
+            # 2MB in bytes = 2 * 1024 * 1024 = 2,097,152 bytes
+            if avatar.size > 2 * 1024 * 1024:
+                return Response(
+                    {'error': 'Profile picture is too large. Maximum size is 2MB.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            data_to_update['avatar'] = avatar
 
         serializer = self.get_serializer(instance, data=data_to_update, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return Response(serializer.data)
+        return Response({'message': 'Profile updated successfully', 'data': serializer.data})
 
 class acceptFriendRequest(APIView):
     permission_classes = [IsAuthenticated]
@@ -304,14 +331,14 @@ class removeFriend(APIView):
         friend_id = request.data.get('friend_id')
         if not friend_id:
             return Response(
-                {'detail': 'Friend ID is required'},
+                {'error': 'Friend ID is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         friend = User.objects.filter(id=friend_id).first()
         if not friend:
             return Response(
-                {'detail': 'Friend not found'},
+                {'error': 'Friend not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
         
@@ -320,7 +347,7 @@ class removeFriend(APIView):
         friend.friends.remove(request.user)
 
         return Response(
-            {'detail': 'Friend removed successfully'},
+            {'message': 'Friend removed successfully'},
             status=status.HTTP_200_OK
         )
 
@@ -396,14 +423,14 @@ class blockUser(APIView):
             
             if user_to_block == request.user:
                 return Response(
-                    {'detail': 'You cannot block yourself'},
+                    {'error': 'You cannot block yourself'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
             # Check if already blocked
             if request.user.blocked_users.filter(id=user_to_block.id).exists():
                 return Response(
-                    {'detail': 'User is already blocked'},
+                    {'error': 'User is already blocked'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -416,13 +443,13 @@ class blockUser(APIView):
                 user_to_block.friends.remove(request.user)
             
             return Response(
-                {'detail': 'User blocked successfully'},
+                {'message': 'User blocked successfully'},
                 status=status.HTTP_200_OK
             )
         
         except User.DoesNotExist:
             return Response(
-                {'detail': 'User not found'},
+                {'error': 'User not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -461,7 +488,7 @@ class unblockUser(APIView):
             # Check if they're actually blocked
             if not request.user.blocked_users.filter(id=user_to_unblock.id).exists():
                 return Response(
-                    {'detail': 'User is not blocked'},
+                    {'error': 'User is not blocked'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -469,13 +496,13 @@ class unblockUser(APIView):
             request.user.blocked_users.remove(user_to_unblock)
             
             return Response(
-                {'detail': 'User unblocked successfully'},
+                {'message': 'User unblocked successfully'},
                 status=status.HTTP_200_OK
             )
         
         except User.DoesNotExist:
             return Response(
-                {'detail': 'User not found'},
+                {'error': 'User not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -523,3 +550,210 @@ def validate_credentials(request):
         return Response({'valid': True})
     else:
         return Response({'valid': False})
+
+class activateAccount(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        token = request.query_params.get('token')
+        
+        if not token:
+            return Response(
+                {'error': 'Activation token is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            user = AccountActivateToken.objects.activate_user_by_token(token)
+            
+            if user:
+                # Delete token after successful activation
+                AccountActivateToken.objects.filter(user=user).delete()
+                
+                return Response(
+                    {'message': 'Account activated successfully'},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {'error': 'Invalid or expired token'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except Exception as e:
+            logger.error(f"Error activating account: {str(e)}", exc_info=True)
+            return Response(
+                {'error': 'Failed to activate account'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class matchHistory(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            matches = Match.objects.filter(
+                Q(player1=user) | Q(player2=user)
+            ).select_related('player1', 'player2', 'winner')
+            
+            serializer = MatchSerializer(matches, many=True)
+            
+            return Response(
+                {
+                    'message': 'Match history retrieved successfully',
+                    'matches': serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+            
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class createMatch(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            data = request.data
+            is_against_ai = data.get('is_against_ai', False)
+            
+            match_data = {
+                'player1': request.user.id,
+                'player1_score': data.get('player1_score', 0),
+                'player2_score': data.get('player2_score', 0),
+                'is_against_ai': is_against_ai,
+                'match_type': data.get('match_type', 'local'),
+            }
+            
+            # Handle AI match
+            if is_against_ai:
+                match_data['ai_difficulty'] = data.get('ai_difficulty', 'easy')
+                match_data['is_player1_winner'] = data.get('is_player1_winner', False)
+                match_data['player2'] = None  # No player2 for AI match
+            else:
+                # Handle human vs human match
+                player2_username = data.get('player2_username')
+                if not player2_username:
+                    return Response(
+                        {'error': 'Player 2 username is required for human matches'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                try:
+                    player2 = User.objects.get(username=player2_username)
+                    match_data['player2'] = player2.id
+                except User.DoesNotExist:
+                    return Response(
+                        {'error': 'Player 2 not found'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Set winner
+                winner_username = data.get('winner_username')
+                if winner_username == request.user.username:
+                    match_data['winner'] = request.user.id
+                    match_data['is_player1_winner'] = True
+                elif winner_username == player2_username:
+                    match_data['winner'] = player2.id
+                    match_data['is_player1_winner'] = False
+                else:
+                    return Response(
+                        {'error': 'Winner must be one of the players'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            # Validate and save
+            serializer = MatchSerializer(data=match_data)
+            if serializer.is_valid():
+                match = serializer.save()
+                return Response(
+                    {
+                        'message': 'Match created successfully',
+                        'match': serializer.data
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+            else:
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except Exception as e:
+            logger.error(f"Error creating match: {str(e)}", exc_info=True)
+            return Response(
+                {'error': 'Failed to create match'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class currentUser(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        avatar_url = user.avatar.url if user.avatar else None
+        
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'avatar': avatar_url,
+            'tournament_name': user.tournament_name,
+            'is_online': user.is_online,
+            'games_played': user.games_played,
+            'games_won': user.games_won,
+            'games_lost': user.games_lost,
+        }, status=status.HTTP_200_OK)
+
+class searchUsers(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        query = request.query_params.get('query', '')
+        
+        if not query:
+            return Response(
+                {'error': 'Search query is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        users = User.objects.filter(
+            username__icontains=query
+        ).exclude(
+            id=request.user.id
+        )[:10]
+        
+        user_data = [{
+            'id': user.id,
+            'username': user.username,
+            'avatar': user.avatar.url if user.avatar else None,
+            'is_online': user.is_online,
+        } for user in users]
+        
+        return Response(user_data, status=status.HTTP_200_OK)
+
+class friendRequestList(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        pending_requests = FriendRequest.objects.filter(
+            to_user=request.user,
+            status='pending'
+        ).select_related('from_user')
+        
+        request_data = [{
+            'id': req.id,
+            'from_user': {
+                'id': req.from_user.id,
+                'username': req.from_user.username,
+                'avatar': req.from_user.avatar.url if req.from_user.avatar else None,
+                'is_online': req.from_user.is_online,
+            },
+            'created_at': req.created_at,
+        } for req in pending_requests]
+        
+        return Response(request_data, status=status.HTTP_200_OK)

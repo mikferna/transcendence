@@ -4,6 +4,8 @@ from django.utils import timezone
 import random
 import string
 from django.core.validators import FileExtensionValidator
+import uuid
+from datetime import timedelta
 
 
 class User(AbstractUser):
@@ -133,4 +135,35 @@ class Match(models.Model):
                     self.player1.games_lost += 1
             self.player1.save()
             
+        super().save(*args, **kwargs)
+
+class AccountActivateTokenManager(models.Manager):
+    def activate_user_by_token(self, token):
+        try:
+            token_obj = self.get(token=token)
+            
+            # Check if token is expired
+            if timezone.now() > token_obj.expires_at:
+                return None
+                
+            user = token_obj.user
+            if not user.is_active:
+                user.is_active = True
+                user.save(update_fields=['is_active'])
+            return user
+        except self.model.DoesNotExist:
+            return None
+
+class AccountActivateToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    
+    objects = AccountActivateTokenManager()
+    
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            # Set token to expire after 48 hours
+            self.expires_at = timezone.now() + timedelta(hours=48)
         super().save(*args, **kwargs)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import *
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
@@ -94,3 +94,13 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         
         instance.save()
         return instance
+
+class MatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Match
+        fields = [
+            'id', 'player1', 'player2', 'is_against_ai', 'ai_difficulty',
+            'player1_score', 'player2_score', 'winner', 'is_player1_winner',
+            'match_date', 'match_type'
+        ]
+        read_only_fields = ['id', 'match_date']

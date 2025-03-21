@@ -1,8 +1,6 @@
 cd /code/django/
 pip install --upgrade pip
 
-cd /code/django/mysite
-
 python manage.py makemigrations
 python manage.py migrate
 
