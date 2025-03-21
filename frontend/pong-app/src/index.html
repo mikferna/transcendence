@@ -122,17 +122,17 @@
         }
 
         function startGame(mode) {
-            let uri = "/learning/gamemode/"; // URI base
+            let uri = "/models/gamemode/"; // URI base
 
             switch (mode) {
                 case 'solo':
-                    uri += "solo"; // Redirige a /learning/gamemode/solo
+                    uri += "solo"; // Redirige a /models/gamemode/solo
                     break;
                 case 'multiplayer':
-                    uri += "multiplayer"; // Redirige a /learning/gamemode/multiplayer
+                    uri += "multiplayer"; // Redirige a /models/gamemode/multiplayer
                     break;
                 case 'online':
-                    uri += "online"; // Redirige a /learning/gamemode/online
+                    uri += "online"; // Redirige a /models/gamemode/online
                     break;
                 default:
                     alert('Invalid mode');

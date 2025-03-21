@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('learning', '0007_friendrequest'),
+        ('models', '0007_friendrequest'),
     ]
 
     operations = [

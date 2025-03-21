@@ -28,12 +28,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['0.0.0.0', 'localhost']
 
-AUTH_USER_MODEL = 'learning.User'
+AUTH_USER_MODEL = 'models.User'
 
 # Application definition
 
 INSTALLED_APPS = [
-    'learning',
+    'models',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,7 +48,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     # Replace standard session middleware with our enhanced version
-    'learning.middleware.EnhancedSessionMiddleware',  # Make sure to create middleware.py in your learning app
+    'models.middleware.EnhancedSessionMiddleware',  # Make sure to create middleware.py in your models app
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -95,7 +95,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             BASE_DIR / 'templates',
-            BASE_DIR / 'learning' / 'templates',
+            BASE_DIR / 'models' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -204,7 +204,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'learning': {  # Your app's logger
+        'models': {  # Your app's logger
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,

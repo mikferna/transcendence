@@ -9,7 +9,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('learning', '0008_match'),
+        ('models', '0008_match'),
     ]
 
     operations = [
