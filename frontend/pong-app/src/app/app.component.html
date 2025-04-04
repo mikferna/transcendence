@@ -1,3 +1,16 @@
-<app-header></app-header>
-<app-home></app-home>
-<app-footer></app-footer>
+<!-- Matrix Digital Rain Background -->
+<canvas id="matrix-canvas"></canvas>
+
+<!-- Loading Screen Component -->
+<app-loading-screen></app-loading-screen>
+
+<!-- Persistent Header - Solo visible cuando el usuario está logueado -->
+<app-header *ngIf="isLoggedIn"></app-header>
+
+<!-- Main Content Area -->
+<main class="main-content" [ngClass]="{'no-header-footer': !isLoggedIn}">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Persistent Footer - Solo visible cuando el usuario está logueado -->
+<app-footer *ngIf="isLoggedIn"></app-footer>

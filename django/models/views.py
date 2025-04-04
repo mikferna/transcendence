@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics
 from django.db import transaction
 from django.db.models import Q
@@ -143,15 +143,15 @@ class updateProfile(UpdateAPIView):
 
         data_to_update = {}
         
-        # Validate tournament_name
-        if 'tournament_name' in request.data:
-            tournament_name = request.data['tournament_name']
-            if tournament_name and len(tournament_name) > 50:  # Example validation
+        # Validate username
+        if 'username' in request.data:
+            username = request.data['username']
+            if username and len(username) > 30:  # Ejemplo de validación
                 return Response(
-                    {'error': 'Tournament name cannot exceed 50 characters'},
+                    {'error': 'Username cannot exceed 30 characters'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            data_to_update['tournament_name'] = tournament_name
+            data_to_update['username'] = username
         
         # Validate email
         if 'email' in request.data:
@@ -757,3 +757,11 @@ class friendRequestList(APIView):
         } for req in pending_requests]
         
         return Response(request_data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def test_connection(request):
+    return Response({
+        'message': 'Conexión exitosa con Django!',
+        'status': 'success'
+    }, status=status.HTTP_200_OK)

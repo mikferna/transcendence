@@ -1,0 +1,87 @@
+/* Pulse Animation */
+@keyframes pulse {
+    0% { text-shadow: 0 0 10px #0f0, 0 0 20px #0f0; }
+    50% { text-shadow: 0 0 20px #0f0, 0 0 30px #0f0, 0 0 40px #0f0; }
+    100% { text-shadow: 0 0 10px #0f0, 0 0 20px #0f0; }
+  }
+  
+  /* Loading Dots Animation */
+  @keyframes loadingDots {
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+    100% { content: '.'; }
+  }
+  
+  /* Fade In Animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Slide In Animation */
+  @keyframes slideInFromRight {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInFromLeft {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  /* Glow Animation */
+  @keyframes glow {
+    0% {
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.8), 0 0 30px rgba(0, 255, 0, 0.6);
+    }
+    100% {
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+    }
+  }
+  
+  /* Button Shine Effect */
+  @keyframes shine {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+  
+  /* Utility classes for animations */
+  .animate-pulse {
+    animation: pulse 2s infinite;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  .animate-slide-right {
+    animation: slideInFromRight 0.5s ease-out;
+  }
+  
+  .animate-slide-left {
+    animation: slideInFromLeft 0.5s ease-out;
+  }
+  
+  .animate-glow {
+    animation: glow 2s infinite;
+  }

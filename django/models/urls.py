@@ -37,4 +37,5 @@ urlpatterns = [
     # Partidas
     path('matches/history/<str:username>/', views.matchHistory.as_view(), name='match_history'),
     path('matches/create/', views.createMatch.as_view(), name='create_match'),
+    path('test-connection/', views.test_connection, name='test_connection'),
 ]

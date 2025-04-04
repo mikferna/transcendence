@@ -1,0 +1,11 @@
+<div class="game-modes">
+    <div 
+      *ngFor="let mode of gameModes" 
+      class="game-mode" 
+      [class.active]="mode.active" 
+      (click)="selectGameMode(mode)"
+    >
+      <h3>{{ mode.name }}</h3>
+      <p>{{ mode.description }}</p>
+    </div>
+  </div>

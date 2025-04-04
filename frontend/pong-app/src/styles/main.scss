@@ -1,0 +1,56 @@
+/* Import variables, animations, and component-specific styles */
+@import 'variables';
+@import 'animations';
+@import 'buttons';
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Courier New', monospace;
+}
+
+body {
+  background-color: #000;
+  color: #0f0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Matrix Digital Rain */
+#matrix-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* Accessibility focus styles */
+:focus {
+  outline: 2px solid #0f0;
+  outline-offset: 2px;
+}
+
+/* Common utility classes */
+.text-center {
+  text-align: center;
+}
+
+.matrix-text {
+  color: #0f0;
+  text-shadow: 0 0 5px #0f0;
+}
+
+.matrix-border {
+  border: 1px solid #0f0;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+}

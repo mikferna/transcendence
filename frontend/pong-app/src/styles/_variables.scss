@@ -1,0 +1,40 @@
+/* Color Variables */
+$matrix-green: #0f0;
+$matrix-dark-green: #008000;
+$matrix-black: #000;
+
+/* Glow Effects */
+$text-glow-small: 0 0 5px $matrix-green;
+$text-glow-medium: 0 0 10px $matrix-green, 0 0 20px $matrix-green;
+$text-glow-large: 0 0 20px $matrix-green, 0 0 30px $matrix-green, 0 0 40px $matrix-green;
+
+/* Box Shadows */
+$box-shadow-small: 0 0 10px rgba(0, 255, 0, 0.4);
+$box-shadow-medium: 0 0 15px rgba(0, 255, 0, 0.6);
+$box-shadow-large: 0 0 25px rgba(0, 255, 0, 0.8);
+
+/* Typography */
+$font-family-main: 'Courier New', monospace;
+$font-size-small: 14px;
+$font-size-medium: 18px;
+$font-size-large: 24px;
+$font-size-xlarge: 36px;
+$font-size-xxlarge: 80px;
+
+/* Spacing */
+$spacing-xs: 5px;
+$spacing-sm: 10px;
+$spacing-md: 20px;
+$spacing-lg: 30px;
+$spacing-xl: 50px;
+
+/* Breakpoints */
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+/* Transitions */
+$transition-fast: all 0.2s ease;
+$transition-medium: all 0.3s ease;
+$transition-slow: all 0.4s ease;

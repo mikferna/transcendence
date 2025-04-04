@@ -1,16 +1,47 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { FooterComponent } from './footer/footer.component';
-import { HeaderComponent } from './header/header.component';
-import { HomeComponent } from './home/home.component';
+import { Component, ViewEncapsulation, AfterViewInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { MatrixService } from './services/matrix.service';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, FooterComponent, HeaderComponent, HomeComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
-export class AppComponent {
-  title = 'app';
+export class AppComponent implements AfterViewInit, OnDestroy {
+  title = 'NeoPong'; // Título del juego
+
+  constructor(
+    private router: Router,
+    private matrixService: MatrixService,
+    public authService: AuthService
+  ) {} // Inyectamos Router, MatrixService y AuthService
+
+  ngAfterViewInit(): void {
+    // Inicializar el fondo de Matrix después de que el DOM está completamente cargado
+    setTimeout(() => {
+      this.matrixService.initMatrix();
+    }, 100);
+    
+    // Manejar el cambio de tamaño de ventana
+    window.addEventListener('resize', () => {
+      this.matrixService.handleResize();
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Detener la animación de Matrix cuando el componente se destruye
+    this.matrixService.stopMatrix();
+  }
+
+  // Método para navegar a las rutas
+  selectMode(mode: string) {
+    console.log("Modo seleccionado:", mode);
+    this.router.navigate([`/${mode}`]); // Redirige a la ruta correspondiente
+  }
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
 }

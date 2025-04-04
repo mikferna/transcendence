@@ -58,10 +58,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'tournament_name', 'avatar')
+        fields = ('username', 'email', 'avatar')
         extra_kwargs = {
+            'username': {'required': False},
             'email': {'required': False},
-            'tournament_name': {'required': False},
             'avatar': {'required': False}
         }
 
@@ -73,22 +73,22 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         if User.objects.exclude(pk=user.pk).filter(email=value).exists():
             raise serializers.ValidationError("This email is already in use")
         return value
-
-    def validate_tournament_name(self, value):
+        
+    def validate_username(self, value):
         """
-        Check that the tournament_name is unique
+        Check that the username is unique
         """
         user = self.context['request'].user
-        if User.objects.exclude(pk=user.pk).filter(tournament_name=value).exists():
-            raise serializers.ValidationError("This tournament name is already in use")
+        if User.objects.exclude(pk=user.pk).filter(username=value).exists():
+            raise serializers.ValidationError("This username is already in use")
         return value
 
     def update(self, instance, validated_data):
         # Only update fields that were actually passed
         if 'email' in validated_data:
             instance.email = validated_data['email']
-        if 'tournament_name' in validated_data:
-            instance.tournament_name = validated_data['tournament_name']
+        if 'username' in validated_data:
+            instance.username = validated_data['username']
         if 'avatar' in validated_data:
             instance.avatar = validated_data['avatar']
         

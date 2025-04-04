@@ -30,7 +30,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - ./frontend/pong-app:/usr/src/app/pong-app/app
+      - ./frontend/pong-app:/usr/src/app
     ports:
       - "4200:4200"  # Puerto del servidor Angular
     networks:
