@@ -727,12 +727,29 @@ class searchUsers(APIView):
             id=request.user.id
         )[:10]
         
-        user_data = [{
-            'id': user.id,
-            'username': user.username,
-            'avatar': user.avatar.url if user.avatar else None,
-            'is_online': user.is_online,
-        } for user in users]
+        user_data = []
+        for user in users:
+            # Verificar si es amigo
+            is_friend = request.user.friends.filter(id=user.id).exists()
+            
+            # Verificar si está bloqueado
+            is_blocked = request.user.blocked_users.filter(id=user.id).exists()
+            
+            # Verificar si hay una solicitud de amistad pendiente
+            has_pending_request = FriendRequest.objects.filter(
+                (Q(from_user=request.user, to_user=user) | Q(from_user=user, to_user=request.user)),
+                status='pending'
+            ).exists()
+            
+            user_data.append({
+                'id': user.id,
+                'username': user.username,
+                'avatar': user.avatar.url if user.avatar else None,
+                'is_online': user.is_online,
+                'is_friend': is_friend,
+                'is_blocked': is_blocked,
+                'has_pending_request': has_pending_request
+            })
         
         return Response(user_data, status=status.HTTP_200_OK)
 

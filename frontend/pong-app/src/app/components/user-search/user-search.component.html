@@ -1,51 +1,96 @@
-<div class="user-search-container">
-  <div class="search-header">
-    <h3>Buscar Usuarios</h3>
-    <button class="close-button" (click)="closeSearch()">×</button>
-  </div>
-  
-  <div class="search-box">
-    <input 
-      type="text" 
-      [(ngModel)]="searchQuery" 
-      (input)="searchUsers()"
-      placeholder="Buscar usuarios..."
-      class="search-input"
-    >
-  </div>
-
-  <div class="users-list" *ngIf="users.length > 0">
-    <div class="user-card" *ngFor="let user of users">
-      <div class="user-info">
-        <img [src]="user.avatar || 'assets/default-avatar.png'" alt="Avatar" class="user-avatar">
-        <div class="user-details">
-          <span class="username">{{ user.username }}</span>
-          <span class="status" [class.online]="user.is_online">● {{ user.is_online ? 'En línea' : 'Desconectado' }}</span>
-        </div>
-      </div>
-      <div class="user-actions">
-        <button 
-          *ngIf="!user.friendRequestSent"
-          (click)="sendFriendRequest(user.id)" 
-          class="action-button add-friend"
+<div class="user-search-overlay" (click)="onOverlayClick($event)" [@fadeAnimation]>
+  <div class="user-search-container" [@slideAnimation]>
+    <div class="search-header">
+      <h3>Buscar Usuarios</h3>
+      <button class="close-button" (click)="closeSearch()" aria-label="Cerrar búsqueda">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="searchUsers()"
+          placeholder="Buscar usuarios..."
+          class="search-input"
+          autocomplete="off"
         >
-          Agregar amigo
-        </button>
-        <button 
-          (click)="blockUser(user.username)" 
-          class="action-button block"
-        >
-          Bloquear
+        <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()" aria-label="Limpiar búsqueda">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
         </button>
       </div>
     </div>
-  </div>
 
-  <div class="loading" *ngIf="loading">
-    Buscando usuarios...
-  </div>
+    <div class="users-list" *ngIf="users.length > 0">
+      <div class="user-card" *ngFor="let user of users" [@cardAnimation]>
+        <div class="user-info">
+          <div class="avatar-container">
+            <img [src]="user.avatar || 'assets/default-avatar.png'" alt="Avatar" class="user-avatar">
+            <span class="status-indicator" [class.online]="user.is_online"></span>
+          </div>
+          <div class="user-details">
+            <span class="username">{{ user.username }}</span>
+            <span class="status-text">{{ user.is_online ? 'En línea' : 'Desconectado' }}</span>
+          </div>
+        </div>
+        
+        <div class="user-actions">
+          <!-- Badges para estados -->
+          <span class="status-badge friend" *ngIf="user.is_friend">Amigo</span>
+          <span class="status-badge blocked" *ngIf="user.is_blocked">Bloqueado</span>
+          <span class="status-badge pending" *ngIf="user.has_pending_request">Pendiente</span>
+          
+          <!-- Botones de acción -->
+          <button 
+            *ngIf="!user.is_friend && !user.is_blocked && !user.has_pending_request"
+            (click)="sendFriendRequest(user.id)" 
+            class="action-button add-friend"
+          >Agregar</button>
+          
+          <button 
+            *ngIf="!user.is_blocked"
+            (click)="blockUser(user.username)" 
+            class="action-button block"
+          >Bloquear</button>
+          
+          <button 
+            *ngIf="user.is_blocked"
+            (click)="unblockUser(user.username)" 
+            class="action-button unblock"
+          >Desbloquear</button>
+        </div>
+      </div>
+    </div>
 
-  <div class="error" *ngIf="error">
-    {{ error }}
+    <div class="loading-container" *ngIf="loading">
+      <div class="loading-spinner"></div>
+      <span>Buscando usuarios...</span>
+    </div>
+
+    <div class="error-container" *ngIf="error">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ error }}</span>
+    </div>
+    
+    <div class="no-results" *ngIf="!loading && users.length === 0 && searchQuery && !error">
+      <span>No se encontraron usuarios</span>
+    </div>
   </div>
-</div> 
+</div>
