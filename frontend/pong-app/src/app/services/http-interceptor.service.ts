@@ -22,8 +22,10 @@ export class HttpInterceptorService implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // Si la URL es para refrescar el token, no añadir el token de acceso
-    if (request.url.includes('/token/refresh/')) {
+    // No añadir token a las peticiones de autenticación
+    if (request.url.includes('/login/') || 
+        request.url.includes('/register/') || 
+        request.url.includes('/token/refresh/')) {
       return next.handle(request);
     }
 

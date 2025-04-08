@@ -1,0 +1,8 @@
+{
+  "/media": {
+    "target": "http://django:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}
