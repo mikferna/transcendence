@@ -16,6 +16,7 @@ import { LoadingScreenComponent } from './components/loading-screen/loading-scre
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './login/login.component';
 import { UserSettingsComponent } from './components/user-settings/user-settings.component';
+import { UserSearchComponent } from './components/user-search/user-search.component';
 
 // Services
 import { MatrixService } from './services/matrix.service';
@@ -26,7 +27,6 @@ import { HttpInterceptorService } from './services/http-interceptor.service';
   declarations: [
     AppComponent,
     LandingComponent,
-    HeaderComponent,
     FooterComponent,
     GameModeSelectorComponent,
     LoadingScreenComponent,
@@ -39,7 +39,9 @@ import { HttpInterceptorService } from './services/http-interceptor.service';
     ReactiveFormsModule,
     AppRoutingModule,
     LoginComponent,
-    UserSettingsComponent
+    UserSettingsComponent,
+    UserSearchComponent,
+    HeaderComponent
   ],
   providers: [
     MatrixService,

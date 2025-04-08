@@ -1,0 +1,51 @@
+<div class="user-search-container">
+  <div class="search-header">
+    <h3>Buscar Usuarios</h3>
+    <button class="close-button" (click)="closeSearch()">×</button>
+  </div>
+  
+  <div class="search-box">
+    <input 
+      type="text" 
+      [(ngModel)]="searchQuery" 
+      (input)="searchUsers()"
+      placeholder="Buscar usuarios..."
+      class="search-input"
+    >
+  </div>
+
+  <div class="users-list" *ngIf="users.length > 0">
+    <div class="user-card" *ngFor="let user of users">
+      <div class="user-info">
+        <img [src]="user.avatar || 'assets/default-avatar.png'" alt="Avatar" class="user-avatar">
+        <div class="user-details">
+          <span class="username">{{ user.username }}</span>
+          <span class="status" [class.online]="user.is_online">● {{ user.is_online ? 'En línea' : 'Desconectado' }}</span>
+        </div>
+      </div>
+      <div class="user-actions">
+        <button 
+          *ngIf="!user.friendRequestSent"
+          (click)="sendFriendRequest(user.id)" 
+          class="action-button add-friend"
+        >
+          Agregar amigo
+        </button>
+        <button 
+          (click)="blockUser(user.username)" 
+          class="action-button block"
+        >
+          Bloquear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    Buscando usuarios...
+  </div>
+
+  <div class="error" *ngIf="error">
+    {{ error }}
+  </div>
+</div> 
