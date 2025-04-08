@@ -26,6 +26,7 @@ export class UserSettingsComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.userForm = this.fb.group({
+      username: ['', [Validators.required, Validators.maxLength(30)]],
       email: ['', [Validators.required, Validators.email]],
       tournament_name: ['', [Validators.required, Validators.maxLength(50)]],
       avatar: [null]
@@ -41,14 +42,21 @@ export class UserSettingsComponent implements OnInit {
       next: (data: any) => {
         this.currentUser = data;
         this.userForm.patchValue({
+          username: data.username,
           email: data.email,
           tournament_name: data.tournament_name
         });
-        this.avatarPreview = data.avatar;
+        if (data.avatar) {
+          if (!data.avatar.startsWith('http')) {
+            this.avatarPreview = `http://localhost:8000${data.avatar}`;
+          } else {
+            this.avatarPreview = data.avatar;
+          }
+        }
       },
       error: (error) => {
+        console.error('Error al cargar los datos del usuario:', error);
         this.error = 'Error al cargar los datos del usuario';
-        console.error('Error:', error);
       }
     });
   }
@@ -72,6 +80,7 @@ export class UserSettingsComponent implements OnInit {
   onSubmit() {
     if (this.userForm.valid) {
       const formData = new FormData();
+      formData.append('username', this.userForm.get('username')?.value);
       formData.append('email', this.userForm.get('email')?.value);
       formData.append('tournament_name', this.userForm.get('tournament_name')?.value);
       
@@ -79,7 +88,7 @@ export class UserSettingsComponent implements OnInit {
         formData.append('avatar', this.selectedFile);
       }
 
-      this.http.post(`${environment.apiUrl}/user_update/`, formData).subscribe({
+      this.http.patch(`${environment.apiUrl}/user_update/`, formData).subscribe({
         next: (response) => {
           this.message = 'Perfil actualizado exitosamente';
           this.error = '';
