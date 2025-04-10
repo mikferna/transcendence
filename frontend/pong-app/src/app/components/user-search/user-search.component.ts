@@ -4,6 +4,7 @@ import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, animate, transition } from '@angular/animations';
+import { Router } from '@angular/router';  // Importamos Router
 
 interface User {
   id: number;
@@ -11,7 +12,6 @@ interface User {
   avatar: string | null;
   is_online: boolean;
   is_friend: boolean;
-  is_blocked: boolean;
   has_pending_request: boolean;
 }
 
@@ -58,7 +58,10 @@ export class UserSearchComponent implements OnInit {
   error: string = '';
   loading: boolean = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router  // Inyectamos Router
+  ) {}
 
   ngOnInit() {}
 
@@ -117,7 +120,10 @@ export class UserSearchComponent implements OnInit {
     return `http://localhost:8000${avatarUrl}`;
   }
 
-  sendFriendRequest(userId: number) {
+  sendFriendRequest(userId: number, event: Event) {
+    // Detener la propagación del evento para evitar la navegación
+    event.stopPropagation();
+    
     const user = this.users.find(u => u.id === userId);
     if (!user) return;
 
@@ -133,31 +139,15 @@ export class UserSearchComponent implements OnInit {
     });
   }
 
-  blockUser(username: string) {
-    this.http.post(`${environment.apiUrl}/block/${username}/`, {}).subscribe({
-      next: (response) => {
-        const user = this.users.find(u => u.username === username);
-        if (user) {
-          user.is_blocked = true;
-        }
-      },
-      error: (error) => {
-        console.error('Error al bloquear usuario:', error);
-      }
-    });
-  }
-
-  unblockUser(username: string) {
-    this.http.post(`${environment.apiUrl}/unblock/${username}/`, {}).subscribe({
-      next: (response) => {
-        const user = this.users.find(u => u.username === username);
-        if (user) {
-          user.is_blocked = false;
-        }
-      },
-      error: (error) => {
-        console.error('Error al desbloquear usuario:', error);
-      }
-    });
+  // Nuevo método para navegar al perfil de usuario
+  navigateToProfile(username: string, event: Event) {
+    // Verificamos si el clic fue en un botón (para evitar navegación)
+    const target = event.target as HTMLElement;
+    if (target.closest('.action-button')) {
+      return; // No navegamos si se hizo clic en un botón
+    }
+    
+    this.router.navigate(['/profile', username]);
+    this.closeSearch(); // Cerramos la búsqueda después de navegar
   }
 }

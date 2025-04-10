@@ -28,6 +28,7 @@ urlpatterns = [
     path('friend-requests/accept/<int:request_id>/', views.acceptFriendRequest.as_view(), name='accept_friend_request'),
     path('friend-requests/decline/<int:request_id>/', views.declineFriendRequest.as_view(), name='decline_friend_request'),
     path('friend-requests/remove/', views.removeFriend.as_view(), name='remove_friend'),
+    path('friend-requests/status/<str:username>/', views.FriendRequestStatus.as_view(), name='friend_request_status'),
     
     # Bloqueos
     path('block/<str:username>/', views.blockUser.as_view(), name='user_block'),

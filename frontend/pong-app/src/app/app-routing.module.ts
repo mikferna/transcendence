@@ -8,6 +8,7 @@ import { UserSettingsComponent } from './components/user-settings/user-settings.
 import { LoginComponent } from './login/login.component';
 import { LogoutComponent } from './components/logout/logout.component';
 import { RegisterComponent } from './components/register/register.component';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
 
 const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -15,6 +16,7 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: UserSettingsComponent, canActivate: [AuthGuard] },
+  { path: 'profile/:username', component: UserProfileComponent, canActivate: [AuthGuard] },
   { path: 'logout', component: LogoutComponent },
   { path: '**', redirectTo: '' }
 ];

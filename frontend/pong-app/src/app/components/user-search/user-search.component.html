@@ -35,7 +35,12 @@
     </div>
 
     <div class="users-list" *ngIf="users.length > 0">
-      <div class="user-card" *ngFor="let user of users" [@cardAnimation]>
+      <div 
+        class="user-card" 
+        *ngFor="let user of users" 
+        [@cardAnimation]
+        (click)="navigateToProfile(user.username, $event)"
+      >
         <div class="user-info">
           <div class="avatar-container">
             <img [src]="user.avatar || 'assets/default-avatar.png'" alt="Avatar" class="user-avatar">
@@ -50,27 +55,14 @@
         <div class="user-actions">
           <!-- Badges para estados -->
           <span class="status-badge friend" *ngIf="user.is_friend">Amigo</span>
-          <span class="status-badge blocked" *ngIf="user.is_blocked">Bloqueado</span>
           <span class="status-badge pending" *ngIf="user.has_pending_request">Pendiente</span>
           
           <!-- Botones de acción -->
           <button 
-            *ngIf="!user.is_friend && !user.is_blocked && !user.has_pending_request"
-            (click)="sendFriendRequest(user.id)" 
+            *ngIf="!user.is_friend && !user.has_pending_request"
+            (click)="sendFriendRequest(user.id, $event)" 
             class="action-button add-friend"
           >Agregar</button>
-          
-          <button 
-            *ngIf="!user.is_blocked"
-            (click)="blockUser(user.username)" 
-            class="action-button block"
-          >Bloquear</button>
-          
-          <button 
-            *ngIf="user.is_blocked"
-            (click)="unblockUser(user.username)" 
-            class="action-button unblock"
-          >Desbloquear</button>
         </div>
       </div>
     </div>

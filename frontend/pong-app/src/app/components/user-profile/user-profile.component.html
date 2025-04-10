@@ -1,0 +1,86 @@
+<div class="profile-container" *ngIf="!loading && profile">
+  <div class="profile-header">
+    <div class="avatar-container">
+      <img [src]="getAbsoluteAvatarUrl(profile.avatar)" alt="Avatar" class="profile-avatar">
+      <span class="online-status" [class.online]="profile.is_online" [class.offline]="!profile.is_online">
+        {{ profile.is_online ? 'En línea' : 'Desconectado' }}
+      </span>
+    </div>
+    <div class="profile-info">
+      <h1>{{ profile.username }}</h1>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value">{{ profile.games_played }}</span>
+          <span class="stat-label">Partidas jugadas</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ profile.games_won }}</span>
+          <span class="stat-label">Victorias</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ getWinRate() }}%</span>
+          <span class="stat-label">Tasa de victoria</span>
+        </div>
+      </div>
+      <!-- Solo mostrar botones de acción si no es el perfil propio -->
+      <div class="actions" *ngIf="!profile.is_current_user">
+        <button *ngIf="!profile.is_friend && !profile.has_pending_request"
+                (click)="addFriend()"
+                class="btn btn-primary">
+          <i class="fas fa-user-plus"></i> Agregar amigo
+        </button>
+        <button *ngIf="profile.is_friend"
+                (click)="removeFriend()"
+                class="btn btn-danger"
+                title="Eliminar de tu lista de amigos">
+          <i class="fas fa-user-minus"></i> Eliminar amigo
+        </button>
+        <button *ngIf="profile.has_pending_request"
+               class="btn btn-warning" 
+               disabled>
+          <i class="fas fa-clock"></i> Solicitud enviada
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="profile-sections">
+    <div class="section">
+      <h2>Amigos</h2>
+      <div class="friends-list">
+        <div *ngFor="let friend of profile.friends" class="friend-item">
+          <img [src]="getAbsoluteAvatarUrl(friend.avatar)" alt="Avatar" class="friend-avatar">
+          <span class="friend-name">{{ friend.username }}</span>
+          <span class="online-status" [class.online]="friend.is_online" [class.offline]="!friend.is_online">
+            {{ friend.is_online ? 'En línea' : 'Desconectado' }}
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>Historial de partidas</h2>
+      <div class="match-history">
+        <div *ngFor="let match of profile.match_history" class="match-item">
+          <div class="match-opponent">
+            <img [src]="getAbsoluteAvatarUrl(match.opponent_avatar)" alt="Avatar" class="opponent-avatar">
+            <span>{{ match.opponent }}</span>
+          </div>
+          <div class="match-result" [class.win]="match.result === 'win'" [class.loss]="match.result === 'loss'">
+            {{ match.result === 'win' ? 'Victoria' : 'Derrota' }}
+          </div>
+          <div class="match-score">{{ match.score }}</div>
+          <div class="match-date">{{ match.date }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="loading">
+  Cargando perfil...
+</div>
+
+<div *ngIf="error" class="error">
+  {{ error }}
+</div>

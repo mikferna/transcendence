@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from .models import User, FriendRequest
+from .models import *
 from rest_framework.generics import GenericAPIView, ListAPIView, UpdateAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .serializers import LoginSerializer, RegisterSerializer, UpdateUserSerializer
+from .serializers import *
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -782,3 +782,31 @@ def test_connection(request):
         'message': 'Conexión exitosa con Django!',
         'status': 'success'
     }, status=status.HTTP_200_OK)
+
+class FriendRequestStatus(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, username):
+        try:
+            target_user = User.objects.get(username=username)
+            
+            # Verificar si son amigos
+            is_friend = request.user.friends.filter(id=target_user.id).exists()
+            
+            # Verificar si hay solicitud pendiente
+            has_pending_request = FriendRequest.objects.filter(
+                (Q(from_user=request.user, to_user=target_user) | 
+                 Q(from_user=target_user, to_user=request.user)),
+                status='pending'
+            ).exists()
+            
+            return Response({
+                'is_friend': is_friend,
+                'has_pending_request': has_pending_request
+            }, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Usuario no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
+            )

@@ -13,7 +13,6 @@
   --warning-color: #ff9800;
   --warning-color-hover: #e68a00;
   --friend-color: #4CAF50;
-  --blocked-color: #f44336;
   --pending-color: #ff9800;
   --border-radius-sm: 6px;
   --border-radius-md: 8px;
@@ -208,10 +207,13 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   align-items: center;
   gap: 10px;
+  cursor: pointer;
 }
 
 .user-card:hover {
   background-color: rgba(58, 58, 58, 0.7);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .user-info {
@@ -305,10 +307,6 @@
   background-color: var(--friend-color);
 }
 
-.status-badge.blocked {
-  background-color: var(--blocked-color);
-}
-
 .status-badge.pending {
   background-color: var(--pending-color);
 }
@@ -353,26 +351,6 @@
 
 .add-friend:hover {
   background-color: var(--accent-color-hover);
-}
-
-.block {
-  background-color: var(--bg-tertiary);
-  color: var(--text-secondary);
-}
-
-.block:hover {
-  background-color: var(--error-color);
-  color: white;
-}
-
-.unblock {
-  background-color: var(--bg-tertiary);
-  color: var(--text-secondary);
-}
-
-.unblock:hover {
-  background-color: var(--accent-color);
-  color: white;
 }
 
 /* Estados de carga y error */
