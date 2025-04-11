@@ -375,4 +375,24 @@
 .match-date {
   color: #666;
   font-size: 0.9rem;
-} 
+}
+
+.friends-list.scrollable {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 5px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.friend-item {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.friend-item:last-child {
+  border-bottom: none;
+}

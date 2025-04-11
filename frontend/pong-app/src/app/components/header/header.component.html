@@ -1,14 +1,23 @@
 <header>
   <!-- Overlay para cerrar todos los menús -->
-  <div class="menu-overlay" *ngIf="isMenuOpen || isProfileMenuOpen" (click)="closeAllMenus()"></div>
+  <div class="menu-overlay" *ngIf="isMenuOpen || isProfileMenuOpen || showNotifications" (click)="closeAllMenus()"></div>
   
   <!-- Logo con enlace a inicio -->
   <div class="logo">
-    <img src="assets/logo.png" alt="Logo" routerLink="/">
+    <img src="assets/logo.png" alt="Logo" routerLink="/home">
   </div>
   
   <!-- Menú principal -->
   <div class="menu">
+    <!-- Botón de notificaciones -->
+    <div class="menu-trigger notification-trigger" (click)="toggleNotifications($event)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      <span class="notification-badge" *ngIf="friendRequests.length > 0">{{ friendRequests.length }}</span>
+    </div>
+
     <!-- Botón de menú con ícono de engranaje -->
     <div class="menu-trigger" (click)="toggleMenu()">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon" [style.transform]="'rotate(' + gearRotation + 'deg)'">
@@ -42,9 +51,6 @@
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </div>
-        
-        <!-- El menú desplegable ahora aparecerá en una capa separada, centrado -->
-
       </div>
       
       <!-- Opción de cerrar sesión -->
@@ -75,6 +81,13 @@
         </button>
       </div>
       <div class="centered-menu-items">
+        <div class="dropdown-item" (click)="navigateToProfile()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Mi Perfil</span>
+        </div>
         <div class="dropdown-item" (click)="navigateToSettings()">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
@@ -82,20 +95,46 @@
           </svg>
           <span>Configuración</span>
         </div>
-        <!-- Espacio para futuras opciones -->
-        <div class="dropdown-item disabled">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menú de notificaciones -->
+  <div class="notifications-container" *ngIf="showNotifications" [@menuAnimation]="showNotifications ? 'open' : 'closed'" (click)="$event.stopPropagation()">
+    <div class="notifications-menu">
+      <div class="notifications-header">
+        <span>Solicitudes de amistad</span>
+        <button class="close-button" (click)="showNotifications = false">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
-          <span>Opción futura 1</span>
+        </button>
+      </div>
+      <div class="notifications-list">
+        <div *ngIf="friendRequests.length === 0" class="no-notifications">
+          No hay solicitudes pendientes
         </div>
-        <div class="dropdown-item disabled">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-          </svg>
-          <span>Opción futura 2</span>
+        <div *ngFor="let request of friendRequests" class="notification-item">
+          <div class="notification-content">
+            <div class="notification-info">
+              <span class="notification-username">{{ request.from_user.username }}</span>
+              <span class="notification-time">{{ request.created_at | date:'short' }}</span>
+            </div>
+          </div>
+          <div class="notification-actions">
+            <button class="accept-button" (click)="acceptFriendRequest(request.id)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+            <button class="decline-button" (click)="declineFriendRequest(request.id)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

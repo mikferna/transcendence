@@ -281,31 +281,51 @@ class sendFriendRequest(APIView):
                 )
 
             with transaction.atomic():
-                # Check for existing requests
+                # Check for existing requests regardless of status
                 existing_request = FriendRequest.objects.filter(
                     Q(from_user=request.user, to_user=to_user) |
-                    Q(from_user=to_user, to_user=request.user),
-                    status='pending'
+                    Q(from_user=to_user, to_user=request.user)
                 ).first()
 
                 if existing_request:
                     if existing_request.from_user == request.user:
-                        return Response(
-                            {'error': 'Friend request already sent'},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
+                        if existing_request.status == 'pending':
+                            return Response(
+                                {'error': 'Friend request already sent'},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+                        elif existing_request.status == 'declined':
+                            # Reactivate the declined request
+                            existing_request.status = 'pending'
+                            existing_request.save(update_fields=['status', 'updated_at'])
+                            return Response(
+                                {'message': 'Friend request sent successfully'},
+                                status=status.HTTP_201_CREATED
+                            )
                     else:
-                        # Accept existing request
-                        existing_request.status = 'accepted'
-                        existing_request.save()
-                        request.user.friends.add(to_user)
-                        to_user.friends.add(request.user)
-                        return Response(
-                            {'message': 'Friend request accepted'},
-                            status=status.HTTP_200_OK
-                        )
+                        # Accept existing request if it's from the other user
+                        if existing_request.status == 'pending':
+                            existing_request.status = 'accepted'
+                            existing_request.save()
+                            request.user.friends.add(to_user)
+                            to_user.friends.add(request.user)
+                            return Response(
+                                {'message': 'Friend request accepted'},
+                                status=status.HTTP_200_OK
+                            )
+                        elif existing_request.status == 'declined':
+                            # Create a new request since the other direction was declined
+                            FriendRequest.objects.create(
+                                from_user=request.user,
+                                to_user=to_user,
+                                status='pending'
+                            )
+                            return Response(
+                                {'message': 'Friend request sent successfully'},
+                                status=status.HTTP_201_CREATED
+                            )
 
-                # Create new request
+                # Create new request if none exists
                 FriendRequest.objects.create(
                     from_user=request.user,
                     to_user=to_user,

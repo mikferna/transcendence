@@ -217,8 +217,11 @@ export class UserProfileComponent implements OnInit {
 
   removeFriend() {
     if (!this.profile) return;
-
+  
     if (confirm(`¿Estás seguro de que quieres eliminar a ${this.profile.username} de tu lista de amigos?`)) {
+      console.log('Removing friend with ID:', this.profile.id);  // Added this line
+      console.log('Full profile data:', this.profile);  // Also log the full profile to check all data
+      
       this.http.post(`${environment.apiUrl}/friend-requests/remove/`, { 
         friend_id: this.profile.id 
       }).subscribe({
@@ -233,6 +236,7 @@ export class UserProfileComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error al eliminar amigo:', error);
+          console.error('Error details:', error.error); // Log detailed error response
         }
       });
     }

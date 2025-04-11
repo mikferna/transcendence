@@ -4,6 +4,8 @@ import { AuthService } from '../../services/auth.service';
 import { UserSearchComponent } from '../user-search/user-search.component';
 import { CommonModule } from '@angular/common';
 import { trigger, state, style, animate, transition } from '@angular/animations';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-header',
@@ -38,26 +40,33 @@ export class HeaderComponent implements OnInit {
   showUserSearch: boolean = false;
   isProfileMenuOpen: boolean = false;
   isMenuOpen: boolean = false;
+  showNotifications: boolean = false;
   gearRotation: number = 0;
+  friendRequests: any[] = [];
 
   constructor(
     private router: Router,
     private authService: AuthService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
+      if (user) {
+        this.loadFriendRequests();
+      }
     });
   }
 
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
     
-    // Si estamos abriendo el menú principal, cerramos el menú de perfil
+    // Cerramos otros menús abiertos
     if (this.isMenuOpen) {
       this.isProfileMenuOpen = false;
+      this.showNotifications = false;
       this.gearRotation = 90;
       document.body.classList.add('menu-open');
     } else {
@@ -81,15 +90,34 @@ export class HeaderComponent implements OnInit {
   }
 
   toggleProfileMenu(event: MouseEvent) {
-    // Detener la propagación para evitar que el evento llegue al document
     event.stopPropagation();
-    // Alternar el estado del menú de perfil
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
+    
+    // Cerramos otros menús abiertos
+    if (this.isProfileMenuOpen) {
+      this.isMenuOpen = false;
+      this.showNotifications = false;
+      this.gearRotation = 0;
+    }
+  }
+
+  toggleNotifications(event: MouseEvent) {
+    event.stopPropagation();
+    this.showNotifications = !this.showNotifications;
+    
+    // Cerramos otros menús abiertos
+    if (this.showNotifications) {
+      this.isMenuOpen = false;
+      this.isProfileMenuOpen = false;
+      this.gearRotation = 0;
+      this.loadFriendRequests();
+    }
   }
 
   closeAllMenus() {
     this.isMenuOpen = false;
     this.isProfileMenuOpen = false;
+    this.showNotifications = false;
     this.gearRotation = 0;
     document.body.classList.remove('menu-open');
   }
@@ -97,6 +125,15 @@ export class HeaderComponent implements OnInit {
   navigateToSettings() {
     this.router.navigate(['/settings']);
     this.closeAllMenus();
+  }
+
+  navigateToProfile() {
+    if (this.currentUser && this.currentUser.username) {
+      this.router.navigate(['/profile', this.currentUser.username]);
+      this.closeAllMenus();
+    } else {
+      console.error('No se pudo obtener el nombre de usuario actual');
+    }
   }
 
   openUserSearch() {
@@ -126,6 +163,39 @@ export class HeaderComponent implements OnInit {
   getAbsoluteAvatarUrl(avatarUrl: string): string {
     if (!avatarUrl) return '';
     if (avatarUrl.startsWith('http')) return avatarUrl;
-    return `http://localhost:8000${avatarUrl}`;
+    return `${environment.apiUrl}${avatarUrl}`;
+  }
+
+  loadFriendRequests() {
+    this.http.get(`${environment.apiUrl}/friend-requests/list/`).subscribe({
+      next: (data: any) => {
+        this.friendRequests = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar solicitudes de amistad:', error);
+      }
+    });
+  }
+
+  acceptFriendRequest(requestId: number) {
+    this.http.post(`${environment.apiUrl}/friend-requests/accept/${requestId}/`, {}).subscribe({
+      next: () => {
+        this.loadFriendRequests();
+      },
+      error: (error) => {
+        console.error('Error al aceptar solicitud:', error);
+      }
+    });
+  }
+
+  declineFriendRequest(requestId: number) {
+    this.http.post(`${environment.apiUrl}/friend-requests/decline/${requestId}/`, {}).subscribe({
+      next: () => {
+        this.loadFriendRequests();
+      },
+      error: (error) => {
+        console.error('Error al rechazar solicitud:', error);
+      }
+    });
   }
 }
