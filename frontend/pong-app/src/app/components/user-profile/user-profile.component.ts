@@ -101,9 +101,6 @@ export class UserProfileComponent implements OnInit {
     this.loading = true;
     this.error = '';
     
-    // Verificar si hay datos guardados en localStorage
-    const storedState = this.getFriendshipStateFromStorage();
-
     // Obtenemos la información del perfil directamente, que incluye el estado de amistad
     this.http.get(`${environment.apiUrl}/user/${this.username}/`).subscribe({
       next: (data: any) => {
@@ -119,34 +116,17 @@ export class UserProfileComponent implements OnInit {
                 // Obtener estado de la solicitud de amistad
                 this.http.get(`${environment.apiUrl}/friend-requests/status/${this.username}/`).subscribe({
                   next: (statusData: any) => {
-                    // Imprimir estado de la solicitud
-                    console.log('Estado de la solicitud de amistad:', {
-                      username: this.username,
-                      is_friend: statusData.is_friend,
-                      has_pending_request: statusData.has_pending_request
-                    });
-
-                    // Si hay datos guardados en localStorage, usarlos en lugar de los de la API
-                    // para mantener consistencia con cambios locales
-                    const is_friend = storedState ? storedState.is_friend : 
-                                     statusData.is_friend;
-                    
-                    const has_pending_request = storedState ? storedState.has_pending_request : 
-                                               statusData.has_pending_request;
-                    
                     this.profile = {
                       ...profileData,
                       id: profileData.id,
                       date_joined: new Date(profileData.date_joined).toLocaleDateString(),
                       match_history: matchesData.matches || [],
                       friends: friendsData || [],
-                      is_friend: is_friend,
-                      has_pending_request: has_pending_request,
+                      is_friend: statusData.is_friend,
+                      has_pending_request: statusData.has_pending_request,
                       is_current_user: this.isCurrentUserProfile()
                     };
                     
-                    // Guardar estado actualizado
-                    this.saveFriendshipState();
                     this.loading = false;
                   },
                   error: (error) => {
@@ -189,100 +169,5 @@ export class UserProfileComponent implements OnInit {
   getWinRate(): number {
     if (!this.profile || this.profile.games_played === 0) return 0;
     return Math.round((this.profile.games_won / this.profile.games_played) * 100);
-  }
-
-  addFriend() {
-    if (!this.profile) return;
-
-    this.http.post(`${environment.apiUrl}/friend-requests/send/`, { 
-      to_username: this.username 
-    }).subscribe({
-      next: (response) => {
-        // Actualizar inmediatamente la UI al recibir respuesta exitosa
-        if (this.profile) {
-          this.profile.has_pending_request = true;
-          this.saveFriendshipState();
-        }
-      },
-      error: (error) => {
-        // Incluso si hay error, actualizamos la UI para evitar intentos duplicados
-        if (this.profile) {
-          this.profile.has_pending_request = true;
-          this.saveFriendshipState();
-        }
-        console.error('Error al agregar amigo:', error);
-      }
-    });
-  }
-
-  removeFriend() {
-    if (!this.profile) return;
-  
-    if (confirm(`¿Estás seguro de que quieres eliminar a ${this.profile.username} de tu lista de amigos?`)) {
-      console.log('Removing friend with ID:', this.profile.id);  // Added this line
-      console.log('Full profile data:', this.profile);  // Also log the full profile to check all data
-      
-      this.http.post(`${environment.apiUrl}/friend-requests/remove/`, { 
-        friend_id: this.profile.id 
-      }).subscribe({
-        next: (response) => {
-          // Actualizar inmediatamente la UI
-          if (this.profile) {
-            this.profile.is_friend = false;
-            this.profile.has_pending_request = false;
-            this.saveFriendshipState();
-            console.log(`Has eliminado a ${this.profile.username} de tus amigos`);
-          }
-        },
-        error: (error) => {
-          console.error('Error al eliminar amigo:', error);
-          console.error('Error details:', error.error); // Log detailed error response
-        }
-      });
-    }
-  }
-
-  // Guardar el estado de amistad en localStorage para persistencia
-  private saveFriendshipState() {
-    if (!this.profile) return;
-    
-    // Crear una clave única para este perfil
-    const key = `friendship_${this.currentUsername}_${this.username}`;
-    
-    // Guardar el estado actual
-    localStorage.setItem(key, JSON.stringify({
-      is_friend: this.profile.is_friend,
-      has_pending_request: this.profile.has_pending_request,
-      timestamp: new Date().getTime() // Para expirar datos viejos
-    }));
-  }
-
-  // Recuperar el estado de amistad desde localStorage (si existe)
-  private getFriendshipStateFromStorage(): {is_friend: boolean, has_pending_request: boolean} | null {
-    const key = `friendship_${this.currentUsername}_${this.username}`;
-    const storedData = localStorage.getItem(key);
-    
-    if (!storedData) return null;
-    
-    try {
-      const data = JSON.parse(storedData);
-      
-      // Verificar si los datos son recientes (menos de 1 hora)
-      const now = new Date().getTime();
-      const timestamp = data.timestamp || 0;
-      
-      // Si los datos son más viejos que 1 hora, ignorarlos
-      if (now - timestamp > 3600000) {
-        localStorage.removeItem(key);
-        return null;
-      }
-      
-      return {
-        is_friend: data.is_friend,
-        has_pending_request: data.has_pending_request
-      };
-    } catch (e) {
-      return null;
-    }
   }
 }

@@ -365,6 +365,12 @@ class removeFriend(APIView):
         # Remove friendship in both directions
         request.user.friends.remove(friend)
         friend.friends.remove(request.user)
+        
+        # Eliminar cualquier solicitud de amistad existente entre estos usuarios
+        FriendRequest.objects.filter(
+            Q(from_user=request.user, to_user=friend) | 
+            Q(from_user=friend, to_user=request.user)
+        ).delete()
 
         return Response(
             {'message': 'Friend removed successfully'},
@@ -384,11 +390,11 @@ class declineFriendRequest(APIView):
                     status='pending'
                 )
                 
-                friend_request.status = 'declined'
-                friend_request.save(update_fields=['status', 'updated_at'])
+                # En lugar de cambiar el estado, eliminamos la solicitud completamente
+                friend_request.delete()
                 
                 logger.info(
-                    f"Friend request {request_id} declined by {request.user.username}",
+                    f"Friend request {request_id} declined and deleted by {request.user.username}",
                     extra={'user': request.user.id, 'friend_request': request_id}
                 )
                 

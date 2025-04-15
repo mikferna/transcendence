@@ -21,25 +21,6 @@
           <span class="stat-value">{{ getWinRate() }}%</span>           
           <span class="stat-label">Tasa de victoria</span>         
         </div>       
-      </div>       
-      <!-- Solo mostrar botones de acción si no es el perfil propio -->       
-      <div class="actions" *ngIf="!profile.is_current_user">         
-        <button *ngIf="!profile.is_friend && !profile.has_pending_request"                 
-                (click)="addFriend()"                 
-                class="btn btn-primary">           
-          <i class="fas fa-user-plus"></i> Agregar amigo         
-        </button>         
-        <button *ngIf="profile.is_friend"                 
-                (click)="removeFriend()"                 
-                class="btn btn-danger"                 
-                title="Eliminar de tu lista de amigos">           
-          <i class="fas fa-user-minus"></i> Eliminar amigo         
-        </button>         
-        <button *ngIf="profile.has_pending_request"                
-                class="btn btn-warning"                 
-                disabled>           
-          <i class="fas fa-clock"></i> Solicitud enviada         
-        </button>       
       </div>     
     </div>   
   </div>      

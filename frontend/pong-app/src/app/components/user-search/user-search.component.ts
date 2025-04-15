@@ -1,10 +1,10 @@
 import { Component, OnInit, Output, EventEmitter, HostListener } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, animate, transition } from '@angular/animations';
-import { Router } from '@angular/router';  // Importamos Router
+import { Router } from '@angular/router';
 
 interface User {
   id: number;
@@ -12,7 +12,11 @@ interface User {
   avatar: string | null;
   is_online: boolean;
   is_friend: boolean;
+  is_blocked: boolean;
   has_pending_request: boolean;
+  pending_request_id?: number;
+  request_direction?: 'sent' | 'received';
+  sending_request?: boolean; // Nueva propiedad para controlar el estado de envío
 }
 
 @Component({
@@ -57,15 +61,32 @@ export class UserSearchComponent implements OnInit {
   users: User[] = [];
   error: string = '';
   loading: boolean = false;
+  pendingRequests: any[] = [];
 
   constructor(
     private http: HttpClient,
-    private router: Router  // Inyectamos Router
+    private router: Router
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.loadPendingRequests();
+  }
+  
+  loadPendingRequests() {
+    this.http.get(`${environment.apiUrl}/friend-requests/list/`).subscribe({
+      next: (data: any) => {
+        this.pendingRequests = data;
+        // Si ya hay resultados de búsqueda, actualiza su estado
+        if (this.users.length > 0) {
+          this.processUserRequests();
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar solicitudes pendientes:', error);
+      }
+    });
+  }
 
-  // Método para cerrar cuando se hace clic fuera del contenedor
   @HostListener('click', ['$event'])
   onOverlayClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
@@ -74,7 +95,6 @@ export class UserSearchComponent implements OnInit {
     }
   }
 
-  // Método para cerrar con la tecla Escape
   @HostListener('document:keydown.escape')
   onEscapePress() {
     this.closeSearch();
@@ -97,8 +117,11 @@ export class UserSearchComponent implements OnInit {
       next: (data: any) => {
         this.users = data.map((user: any) => ({
           ...user,
-          avatar: user.avatar ? this.getAbsoluteAvatarUrl(user.avatar) : null
+          avatar: user.avatar ? this.getAbsoluteAvatarUrl(user.avatar) : null,
+          sending_request: false // Inicializar el estado de envío
         }));
+        
+        this.processUserRequests();
         this.loading = false;
       },
       error: (error) => {
@@ -107,6 +130,23 @@ export class UserSearchComponent implements OnInit {
         console.error('Error:', error);
       }
     });
+  }
+  
+  processUserRequests() {
+    for (const user of this.users) {
+      if (user.has_pending_request) {
+        const receivedRequest = this.pendingRequests.find(req => 
+          req.from_user.id === user.id
+        );
+        
+        if (receivedRequest) {
+          user.request_direction = 'received';
+          user.pending_request_id = receivedRequest.id;
+        } else {
+          user.request_direction = 'sent';
+        }
+      }
+    }
   }
 
   clearSearch() {
@@ -121,33 +161,113 @@ export class UserSearchComponent implements OnInit {
   }
 
   sendFriendRequest(userId: number, event: Event) {
-    // Detener la propagación del evento para evitar la navegación
     event.stopPropagation();
     
     const user = this.users.find(u => u.id === userId);
-    if (!user) return;
+    if (!user || user.sending_request) return; // Prevenir envíos múltiples
+
+    // Marcar como en proceso para evitar doble envío
+    user.sending_request = true;
 
     this.http.post(`${environment.apiUrl}/friend-requests/send/`, {
       to_username: user.username
     }).subscribe({
       next: (response) => {
         user.has_pending_request = true;
+        user.request_direction = 'sent';
+        user.sending_request = false; // Restablecer después del éxito
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('Error al enviar solicitud:', error);
+        
+        // Si recibimos error por solicitud duplicada (400 con mensaje específico)
+        if (error.status === 400 && error.error?.error === 'Friend request already sent') {
+          // Actualizar UI como si la solicitud hubiera sido exitosa
+          user.has_pending_request = true;
+          user.request_direction = 'sent';
+        } else if (error.status === 500) {
+          // Si es un error 500, probablemente sea un duplicado no detectado
+          // Actualizar UI como si la solicitud hubiera sido exitosa también
+          user.has_pending_request = true;
+          user.request_direction = 'sent';
+        }
+        
+        user.sending_request = false; // Restablecer después del error
       }
     });
   }
 
-  // Nuevo método para navegar al perfil de usuario
+  acceptFriendRequest(userId: number, requestId: number | undefined, event: Event) {
+    event.stopPropagation();
+    const user = this.users.find(u => u.id === userId);
+    if (!user || !requestId || user.sending_request) return;
+
+    user.sending_request = true;
+
+    this.http.post(`${environment.apiUrl}/friend-requests/accept/${requestId}/`, {}).subscribe({
+      next: (response) => {
+        user.has_pending_request = false;
+        user.is_friend = true;
+        this.pendingRequests = this.pendingRequests.filter(req => req.id !== requestId);
+        user.sending_request = false;
+      },
+      error: (error) => {
+        console.error('Error al aceptar solicitud:', error);
+        user.sending_request = false;
+      }
+    });
+  }
+
+  rejectFriendRequest(userId: number, requestId: number | undefined, event: Event) {
+    event.stopPropagation();
+    const user = this.users.find(u => u.id === userId);
+    if (!user || !requestId || user.sending_request) return;
+
+    user.sending_request = true;
+
+    this.http.post(`${environment.apiUrl}/friend-requests/decline/${requestId}/`, {}).subscribe({
+      next: (response) => {
+        user.has_pending_request = false;
+        this.pendingRequests = this.pendingRequests.filter(req => req.id !== requestId);
+        user.sending_request = false;
+      },
+      error: (error) => {
+        console.error('Error al rechazar solicitud:', error);
+        user.sending_request = false;
+      }
+    });
+  }
+
+  removeFriend(userId: number, event: Event) {
+    event.stopPropagation();
+    const user = this.users.find(u => u.id === userId);
+    if (!user || user.sending_request) return;
+
+    if (confirm(`¿Estás seguro de que quieres eliminar a ${user.username} de tu lista de amigos?`)) {
+      user.sending_request = true;
+      
+      this.http.post(`${environment.apiUrl}/friend-requests/remove/`, {
+        friend_id: user.id
+      }).subscribe({
+        next: (response) => {
+          user.is_friend = false;
+          user.sending_request = false;
+        },
+        error: (error) => {
+          console.error('Error al eliminar amigo:', error);
+          user.sending_request = false;
+        }
+      });
+    }
+  }
+
   navigateToProfile(username: string, event: Event) {
-    // Verificamos si el clic fue en un botón (para evitar navegación)
     const target = event.target as HTMLElement;
     if (target.closest('.action-button')) {
-      return; // No navegamos si se hizo clic en un botón
+      return;
     }
     
     this.router.navigate(['/profile', username]);
-    this.closeSearch(); // Cerramos la búsqueda después de navegar
+    this.closeSearch();
   }
 }
