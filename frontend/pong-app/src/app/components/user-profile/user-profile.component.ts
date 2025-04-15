@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
@@ -41,12 +41,13 @@ interface UserProfile {
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class UserProfileComponent implements OnInit {
+export class UserProfileComponent implements OnInit, OnDestroy {
   profile: UserProfile | null = null;
   loading: boolean = true;
   error: string = '';
   username: string = '';
   currentUsername: string = '';
+  private statusUpdateInterval: any = null;
 
   constructor(
     private http: HttpClient,
@@ -61,6 +62,13 @@ export class UserProfileComponent implements OnInit {
       this.username = params['username'];
       this.loadProfile();
     });
+  }
+  
+  ngOnDestroy() {
+    // Limpiar el intervalo cuando se destruye el componente
+    if (this.statusUpdateInterval) {
+      clearInterval(this.statusUpdateInterval);
+    }
   }
 
   // Obtener el usuario actual desde localStorage o API
@@ -169,5 +177,34 @@ export class UserProfileComponent implements OnInit {
   getWinRate(): number {
     if (!this.profile || this.profile.games_played === 0) return 0;
     return Math.round((this.profile.games_won / this.profile.games_played) * 100);
+  }
+  
+  // Método para actualizar solo el estado online/offline
+  updateOnlineStatus() {
+    if (!this.profile) return;
+    
+    // Usar el endpoint específico para estado online
+    this.http.get(`${environment.apiUrl}/user/${this.username}/online-status/`).subscribe({
+      next: (data: any) => {
+        if (this.profile && data) {
+          // Actualizar el estado online del usuario
+          this.profile.is_online = data.is_online;
+          
+          // Actualizar el estado online de los amigos
+          if (data.friends && Array.isArray(data.friends) && this.profile.friends) {
+            data.friends.forEach((friendStatus: any) => {
+              const friendIndex = this.profile?.friends.findIndex(f => f.id === friendStatus.id);
+              if (friendIndex !== -1 && friendIndex !== undefined && this.profile) {
+                this.profile.friends[friendIndex].is_online = friendStatus.is_online;
+              }
+            });
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error al actualizar estado online:', error);
+        // No mostrar error al usuario para no interrumpir la experiencia
+      }
+    });
   }
 }

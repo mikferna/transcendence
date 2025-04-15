@@ -40,6 +40,8 @@ class login(GenericAPIView):
             if user:
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
+                user.is_online = True
+                user.save()
 
                 return Response({
                     'refresh': str(refresh),
@@ -98,13 +100,19 @@ class logout(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
-            # Simply use the JWT token blacklist functionality
+            # Primero actualizamos el estado del usuario
+            user = request.user
+            user.is_online = False
+            user.save()
+
+            # Luego manejamos el token
             refresh_token = request.data.get('refresh')
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
         except Exception as e:
             logger.error(f"Error in logout: {str(e)}")
-            # Still return success as the user should be considered logged out
+            # Aún así consideramos que el usuario está desconectado
             
         return Response(
             {'message': 'User logged out successfully'},
@@ -563,6 +571,24 @@ class AccountRefresh(TokenRefreshView):
             return Response(
                 {'error': 'Invalid or expired refresh token'},
                 status=status.HTTP_401_UNAUTHORIZED
+            )
+
+class UserOnlineStatus(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+
+            return Response({
+                'username': user.username,
+                'is_online': user.is_online
+            }, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response(
+                {'error': f'Usuario "{username}" no encontrado'},
+                status=status.HTTP_404_NOT_FOUND
             )
 
 @api_view(['POST'])

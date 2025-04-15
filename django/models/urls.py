@@ -20,7 +20,8 @@ urlpatterns = [
     path('user/<str:username>/', views.userDetail.as_view(), name="userDetail"),
     path('users/', views.accountsList.as_view(), name='user_list'),
     path('users/search/', views.searchUsers.as_view(), name='search_users'),
-    
+    path('user/<str:username>/online-status/', views.UserOnlineStatus.as_view(), name='user-online-status'),
+
     # Amigos
     path('friends/<str:username>/list/', views.ListFriendsView, name='friend_list'),
     path('friend-requests/send/', views.sendFriendRequest.as_view(), name='send_friend_request'),
