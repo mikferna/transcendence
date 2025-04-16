@@ -14,20 +14,10 @@ interface GameMode {
 export class GameModeSelectorComponent {
   gameModes: GameMode[] = [
     {
-      name: 'Online',
-      description: 'Play against opponents from around the world',
+      name: 'Play',
+      description: 'Be Safe',
       active: false
     },
-    {
-      name: 'Solo',
-      description: 'Practice your skills against AI',
-      active: false
-    },
-    {
-      name: 'LAN',
-      description: 'Connect with friends on your local network',
-      active: false
-    }
   ];
   
   selectGameMode(selectedMode: GameMode): void {
