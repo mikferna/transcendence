@@ -11,7 +11,6 @@ COPY run.sh /code/django/
 RUN pip install --upgrade pip
 RUN pip install -r /code/django/requirements.txt
 
-
 RUN chmod +x /code/django/run.sh
 
 EXPOSE 8000

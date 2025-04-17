@@ -77,11 +77,15 @@ class FortyTwoCallbackView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        print("Entrando en FortyTwoCallbackView") 
         code = request.query_params.get('code')
+        print(f"Código recibido: {code}")
         if not code:
+            print("Código no encontrado, redirigiendo al frontend con error")
             return redirect(f"{settings.FRONTEND_URL}/auth-error?error=missing_code")
 
         try:
+            print("Procesando el código...")
             token_response = requests.post(
                 'https://api.intra.42.fr/oauth/token',
                 data={
@@ -95,6 +99,7 @@ class FortyTwoCallbackView(APIView):
             )
 
             if token_response.status_code != 200:
+                print("Problema con el intercambio del token...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=token_exchange_failed")
 
             access_token = token_response.json().get('access_token')
@@ -105,6 +110,7 @@ class FortyTwoCallbackView(APIView):
             )
 
             if user_response.status_code != 200:
+                print("Problema con la informacion de usuario...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=user_info_failed")
 
             user_data = user_response.json()
@@ -112,6 +118,7 @@ class FortyTwoCallbackView(APIView):
             email_42 = user_data.get('email')
 
             if not username_42 or not email_42:
+                print("Problema con los datos de usuario...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=invalid_user_data")
 
             user, created = User.objects.get_or_create(username=username_42, defaults={'email': email_42})
@@ -122,7 +129,7 @@ class FortyTwoCallbackView(APIView):
 
             # ✅ Redirigir al frontend con los tokens
             # return redirect(f"{settings.FRONTEND_URL}/auth-success?access={access}&refresh={refresh_token}")
-            return redirect(f"{settings.FRONTEND_URL}/")
+            return redirect(f"{settings.FRONTEND_URL}/auth-success?access={access}&refresh={refresh_token}")
         except Exception:
             return redirect(f"{settings.FRONTEND_URL}/auth-error?error=internal_server_error")
             

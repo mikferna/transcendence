@@ -246,5 +246,4 @@ LOGGING = {
 FT_CLIENT_ID = os.getenv('FT_CLIENT_ID')
 FT_CLIENT_SECRET = os.getenv('FT_CLIENT_SECRET')
 FT_REDIRECT_URI = os.getenv('FT_REDIRECT_URI', 'http://localhost:8000/auth/callback/')
-
-FRONTEND_URL = 'http://localhost:4200'
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")

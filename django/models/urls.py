@@ -15,8 +15,8 @@ urlpatterns = [
 
     # Autenticación contra la API de 42
    # path('auth/authorize/', Authorize42View.as_view(), name='authorize'),
-    path('auth/login42/', views.login42.as_view(), name='login42'),
-   # path('auth/callback/', FortyTwoCallbackView.as_view(), name='42_callback'),
+    path('auth/authorize/', views.login42.as_view(), name='login42'),
+    path('auth/callback/', views.FortyTwoCallbackView.as_view(), name='42_callback'),
     
     # Perfil de usuario
     path('user_delete/', views.deleteProfile.as_view(), name="deleteProfile"),

@@ -12,3 +12,4 @@ daphne
 channels
 channels-redis==4.1.0
 python-dotenv
+requests
