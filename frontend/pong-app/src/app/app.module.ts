@@ -17,6 +17,7 @@ import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './login/login.component';
 import { UserSettingsComponent } from './components/user-settings/user-settings.component';
 import { UserSearchComponent } from './components/user-search/user-search.component';
+//import { AuthSuccessComponent } from './auth-success/auth-success.component';
 
 // Services
 import { MatrixService } from './services/matrix.service';
@@ -26,6 +27,7 @@ import { HttpInterceptorService } from './services/http-interceptor.service';
 @NgModule({
   declarations: [
     AppComponent,
+  //  AuthSuccessComponent,
     LandingComponent,
     FooterComponent,
     GameModeSelectorComponent,

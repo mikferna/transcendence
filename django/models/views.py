@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.shortcuts import redirect
 from django.shortcuts import render
 from .models import *
 from rest_framework.generics import GenericAPIView, ListAPIView, UpdateAPIView
@@ -17,6 +19,7 @@ from django.db import transaction
 from django.db.models import Q
 import logging
 import re
+import requests
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -58,6 +61,71 @@ class login(GenericAPIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+class login42(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        redirect_uri = settings.FT_REDIRECT_URI
+        return redirect(
+            f"https://api.intra.42.fr/oauth/authorize"
+            f"?client_id={settings.FT_CLIENT_ID}"
+            f"&redirect_uri={redirect_uri}"
+            f"&response_type=code"
+        )
+
+class FortyTwoCallbackView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.query_params.get('code')
+        if not code:
+            return redirect(f"{settings.FRONTEND_URL}/auth-error?error=missing_code")
+
+        try:
+            token_response = requests.post(
+                'https://api.intra.42.fr/oauth/token',
+                data={
+                    'grant_type': 'authorization_code',
+                    'client_id': settings.FT_CLIENT_ID,
+                    'client_secret': settings.FT_CLIENT_SECRET,
+                    'code': code,
+                    'redirect_uri': settings.FT_REDIRECT_URI,
+                },
+                headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            )
+
+            if token_response.status_code != 200:
+                return redirect(f"{settings.FRONTEND_URL}/auth-error?error=token_exchange_failed")
+
+            access_token = token_response.json().get('access_token')
+
+            user_response = requests.get(
+                'https://api.intra.42.fr/v2/me',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+
+            if user_response.status_code != 200:
+                return redirect(f"{settings.FRONTEND_URL}/auth-error?error=user_info_failed")
+
+            user_data = user_response.json()
+            username_42 = user_data.get('login')
+            email_42 = user_data.get('email')
+
+            if not username_42 or not email_42:
+                return redirect(f"{settings.FRONTEND_URL}/auth-error?error=invalid_user_data")
+
+            user, created = User.objects.get_or_create(username=username_42, defaults={'email': email_42})
+
+            refresh = RefreshToken.for_user(user)
+            access = str(refresh.access_token)
+            refresh_token = str(refresh)
+
+            # ✅ Redirigir al frontend con los tokens
+            # return redirect(f"{settings.FRONTEND_URL}/auth-success?access={access}&refresh={refresh_token}")
+            return redirect(f"{settings.FRONTEND_URL}/")
+        except Exception:
+            return redirect(f"{settings.FRONTEND_URL}/auth-error?error=internal_server_error")
+            
 class register(APIView):
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer

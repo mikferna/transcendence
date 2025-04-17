@@ -9,10 +9,13 @@ import { LoginComponent } from './login/login.component';
 import { LogoutComponent } from './components/logout/logout.component';
 import { RegisterComponent } from './components/register/register.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
+//import { AuthSuccessComponent } from './auth-success/auth-success.component';
 
 const routes: Routes = [
   { path: '', component: LandingComponent },
   { path: 'login', component: LoginComponent },
+  //revisar nombre del componente
+//  { path: 'auth-success', component: AuthSuccessComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: UserSettingsComponent, canActivate: [AuthGuard] },

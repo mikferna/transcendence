@@ -12,6 +12,11 @@ urlpatterns = [
     path('activate/', views.activateAccount.as_view(), name='activate_account'),
     path('token/refresh/', views.AccountRefresh.as_view(), name='token_refresh'),
     path('validate_credentials/', views.validate_credentials, name='validate-credentials'),
+
+    # Autenticación contra la API de 42
+   # path('auth/authorize/', Authorize42View.as_view(), name='authorize'),
+    path('auth/login42/', views.login42.as_view(), name='login42'),
+   # path('auth/callback/', FortyTwoCallbackView.as_view(), name='42_callback'),
     
     # Perfil de usuario
     path('user_delete/', views.deleteProfile.as_view(), name="deleteProfile"),

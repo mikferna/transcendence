@@ -241,3 +241,10 @@ LOGGING = {
         },
     },
 }
+
+# 42 API Credentials (se espera que estén en el entorno del contenedor)
+FT_CLIENT_ID = os.getenv('FT_CLIENT_ID')
+FT_CLIENT_SECRET = os.getenv('FT_CLIENT_SECRET')
+FT_REDIRECT_URI = os.getenv('FT_REDIRECT_URI', 'http://localhost:8000/auth/callback/')
+
+FRONTEND_URL = 'http://localhost:4200'
