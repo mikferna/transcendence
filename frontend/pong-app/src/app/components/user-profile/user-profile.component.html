@@ -42,15 +42,18 @@
       <h2>Historial de partidas</h2>       
       <div class="match-history">         
         <div *ngFor="let match of profile.match_history" class="match-item">           
-          <div class="match-opponent">             
-            <img [src]="getAbsoluteAvatarUrl(match.opponent_avatar)" alt="Avatar" class="opponent-avatar">             
-            <span>{{ match.opponent }}</span>           
-          </div>           
-          <div class="match-result" [class.win]="match.result === 'win'" [class.loss]="match.result === 'loss'">             
-            {{ match.result === 'win' ? 'Victoria' : 'Derrota' }}           
-          </div>           
-          <div class="match-score">{{ match.score }}</div>           
-          <div class="match-date">{{ match.date }}</div>         
+          <div class="match-players">
+            <span class="player">{{ match.player1 }}</span>
+            <span class="vs">vs</span>
+            <span class="player">{{ match.is_against_ai ? 'IA' : match.player2 }}</span>
+          </div>
+          <div class="match-score">
+            {{ match.player1_score }} - {{ match.player2_score }}
+          </div>
+          <div class="match-winner" [class.win]="match.winner_username === profile.username">
+            {{ match.winner_username === profile.username ? 'Victoria' : 'Derrota' }}
+          </div>
+          <div class="match-date">{{ match.match_date | date:'dd/MM/yyyy HH:mm' }}</div>
         </div>       
       </div>     
     </div>   

@@ -1,4 +1,4 @@
-/* Variables CSS para mantener consistencia */
+/* Mantenemos las variables CSS para consistencia */
 :root {
   --bg-primary: #1a1a1a;
   --bg-secondary: #1a1a1a;
@@ -27,16 +27,7 @@
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-:host {
-  --bg-primary: #1a1a1a;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --accent-color: #4CAF50;
-  --accent-hover: #45a049;
-  --border-radius: 8px;
-  --transition-speed: 0.3s;
-}
-
+/* Estilos del contenedor principal */
 .match-container {
   min-height: 100vh;
   display: flex;
@@ -47,7 +38,7 @@
 }
 
 .match-content {
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
   padding: 2rem;
   background-color: rgba(255, 255, 255, 0.05);
@@ -71,6 +62,7 @@
   font-size: 1rem;
 }
 
+/* Botones principales */
 .match-buttons {
   display: flex;
   flex-direction: column;
@@ -78,7 +70,7 @@
   width: 100%;
 }
 
-.play-button, .config-button, .game-mode-button, .back-button, .player-count-button, .start-button {
+.play-button, .game-mode-button, .back-button, .start-button {
   padding: 16px 24px;
   font-size: 18px;
   border-radius: var(--border-radius-md);
@@ -102,38 +94,6 @@
   background-color: var(--hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
-}
-
-.config-button {
-  background-color: var(--accent-secondary);
-  color: var(--text-primary);
-  width: 100%;
-  margin-top: 1rem;
-}
-
-.config-button:hover {
-  background-color: #1976D2;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-}
-
-.game-modes, .player-count-selection, .player-selection {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 100%;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .game-mode-button {
@@ -169,35 +129,16 @@
   fill: none;
 }
 
-/* Estilos para la selección de número de jugadores */
-.player-count-selection h3, .player-selection h3 {
+/* Estilos para la selección de jugadores */
+.player-selection {
+  width: 100%;
+}
+
+.player-selection h3 {
   color: var(--text-primary);
   font-size: 20px;
   margin: 0 0 15px 0;
   text-align: center;
-}
-
-.player-count-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 100%;
-}
-
-.player-count-button {
-  background-color: var(--accent-primary);
-  color: var(--text-primary);
-}
-
-.player-count-button:hover {
-  background-color: var(--hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Estilos para la selección de jugadores */
-.player-selection {
-  width: 100%;
 }
 
 .player-selection h4 {
@@ -233,33 +174,6 @@
 
 .player-item:hover {
   background-color: #3a3a3a;
-}
-
-.player-avatar {
-  position: relative;
-  margin-right: 10px;
-}
-
-.player-avatar img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.status-indicator {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #9e9e9e;
-  border: 2px solid var(--bg-secondary);
-}
-
-.status-indicator.online {
-  background-color: var(--accent-primary);
 }
 
 .player-name {
@@ -378,6 +292,131 @@
   cursor: not-allowed;
 }
 
+/* Estilos para la pantalla de juego */
+.game-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.game-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.game-header h2 {
+  color: var(--text-primary);
+  font-size: 24px;
+  margin: 0;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.score {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--accent-primary);
+}
+
+.game-area {
+  width: 100%;
+  height: 300px;
+  background-color: var(--bg-tertiary);
+  border-radius: 8px;
+  position: relative;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Elementos del juego Pong */
+.pong-canvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.paddle {
+  width: 12px;
+  height: 80px;
+  background-color: var(--text-primary);
+  position: absolute;
+  border-radius: 4px;
+}
+
+.left-paddle {
+  left: 20px;
+  top: calc(50% - 40px);
+  animation: paddleMove 3s infinite alternate;
+}
+
+.right-paddle {
+  right: 20px;
+  top: calc(50% - 40px);
+  animation: paddleMove 2.5s infinite alternate-reverse;
+}
+
+.ball {
+  width: 15px;
+  height: 15px;
+  background-color: var(--accent-primary);
+  border-radius: 50%;
+  position: absolute;
+  top: calc(50% - 7.5px);
+  left: calc(50% - 7.5px);
+  animation: ballMove 4s infinite linear;
+}
+
+@keyframes paddleMove {
+  0% {
+    transform: translateY(-70px);
+  }
+  100% {
+    transform: translateY(70px);
+  }
+}
+
+@keyframes ballMove {
+  0% {
+    transform: translate(-100px, -60px);
+  }
+  25% {
+    transform: translate(100px, 60px);
+  }
+  50% {
+    transform: translate(-20px, -80px);
+  }
+  75% {
+    transform: translate(80px, 30px);
+  }
+  100% {
+    transform: translate(-100px, -60px);
+  }
+}
+
+.game-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.game-controls p {
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0;
+}
+
+/* Responsive */
 @media (max-width: 600px) {
   .match-content {
     padding: 1.5rem;
@@ -394,168 +433,8 @@
   .action-buttons {
     flex-direction: column;
   }
-}
-
-.game-modes {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.mode-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: var(--border-radius);
-  color: var(--text-primary);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all var(--transition-speed);
-}
-
-.mode-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.mode-button svg {
-  width: 24px;
-  height: 24px;
-}
-
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background-color: transparent;
-  border: 1px solid var(--text-secondary);
-  border-radius: var(--border-radius);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all var(--transition-speed);
-}
-
-.back-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary);
-}
-
-.player-selection {
-  margin-top: 2rem;
-}
-
-.selected-players {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.player {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: var(--border-radius);
-}
-
-.player.logged-in {
-  background-color: rgba(76, 175, 80, 0.2);
-}
-
-.player-name {
-  color: var(--text-primary);
-  font-size: 1rem;
-}
-
-.remove-button {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0.25rem;
-  transition: color var(--transition-speed);
-}
-
-.remove-button:hover {
-  color: #ff4444;
-}
-
-.play-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 1rem;
-  background-color: var(--accent-color);
-  border: none;
-  border-radius: var(--border-radius);
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all var(--transition-speed);
-}
-
-.play-button:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-  transform: translateY(-2px);
-}
-
-.play-button:disabled {
-  background-color: var(--text-secondary);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.config-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 1rem;
-  margin-top: 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: var(--border-radius);
-  color: var(--text-primary);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all var(--transition-speed);
-}
-
-.config-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-@media (max-width: 600px) {
-  .match-content {
-    padding: 1.5rem;
+  
+  .game-area {
+    height: 250px;
   }
-
-  .match-header h1 {
-    font-size: 1.75rem;
-  }
-
-  .match-header p {
-    font-size: 0.9rem;
-  }
-
-  .mode-button,
-  .play-button,
-  .config-button {
-    padding: 0.75rem;
-    font-size: 0.9rem;
-  }
-} 
+}

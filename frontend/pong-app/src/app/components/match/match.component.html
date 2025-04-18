@@ -5,15 +5,17 @@
       <p>Selecciona un modo de juego para comenzar</p>
     </div>
     
-    <div class="match-buttons">
+    <!-- Pantalla inicial -->
+    <div class="match-buttons" *ngIf="!gameStarted">
       <button class="play-button" (click)="playGame()" *ngIf="!showGameModes">
         <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
           <polygon points="5 3 19 12 5 21 5 3"></polygon>
         </svg>
-        Play
+        Jugar
       </button>
       
-      <div class="game-modes" *ngIf="showGameModes && !showPlayerCount && !showPlayerSelection">
+      <!-- Selección de modo de juego -->
+      <div class="game-modes" *ngIf="showGameModes && !showPlayerSelection">
         <button class="game-mode-button" (click)="selectGameMode('1v1')">
           <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -30,7 +32,7 @@
             <line x1="12" y1="8" x2="12" y2="16"></line>
             <line x1="8" y1="12" x2="16" y2="12"></line>
           </svg>
-          AI
+          Contra IA
         </button>
         
         <button class="back-button" (click)="goBack()">
@@ -42,60 +44,12 @@
         </button>
       </div>
       
-      <div class="player-count-selection" *ngIf="showPlayerCount && !showPlayerSelection">
-        <h3>Selecciona el número de jugadores</h3>
-        
-        <div class="player-count-buttons">
-          <button class="player-count-button" (click)="selectPlayerCount(2)">
-            <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            2 Jugadores
-          </button>
-          
-          <button class="player-count-button" (click)="selectPlayerCount(3)">
-            <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              <path d="M12 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M5 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            3 Jugadores
-          </button>
-          
-          <button class="player-count-button" (click)="selectPlayerCount(4)">
-            <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              <path d="M12 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M5 3.13a4 4 0 0 1 0 7.75"></path>
-              <path d="M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path>
-            </svg>
-            4 Jugadores
-          </button>
-        </div>
-        
-        <button class="back-button" (click)="goBack()">
-          <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          Volver
-        </button>
-      </div>
-      
+      <!-- Selección de jugadores -->
       <div class="player-selection" *ngIf="showPlayerSelection">
-        <h3>Selecciona los jugadores</h3>
+        <h3>Selecciona a tu oponente</h3>
         
         <div class="selected-players">
-          <h4>Jugadores seleccionados ({{ selectedPlayers.length }}/{{ playerCount }})</h4>
+          <h4>Jugadores seleccionados ({{ selectedPlayers.length }}/2)</h4>
           <div class="player-list">
             <div class="player-item" *ngFor="let player of selectedPlayers">
               <div class="player-name">{{ player.username }}</div>
@@ -109,8 +63,8 @@
           </div>
         </div>
         
-        <div class="player-search" *ngIf="selectedPlayers.length < playerCount">
-          <h4>Buscar jugadores</h4>
+        <div class="player-search" *ngIf="selectedPlayers.length < 2">
+          <h4>Buscar oponente</h4>
           <div class="search-input-wrapper">
             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="8"></circle>
@@ -161,7 +115,7 @@
             Volver
           </button>
           
-          <button class="start-button" (click)="startGame()" [disabled]="selectedPlayers.length !== playerCount">
+          <button class="start-button" (click)="startGame()" [disabled]="selectedPlayers.length !== 2">
             <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
@@ -169,14 +123,39 @@
           </button>
         </div>
       </div>
+    </div>
+    
+    <!-- Pantalla de juego -->
+    <div class="game-screen" *ngIf="gameStarted">
+      <div class="game-header">
+        <h2>{{ isAgainstAI ? 'Jugando contra IA' : 'Jugando 1v1' }}</h2>
+        <div class="score-display">
+          <span class="player-name">{{ currentUser?.username }}</span>
+          <span class="score">{{ player1Score }} - {{ player2Score }}</span>
+          <span class="player-name">{{ isAgainstAI ? 'IA' : (selectedPlayers.length > 1 ? selectedPlayers[1].username : '') }}</span>
+        </div>
+      </div>
       
-      <button class="config-button" (click)="configureGame()">
-        <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-        Configurar
-      </button>
+      <div class="game-area">
+        <!-- Canvas para el juego (simulado) -->
+        <div class="pong-canvas">
+          <div class="paddle left-paddle"></div>
+          <div class="ball"></div>
+          <div class="paddle right-paddle"></div>
+        </div>
+      </div>
+      
+      <div class="game-controls">
+        <p *ngIf="!gameEnded">
+          Simulando partida de Pong...
+        </p>
+        <p *ngIf="gameEnded">
+          ¡Partida terminada! Guardando resultados...
+        </p>
+        <button class="back-button" (click)="goBack()" *ngIf="!gameEnded">
+          Abandonar
+        </button>
+      </div>
     </div>
   </div>
-</div> 
+</div>

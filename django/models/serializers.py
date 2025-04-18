@@ -96,11 +96,28 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         return instance
 
 class MatchSerializer(serializers.ModelSerializer):
+    # Campos adicionales para obtener los usernames
+    player1_username = serializers.CharField(source='player1.username', read_only=True)
+    player2_username = serializers.SerializerMethodField(read_only=True)
+    winner_username = serializers.SerializerMethodField(read_only=True)
+    
     class Meta:
         model = Match
         fields = [
-            'id', 'player1', 'player2', 'is_against_ai', 'ai_difficulty',
-            'player1_score', 'player2_score', 'winner', 'is_player1_winner',
-            'match_date', 'match_type'
+            'id', 'player1', 'player2', 'player1_username', 'player2_username',
+            'is_against_ai', 'ai_difficulty', 'player1_score', 'player2_score',
+            'winner', 'winner_username', 'is_player1_winner', 'match_date', 'match_type'
         ]
         read_only_fields = ['id', 'match_date']
+    
+    def get_player2_username(self, obj):
+        # Devolver el username del player2 solo si existe (no es una partida contra IA)
+        if obj.player2:
+            return obj.player2.username
+        return None
+    
+    def get_winner_username(self, obj):
+        # Devolver el username del ganador solo si existe
+        if obj.winner:
+            return obj.winner.username
+        return None
