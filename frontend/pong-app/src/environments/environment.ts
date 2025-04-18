@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000/models'
+  apiUrl: 'https://fantastic-space-orbit-46xvg9wxvr9hq5qw-8000.app.github.dev/models'
 }; 

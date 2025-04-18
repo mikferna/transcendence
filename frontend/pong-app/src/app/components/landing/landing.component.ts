@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-landing',
@@ -18,8 +19,8 @@ export class LandingComponent {
     }
     
   // Redirigir a la URL de autorización del backend Django
-  window.location.href = 'http://localhost:8000/auth/authorize/';
-
+  //window.location.href = '${environment.apiUrl}/auth/authorize/';
+  window.location.href = `${environment.apiUrl}/auth/authorize/`;
     // Navigate to home after delay
    // setTimeout(() => {
    //   if (loadingScreenElement) {
