@@ -98,11 +98,23 @@ class FortyTwoCallbackView(APIView):
                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
             )
 
+            print(f"Token response status: {token_response.status_code}")
+            print(f"Token response body: {token_response.text}")
+            
+            # Extraer el access_token del JSON de la respuesta
+            access_token = token_response.json().get('access_token')
+
+            # Verificar si el access_token fue obtenido correctamente
+            if not access_token:
+                print("No se pudo obtener el access_token")
+                return redirect(f"{settings.FRONTEND_URL}/auth-error?error=missing_access_token")
+
+            # Imprimir el access_token para depuración
+            print(f"Access token is: {access_token}")
+
             if token_response.status_code != 200:
                 print("Problema con el intercambio del token...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=token_exchange_failed")
-
-            access_token = token_response.json().get('access_token')
 
             user_response = requests.get(
                 'https://api.intra.42.fr/v2/me',
@@ -116,6 +128,10 @@ class FortyTwoCallbackView(APIView):
             user_data = user_response.json()
             username_42 = user_data.get('login')
             email_42 = user_data.get('email')
+
+            # Imprimir los datos de usuario
+            print(user_data)
+            print(f"Username is: {username_42} and email is: {email_42}")
 
             if not username_42 or not email_42:
                 print("Problema con los datos de usuario...")
