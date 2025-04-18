@@ -1,101 +1,112 @@
-<div class="profile-container" *ngIf="!loading && profile">   
-  <div class="profile-header">     
-    <div class="avatar-container">       
-      <img [src]="getAbsoluteAvatarUrl(profile.avatar)" alt="Avatar" class="profile-avatar">       
-      <span class="online-status" [class.online]="profile.is_online" [class.offline]="!profile.is_online">         
-        {{ profile.is_online ? 'En línea' : 'Desconectado' }}       
-      </span>     
-    </div>     
-    <div class="profile-info">       
-      <h1>{{ profile.username }}</h1>       
-      <div class="stats">         
-        <div class="stat">           
-          <span class="stat-value">{{ profile.games_played }}</span>           
-          <span class="stat-label">Partidas jugadas</span>         
-        </div>         
-        <div class="stat">           
-          <span class="stat-value">{{ profile.games_won }}</span>           
-          <span class="stat-label">Victorias</span>         
-        </div>         
-        <div class="stat">           
-          <span class="stat-value">{{ getWinRate() }}%</span>           
-          <span class="stat-label">Tasa de victoria</span>         
-        </div>       
-      </div>     
-    </div>   
-  </div>      
+<!-- Enhanced Matrix-style Profile Component -->
+<div class="matrix-container">
+  <!-- Digital Rain Background Animation -->
+  <div class="digital-rain"></div>
   
-  <div class="profile-sections">     
-    <div class="section">       
-      <h2>Amigos</h2>       
-      <div class="friends-list scrollable hide-scrollbar">         
-        <div *ngFor="let friend of profile.friends" class="friend-item">           
-          <span class="friend-name">{{ friend.username }}</span>           
-          <span class="online-status" [class.online]="friend.is_online" [class.offline]="!friend.is_online">             
-            {{ friend.is_online ? 'En línea' : 'Desconectado' }}           
-          </span>         
-        </div>       
+  <!-- Main Content -->
+  <div class="profile-container" *ngIf="!loading && profile">   
+    <div class="profile-header">     
+      <div class="avatar-container">       
+        <img [src]="getAbsoluteAvatarUrl(profile.avatar)" alt="Avatar" class="profile-avatar">
+        <div class="avatar-glow"></div>       
+        <span class="online-status" [class.online]="profile.is_online" [class.offline]="!profile.is_online">         
+          {{ profile.is_online ? 'ONLINE' : 'OFFLINE' }}       
+        </span>     
       </div>     
-    </div>          
+      <div class="profile-info">       
+        <h1 class="glitch-text">{{ profile.username }}</h1>
+        <div class="stats">         
+          <div class="stat">           
+            <span class="stat-value terminal-text">{{ profile.games_played }}</span>           
+            <span class="stat-label">PARTIDAS</span>         
+          </div>         
+          <div class="stat">           
+            <span class="stat-value terminal-text">{{ profile.games_won }}</span>           
+            <span class="stat-label">VICTORIAS</span>         
+          </div>         
+          <div class="stat">           
+            <span class="stat-value terminal-text">{{ getWinRate() }}%</span>           
+            <span class="stat-label">EFICIENCIA</span>         
+          </div>       
+        </div>     
+      </div>   
+    </div>      
     
-    <div class="section">       
-      <h2>Historial de partidas</h2>       
-      <div class="match-history">         
-        <div *ngFor="let match of profile.match_history" class="match-item">           
-          <div class="match-players">
-            <span class="player">{{ match.player1 }}</span>
-            <span class="vs">vs</span>
-            <span class="player">{{ match.is_against_ai ? 'IA' : match.player2 }}</span>
-          </div>
-          <div class="match-score">
-            {{ match.player1_score }} - {{ match.player2_score }}
-          </div>
-          <div class="match-winner" [class.win]="match.winner_username === profile.username">
-            {{ match.winner_username === profile.username ? 'Victoria' : 'Derrota' }}
-          </div>
-          <div class="match-date">{{ match.match_date | date:'dd/MM/yyyy HH:mm' }}</div>
+    <div class="profile-sections">     
+      <div class="section hackercard">
+        <div class="section-header">
+          <h2>[<span class="text-bracket-open">_</span> CONTACTOS <span class="blink">_</span> <span class="text-bracket-close">]</span></h2>
+          <div class="corner-decoration top-left"></div>
+          <div class="corner-decoration top-right"></div>
+          <div class="corner-decoration bottom-left"></div>
+          <div class="corner-decoration bottom-right"></div>
         </div>       
-      </div>     
-    </div>   
-  </div> 
-</div>  
+        <div class="friends-list scrollable hide-scrollbar">         
+          <div *ngFor="let friend of profile.friends" class="friend-item">
+            <div class="friend-info">
+              <span class="friend-name terminal-text">{{ friend.username }}</span>           
+              <span class="online-status" [class.online]="friend.is_online" [class.offline]="!friend.is_online">             
+                {{ friend.is_online ? '● CONNECTED' : '○ DISCONNECTED' }}           
+              </span>
+            </div>
+          </div>
+          <div *ngIf="profile.friends.length === 0" class="no-data">
+            <span>NO CONTACTOS ENCONTRADOS EN LA BASE DE DATOS</span>
+          </div>       
+        </div>     
+      </div>          
+      
+      <div class="section hackercard">
+        <div class="section-header">
+          <h2>[<span class="text-bracket-open">_</span> REGISTRO DE COMBATES <span class="blink">_</span> <span class="text-bracket-close">]</span></h2>
+          <div class="corner-decoration top-left"></div>
+          <div class="corner-decoration top-right"></div>
+          <div class="corner-decoration bottom-left"></div>
+          <div class="corner-decoration bottom-right"></div>
+        </div>       
+        <div class="match-history">         
+          <div *ngFor="let match of profile.match_history" class="match-item" [class.win]="match.winner_username === profile.username">           
+            <div class="match-players">
+              <span class="player terminal-text">{{ match.player1_username || match.player1 }}</span>
+              <span class="vs">VS</span>
+              <span class="player terminal-text">{{ match.is_against_ai ? 'IA-SYSTEM' : (match.player2_username || match.player2) }}</span>
+            </div>
+            <div class="match-score">
+              {{ match.player1_score }} - {{ match.player2_score }}
+            </div>
+            <div class="match-winner" [class.win]="match.winner_username === profile.username">
+              {{ match.winner_username === profile.username ? 'VICTORIA' : 'DERROTA' }}
+            </div>
+            <div class="match-date">{{ match.match_date | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+          <div *ngIf="profile.match_history.length === 0" class="no-data">
+            <span>NO HAY REGISTROS DE COMBATE EN LA BASE DE DATOS</span>
+          </div>       
+        </div>     
+      </div>   
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="profile-actions" *ngIf="!profile.is_current_user">
+      <button class="btn-matrix" [disabled]="profile.is_friend || profile.has_pending_request">
+        <span class="btn-text">{{ profile.is_friend ? 'CONTACTO ESTABLECIDO' : (profile.has_pending_request ? 'SOLICITUD PENDIENTE' : 'AÑADIR CONTACTO') }}</span>
+      </button>
+      <button class="btn-matrix">
+        <span class="btn-text">INICIAR COMBATE</span>
+      </button>
+    </div>
+  </div>  
 
-<div *ngIf="loading" class="loading">   
-  Cargando perfil... 
-</div>  
+  <div *ngIf="loading" class="loading-container">
+    <div class="matrix-loader">
+      <div class="matrix-code">01101101011000010111010001110010011010010111100000100000001101110010111001100100</div>
+      <div class="loading-text">ACCEDIENDO AL SISTEMA...</div>
+    </div>
+  </div>  
 
-<div *ngIf="error" class="error">   
-  {{ error }} 
+  <div *ngIf="error" class="error">
+    <div class="error-icon">!</div>
+    <div class="error-message">ERROR DE SISTEMA: {{ error }}</div>
+    <div class="error-code">CODE: 0xF1A7</div>
+  </div>
 </div>
-
-<style>
-  .friends-list.scrollable {
-    max-height: 250px;
-    overflow-y: auto;
-    padding-right: 5px;
-    margin-bottom: 15px;
-    border-radius: 4px;
-  }
-  
-  /* Ocultar la barra de desplazamiento */
-  .hide-scrollbar {
-    -ms-overflow-style: none;  /* Para Internet Explorer y Edge */
-    scrollbar-width: none;     /* Para Firefox */
-  }
-  
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;             /* Para Chrome, Safari y Opera */
-  }
-
-  .friend-item {
-    padding: 8px 10px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .friend-item:last-child {
-    border-bottom: none;
-  }
-</style>

@@ -25,6 +25,8 @@ interface UserProfile {
     id: number;
     player1: string;
     player2: string;
+    player1_username: string;
+    player2_username: string;
     player1_score: number;
     player2_score: number;
     winner: string;
