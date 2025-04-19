@@ -438,3 +438,165 @@
     height: 250px;
   }
 }
+
+/* Añadir a los estilos existentes */
+
+/* Estilos para la visualización de partidas multijugador */
+.score-display.multi-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-names-multi {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.multi-player .player-name {
+  flex: 0 1 auto;
+  padding: 5px 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-sm);
+}
+
+.multi-player .score {
+  font-size: 28px;
+  padding: 10px;
+  background-color: rgba(76, 175, 80, 0.1);
+  border-radius: var(--border-radius-md);
+  margin-top: 10px;
+}
+
+/* Estilos para el canvas de 3 jugadores (forma triangular) */
+.pong-canvas.three-players {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+}
+
+.pong-canvas.three-players .paddle {
+  width: 12px;
+  height: 60px;
+  background-color: var(--text-primary);
+  position: absolute;
+  border-radius: 4px;
+}
+
+.pong-canvas.three-players .paddle-p1 {
+  bottom: 20px;
+  left: calc(50% - 6px);
+  animation: paddleMoveVertical 2.5s infinite alternate;
+}
+
+.pong-canvas.three-players .paddle-p2 {
+  top: calc(50% - 30px);
+  right: 20px;
+  transform: rotate(60deg);
+  animation: paddleMoveHorizontal 3s infinite alternate;
+}
+
+.pong-canvas.three-players .paddle-p3 {
+  top: calc(50% - 30px);
+  left: 20px;
+  transform: rotate(-60deg);
+  animation: paddleMoveHorizontal 2.8s infinite alternate-reverse;
+}
+
+/* Estilos para el canvas de 4 jugadores (forma cuadrada) */
+.pong-canvas.four-players {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.pong-canvas.four-players .paddle {
+  background-color: var(--text-primary);
+  position: absolute;
+  border-radius: 4px;
+}
+
+.pong-canvas.four-players .paddle-p1 {
+  width: 60px;
+  height: 12px;
+  bottom: 20px;
+  left: calc(50% - 30px);
+  animation: paddleMoveHorizontal 2.5s infinite alternate;
+}
+
+.pong-canvas.four-players .paddle-p2 {
+  width: 60px;
+  height: 12px;
+  top: 20px;
+  left: calc(50% - 30px);
+  animation: paddleMoveHorizontal 3s infinite alternate-reverse;
+}
+
+.pong-canvas.four-players .paddle-p3 {
+  width: 12px;
+  height: 60px;
+  left: 20px;
+  top: calc(50% - 30px);
+  animation: paddleMoveVertical 2.8s infinite alternate;
+}
+
+.pong-canvas.four-players .paddle-p4 {
+  width: 12px;
+  height: 60px;
+  right: 20px;
+  top: calc(50% - 30px);
+  animation: paddleMoveVertical 3.2s infinite alternate-reverse;
+}
+
+/* Animaciones para los modos multijugador */
+.pong-canvas.multi-player .multi-ball {
+  width: 15px;
+  height: 15px;
+  background-color: var(--accent-primary);
+  border-radius: 50%;
+  position: absolute;
+  top: calc(50% - 7.5px);
+  left: calc(50% - 7.5px);
+  animation: multiplayerBallMove 5s infinite linear;
+}
+
+@keyframes paddleMoveHorizontal {
+  0% {
+    transform: translateX(-40px);
+  }
+  100% {
+    transform: translateX(40px);
+  }
+}
+
+@keyframes paddleMoveVertical {
+  0% {
+    transform: translateY(-40px);
+  }
+  100% {
+    transform: translateY(40px);
+  }
+}
+
+@keyframes multiplayerBallMove {
+  0% {
+    transform: translate(-80px, -60px);
+  }
+  20% {
+    transform: translate(80px, 60px);
+  }
+  40% {
+    transform: translate(-20px, 80px);
+  }
+  60% {
+    transform: translate(80px, -30px);
+  }
+  80% {
+    transform: translate(-80px, 30px);
+  }
+  100% {
+    transform: translate(-80px, -60px);
+  }
+}

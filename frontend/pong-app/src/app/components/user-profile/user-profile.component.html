@@ -67,12 +67,48 @@
         <div class="match-history">         
           <div *ngFor="let match of profile.match_history" class="match-item" [class.win]="match.winner_username === profile.username">           
             <div class="match-players">
-              <span class="player terminal-text">{{ match.player1_username || match.player1 }}</span>
-              <span class="vs">VS</span>
-              <span class="player terminal-text">{{ match.is_against_ai ? 'IA-SYSTEM' : (match.player2_username || match.player2) }}</span>
+              <!-- Partida 1v1 -->
+              <ng-container *ngIf="match.match_type === 'local' || match.match_type === 'tournament' || match.match_type === 'ai'">
+                <span class="player terminal-text">{{ match.player1_username || match.player1 }}</span>
+                <span class="vs">VS</span>
+                <span class="player terminal-text">{{ match.is_against_ai ? 'IA-SYSTEM' : (match.player2_username || match.player2) }}</span>
+              </ng-container>
+              
+              <!-- Partida 1v1v1 -->
+              <ng-container *ngIf="match.match_type === '3players'">
+                <span class="player terminal-text">{{ match.player1_username || match.player1 }}</span>
+                <span class="vs">VS</span>
+                <span class="player terminal-text">{{ match.player2_username || match.player2 }}</span>
+                <span class="vs">VS</span>
+                <span class="player terminal-text">{{ match.player3_username || match.player3 }}</span>
+              </ng-container>
+              
+              <!-- Partida 1v1v1v1 -->
+              <ng-container *ngIf="match.match_type === '4players'">
+                <span class="player terminal-text">{{ match.player1_username || match.player1 }}</span>
+                <span class="vs">VS</span>
+                <span class="player terminal-text">{{ match.player2_username || match.player2 }}</span>
+                <span class="vs">VS</span>
+                <span class="player terminal-text">{{ match.player3_username || match.player3 }}</span>
+                <span class="vs">VS</span>
+                <span class="player terminal-text">{{ match.player4_username || match.player4 }}</span>
+              </ng-container>
             </div>
             <div class="match-score">
-              {{ match.player1_score }} - {{ match.player2_score }}
+              <!-- Partida 1v1 -->
+              <ng-container *ngIf="match.match_type === 'local' || match.match_type === 'tournament' || match.match_type === 'ai'">
+                {{ match.player1_score }} - {{ match.player2_score }}
+              </ng-container>
+              
+              <!-- Partida 1v1v1 -->
+              <ng-container *ngIf="match.match_type === '3players'">
+                {{ match.player1_score }} - {{ match.player2_score }} - {{ match.player3_score }}
+              </ng-container>
+              
+              <!-- Partida 1v1v1v1 -->
+              <ng-container *ngIf="match.match_type === '4players'">
+                {{ match.player1_score }} - {{ match.player2_score }} - {{ match.player3_score }} - {{ match.player4_score }}
+              </ng-container>
             </div>
             <div class="match-winner" [class.win]="match.winner_username === profile.username">
               {{ match.winner_username === profile.username ? 'VICTORIA' : 'DERROTA' }}

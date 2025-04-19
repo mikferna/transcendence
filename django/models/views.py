@@ -672,51 +672,111 @@ class createMatch(APIView):
         try:
             data = request.data
             is_against_ai = data.get('is_against_ai', False)
+            match_type = data.get('match_type', 'local')
+            
+            logger.info(f"Creando partida: {match_type}, AI: {is_against_ai}, Datos: {data}")
             
             match_data = {
                 'player1': request.user.id,
                 'player1_score': data.get('player1_score', 0),
                 'player2_score': data.get('player2_score', 0),
                 'is_against_ai': is_against_ai,
-                'match_type': data.get('match_type', 'local'),
+                'match_type': match_type,
             }
+            
+            # Añadir puntajes de jugadores 3 y 4 si están presentes
+            if data.get('player3_score') is not None:
+                match_data['player3_score'] = data.get('player3_score', 0)
+            
+            if data.get('player4_score') is not None:
+                match_data['player4_score'] = data.get('player4_score', 0)
             
             # Handle AI match
             if is_against_ai:
                 match_data['ai_difficulty'] = data.get('ai_difficulty', 'easy')
                 match_data['is_player1_winner'] = data.get('is_player1_winner', False)
-                match_data['player2'] = None  # No player2 for AI match
-            else:
-                # Handle human vs human match
-                player2_username = data.get('player2_username')
-                if not player2_username:
-                    return Response(
-                        {'error': 'Player 2 username is required for human matches'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                
-                try:
-                    player2 = User.objects.get(username=player2_username)
-                    match_data['player2'] = player2.id
-                except User.DoesNotExist:
-                    return Response(
-                        {'error': 'Player 2 not found'},
-                        status=status.HTTP_404_NOT_FOUND
-                    )
-                
-                # Set winner
-                winner_username = data.get('winner_username')
-                if winner_username == request.user.username:
+                if match_data['is_player1_winner']:
                     match_data['winner'] = request.user.id
-                    match_data['is_player1_winner'] = True
-                elif winner_username == player2_username:
-                    match_data['winner'] = player2.id
-                    match_data['is_player1_winner'] = False
-                else:
-                    return Response(
-                        {'error': 'Winner must be one of the players'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+            
+            # Handle multiplayer matches
+            else:
+                # Para partidas con múltiples jugadores, necesitamos sus usernames
+                if match_type in ['local', '3players', '4players']:
+                    # Player 2 es obligatorio para todos los modos multijugador
+                    player2_username = data.get('player2_username')
+                    if not player2_username:
+                        return Response(
+                            {'error': 'Player 2 username is required for multiplayer matches'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    
+                    try:
+                        player2 = User.objects.get(username=player2_username)
+                        match_data['player2'] = player2.id
+                    except User.DoesNotExist:
+                        return Response(
+                            {'error': 'Player 2 not found'},
+                            status=status.HTTP_404_NOT_FOUND
+                        )
+                
+                # Player 3 para los modos de 3 y 4 jugadores
+                if match_type in ['3players', '4players']:
+                    player3_username = data.get('player3_username')
+                    if not player3_username:
+                        return Response(
+                            {'error': 'Player 3 username is required for 3 or 4 player matches'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    
+                    try:
+                        player3 = User.objects.get(username=player3_username)
+                        match_data['player3'] = player3.id
+                    except User.DoesNotExist:
+                        return Response(
+                            {'error': 'Player 3 not found'},
+                            status=status.HTTP_404_NOT_FOUND
+                        )
+                
+                # Player 4 solo para el modo de 4 jugadores
+                if match_type == '4players':
+                    player4_username = data.get('player4_username')
+                    if not player4_username:
+                        return Response(
+                            {'error': 'Player 4 username is required for 4 player matches'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    
+                    try:
+                        player4 = User.objects.get(username=player4_username)
+                        match_data['player4'] = player4.id
+                    except User.DoesNotExist:
+                        return Response(
+                            {'error': 'Player 4 not found'},
+                            status=status.HTTP_404_NOT_FOUND
+                        )
+                
+                # Set winner based on username
+                winner_username = data.get('winner_username')
+                if winner_username:
+                    if winner_username == request.user.username:
+                        match_data['winner'] = request.user.id
+                        if match_type == 'local':
+                            match_data['is_player1_winner'] = True
+                    elif match_data.get('player2') and winner_username == player2_username:
+                        match_data['winner'] = player2.id
+                        if match_type == 'local':
+                            match_data['is_player1_winner'] = False
+                    elif match_type in ['3players', '4players'] and match_data.get('player3') and winner_username == player3_username:
+                        match_data['winner'] = player3.id
+                    elif match_type == '4players' and match_data.get('player4') and winner_username == player4_username:
+                        match_data['winner'] = player4.id
+                    else:
+                        return Response(
+                            {'error': 'Winner must be one of the players'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+            
+            logger.info(f"Datos finales para crear partida: {match_data}")
             
             # Validate and save
             serializer = MatchSerializer(data=match_data)
@@ -730,6 +790,7 @@ class createMatch(APIView):
                     status=status.HTTP_201_CREATED
                 )
             else:
+                logger.error(f"Error de validación: {serializer.errors}")
                 return Response(
                     serializer.errors,
                     status=status.HTTP_400_BAD_REQUEST

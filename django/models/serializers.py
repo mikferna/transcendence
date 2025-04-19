@@ -95,29 +95,62 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+from rest_framework import serializers
+from .models import Match, User
+
 class MatchSerializer(serializers.ModelSerializer):
-    # Campos adicionales para obtener los usernames
-    player1_username = serializers.CharField(source='player1.username', read_only=True)
-    player2_username = serializers.SerializerMethodField(read_only=True)
-    winner_username = serializers.SerializerMethodField(read_only=True)
+    player1_username = serializers.SerializerMethodField()
+    player2_username = serializers.SerializerMethodField()
+    player3_username = serializers.SerializerMethodField()
+    player4_username = serializers.SerializerMethodField()
+    winner_username = serializers.SerializerMethodField()
     
     class Meta:
         model = Match
         fields = [
-            'id', 'player1', 'player2', 'player1_username', 'player2_username',
-            'is_against_ai', 'ai_difficulty', 'player1_score', 'player2_score',
-            'winner', 'winner_username', 'is_player1_winner', 'match_date', 'match_type'
+            'id', 'player1', 'player2', 'player3', 'player4',
+            'player1_username', 'player2_username', 'player3_username', 'player4_username',
+            'is_against_ai', 'ai_difficulty',
+            'player1_score', 'player2_score', 'player3_score', 'player4_score',
+            'winner', 'winner_username', 'is_player1_winner',
+            'match_date', 'match_type'
         ]
         read_only_fields = ['id', 'match_date']
     
+    def get_player1_username(self, obj):
+        return obj.player1.username if obj.player1 else None
+    
     def get_player2_username(self, obj):
-        # Devolver el username del player2 solo si existe (no es una partida contra IA)
-        if obj.player2:
-            return obj.player2.username
-        return None
+        return obj.player2.username if obj.player2 else None
+    
+    def get_player3_username(self, obj):
+        return obj.player3.username if obj.player3 else None
+    
+    def get_player4_username(self, obj):
+        return obj.player4.username if obj.player4 else None
     
     def get_winner_username(self, obj):
-        # Devolver el username del ganador solo si existe
-        if obj.winner:
-            return obj.winner.username
-        return None
+        return obj.winner.username if obj.winner else None
+    
+    def validate(self, data):
+        # Validar que el tipo de partido sea consistente con los jugadores proporcionados
+        match_type = data.get('match_type')
+        is_against_ai = data.get('is_against_ai', False)
+        
+        if is_against_ai:
+            if not data.get('ai_difficulty'):
+                raise serializers.ValidationError("Se requiere especificar la dificultad de la IA para partidos contra IA")
+        
+        elif match_type == 'local':
+            if not data.get('player2'):
+                raise serializers.ValidationError("Se requiere el jugador 2 para partidos 1v1")
+        
+        elif match_type == '3players':
+            if not data.get('player2') or not data.get('player3'):
+                raise serializers.ValidationError("Se requieren 3 jugadores para el modo de 3 jugadores")
+        
+        elif match_type == '4players':
+            if not data.get('player2') or not data.get('player3') or not data.get('player4'):
+                raise serializers.ValidationError("Se requieren 4 jugadores para el modo de 4 jugadores")
+        
+        return data

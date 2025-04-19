@@ -25,7 +25,7 @@ export class MatchComponent implements OnInit {
   
   // Configuración del juego
   selectedMode: string = '';
-  playerCount: number = 2; // Para Pong básico, siempre 2 jugadores
+  playerCount: number = 2; // Valor predeterminado que ahora puede cambiar
   isAgainstAI: boolean = false;
   aiDifficulty: string = 'easy';
   
@@ -41,6 +41,8 @@ export class MatchComponent implements OnInit {
   gameEnded: boolean = false;
   player1Score: number = 0;
   player2Score: number = 0;
+  player3Score: number = 0;
+  player4Score: number = 0;
   
   constructor(
     private matchService: MatchService,
@@ -71,12 +73,27 @@ export class MatchComponent implements OnInit {
   
   selectGameMode(mode: string): void {
     this.selectedMode = mode;
-    if (mode === '1v1') {
-      this.isAgainstAI = false;
-      this.showPlayerSelection = true;
-    } else if (mode === 'AI') {
-      this.isAgainstAI = true;
-      this.startGameWithAI();
+    
+    switch (mode) {
+      case '1v1':
+        this.playerCount = 2;
+        this.isAgainstAI = false;
+        this.showPlayerSelection = true;
+        break;
+      case '1v1v1':
+        this.playerCount = 3;
+        this.isAgainstAI = false;
+        this.showPlayerSelection = true;
+        break;
+      case '1v1v1v1':
+        this.playerCount = 4;
+        this.isAgainstAI = false;
+        this.showPlayerSelection = true;
+        break;
+      case 'AI':
+        this.isAgainstAI = true;
+        this.startGameWithAI();
+        break;
     }
   }
   
@@ -110,9 +127,9 @@ export class MatchComponent implements OnInit {
       this.searchQuery = '';
       this.searchResults = [];
       
-      // Si ya tenemos 2 jugadores, estamos listos para jugar
-      if (this.selectedPlayers.length === 2) {
-        console.log('Jugadores seleccionados:', this.selectedPlayers);
+      // Si ya tenemos todos los jugadores necesarios, estamos listos para jugar
+      if (this.selectedPlayers.length === this.playerCount) {
+        console.log(`Jugadores seleccionados (${this.selectedPlayers.length}):`, this.selectedPlayers);
       }
     }
   }
@@ -143,28 +160,54 @@ export class MatchComponent implements OnInit {
   }
   
   startGame(): void {
-    if (this.selectedPlayers.length === 2) {
+    if (this.selectedPlayers.length === this.playerCount) {
       this.gameStarted = true;
       // Simular un juego para fines de demostración
-      this.simulateHumanGame();
+      this.simulateMultiplayerGame();
     }
   }
   
-  simulateHumanGame(): void {
-    // Simulación muy simple de un juego
+  simulateMultiplayerGame(): void {
+    // Simulación simple pero ahora con soporte para más jugadores
     setTimeout(() => {
-      // Random result
+      // Generar puntajes aleatorios para todos los jugadores
       this.player1Score = Math.floor(Math.random() * 5) + 3;
       this.player2Score = Math.floor(Math.random() * 5);
+      
+      if (this.playerCount >= 3) {
+        this.player3Score = Math.floor(Math.random() * 5);
+      }
+      
+      if (this.playerCount >= 4) {
+        this.player4Score = Math.floor(Math.random() * 5);
+      }
+      
       this.gameEnded = true;
       
-      // Determinar ganador
-      const player1Won = this.player1Score > this.player2Score;
-      this.saveGameResult(player1Won);
+      // Determinar ganador (el jugador con mayor puntaje)
+      let maxScore = this.player1Score;
+      let winnerIndex = 0;
+      
+      if (this.player2Score > maxScore) {
+        maxScore = this.player2Score;
+        winnerIndex = 1;
+      }
+      
+      if (this.playerCount >= 3 && this.player3Score > maxScore) {
+        maxScore = this.player3Score;
+        winnerIndex = 2;
+      }
+      
+      if (this.playerCount >= 4 && this.player4Score > maxScore) {
+        maxScore = this.player4Score;
+        winnerIndex = 3;
+      }
+      
+      this.saveGameResult(winnerIndex === 0, winnerIndex);
     }, 3000);
   }
   
-  saveGameResult(isPlayer1Winner: boolean): void {
+  saveGameResult(isPlayer1Winner: boolean, winnerIndex: number = 0): void {
     if (this.isAgainstAI) {
       this.matchService.createAIMatch(
         this.player1Score,
@@ -184,31 +227,61 @@ export class MatchComponent implements OnInit {
         }
       });
     } else {
-      // Partida contra otro jugador
-      const player2Username = this.selectedPlayers[1].username;
-      const winnerUsername = isPlayer1Winner 
-        ? this.currentUser?.username 
-        : player2Username;
-        
-      if (winnerUsername) {
-        this.matchService.createHumanMatch(
-          player2Username,
-          this.player1Score,
-          this.player2Score,
-          winnerUsername
-        ).subscribe({
-          next: (response) => {
-            console.log('Partido guardado correctamente:', response);
-            // Mostrar resultado final
-            alert(`¡Juego terminado! Resultado: ${this.player1Score} - ${this.player2Score}`);
-            this.resetGame();
-          },
-          error: (error) => {
-            console.error('Error al guardar el partido:', error);
-            alert('Error al guardar el resultado del partido');
-          }
-        });
+      // Determinar el tipo de partido según el número de jugadores
+      const matchType = this.playerCount === 2 ? 'local' : 
+                        this.playerCount === 3 ? '3players' : '4players';
+      
+      // Determinar el ganador
+      const winnerUsername = this.selectedPlayers[winnerIndex].username;
+      
+      // Preparar datos específicos según el tipo de partido
+      let matchData: any = {
+        match_type: matchType,
+        winner_username: winnerUsername,
+        player1_score: this.player1Score,
+        player2_score: this.player2Score
+      };
+      
+      // Añadir datos de los jugadores según el tipo de partido
+      if (this.playerCount >= 2 && this.selectedPlayers.length > 1) {
+        matchData.player2_username = this.selectedPlayers[1].username;
       }
+      
+      if (this.playerCount >= 3 && this.selectedPlayers.length > 2) {
+        matchData.player3_username = this.selectedPlayers[2].username;
+        matchData.player3_score = this.player3Score;
+      }
+      
+      if (this.playerCount >= 4 && this.selectedPlayers.length > 3) {
+        matchData.player4_username = this.selectedPlayers[3].username;
+        matchData.player4_score = this.player4Score;
+      }
+      
+      console.log('Enviando datos de la partida:', matchData);
+      
+      this.matchService.createMultiplayerMatch(matchData).subscribe({
+        next: (response) => {
+          console.log('Partido guardado correctamente:', response);
+          
+          // Construir mensaje de resultado según número de jugadores
+          let resultText = `¡Juego terminado! Resultado: ${this.player1Score} - ${this.player2Score}`;
+          
+          if (this.playerCount >= 3) {
+            resultText += ` - ${this.player3Score}`;
+          }
+          
+          if (this.playerCount >= 4) {
+            resultText += ` - ${this.player4Score}`;
+          }
+          
+          alert(resultText);
+          this.resetGame();
+        },
+        error: (error) => {
+          console.error('Error al guardar el partido:', error);
+          alert(`Error al guardar el resultado del partido: ${error.error?.error || 'Error interno del servidor'}`);
+        }
+      });
     }
   }
   
@@ -217,10 +290,14 @@ export class MatchComponent implements OnInit {
     this.gameEnded = false;
     this.player1Score = 0;
     this.player2Score = 0;
+    this.player3Score = 0;
+    this.player4Score = 0;
     this.showGameModes = false;
     this.showPlayerSelection = false;
     this.selectedMode = '';
     this.isAgainstAI = false;
+    this.playerCount = 2; // Restablecer a valor predeterminado
+    
     // Mantener solo al usuario actual en la lista
     if (this.currentUser) {
       this.selectedPlayers = [this.currentUser];

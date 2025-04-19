@@ -456,24 +456,74 @@
 
 .match-players {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  font-family: 'Share Tech Mono', monospace;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .player {
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  text-shadow: 0 0 5px var(--accent-color);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .vs {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9em;
+  font-size: 0.8rem;
+  color: var(--accent-color);
+  margin: 0 0.25rem;
 }
 
 .match-score {
-  font-size: 1.2em;
-  font-weight: 600;
-  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--text-primary);
+  text-shadow: 0 0 5px var(--accent-color);
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Estilos específicos para partidas con múltiples jugadores */
+.match-item[class*="3players"],
+.match-item[class*="4players"] {
+  padding: 1rem;
+}
+
+.match-item[class*="3players"] .match-players,
+.match-item[class*="4players"] .match-players {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.match-item[class*="3players"] .player,
+.match-item[class*="4players"] .player {
+  max-width: 100px;
+}
+
+.match-item[class*="3players"] .match-score,
+.match-item[class*="4players"] .match-score {
+  font-size: 1rem;
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 600px) {
+  .match-item[class*="3players"] .player,
+  .match-item[class*="4players"] .player {
+    max-width: 80px;
+    font-size: 0.8rem;
+  }
+  
+  .match-item[class*="3players"] .match-score,
+  .match-item[class*="4players"] .match-score {
+    font-size: 0.9rem;
+  }
 }
 
 .match-winner {
