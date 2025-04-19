@@ -1,28 +1,43 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-auth-success',
-  template: '<p>Authenticating...</p>',
+  template: `
+    <div class="auth-success-container">
+      <h2>Autenticando...</h2>
+      <div class="spinner" *ngIf="isLoading"></div>
+      <div *ngIf="error" class="error-message">{{ error }}</div>
+    </div>
+  `,
+  standalone: true,
+  imports: [CommonModule]
 })
 export class AuthSuccessComponent implements OnInit {
-  constructor(private route: ActivatedRoute, private router: Router) {}
+  error: string = '';
+  isLoading: boolean = false;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      const access = params['access'];
-      const refresh = params['refresh'];
+    const urlParams = new URLSearchParams(window.location.search);
+    const access = urlParams.get('access');
+    const refresh = urlParams.get('refresh');
 
-      if (access && refresh) {
-        // Guardar tokens en localStorage
-        localStorage.setItem('access_token', access);
-        localStorage.setItem('refresh_token', refresh);
-
-        // Redirigir al home o donde quieras
-        this.router.navigate(['/home']);
-      } else {
-        this.router.navigate(['/auth-error']);
-      }
-    });
+    if (access && refresh) {
+      // Store tokens and redirect
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+      this.authService.updateAuthState();
+      this.router.navigate(['/home']);
+    } else {
+      this.error = 'No se recibieron los tokens de autenticación';
+      setTimeout(() => this.router.navigate(['/login']), 3000);
+    }
   }
 }

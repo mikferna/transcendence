@@ -48,6 +48,39 @@ export class AuthService {
     );
   }
 
+  handle42Callback(code: string): Observable<AuthResponse> {
+    return this.http.get<AuthResponse>(`${this.API_URL}/auth/callback/`, { 
+      params: { code } 
+    }).pipe(
+      tap(response => {
+        console.log('Received tokens from backend:', {
+          access: response.access ? 'Token received' : 'No access token',
+          refresh: response.refresh ? 'Token received' : 'No refresh token'
+        });
+        console.log('Full response:', response);
+        this.tokenService.setTokens(response.access, response.refresh);
+        this.getCurrentUser().subscribe();
+      })
+    );
+  }
+
+  updateAuthState(): void {
+    const accessToken = this.tokenService.getAccessToken();
+    if (accessToken) {
+      this.getCurrentUser().subscribe({
+        next: (user) => {
+          this.currentUserSubject.next(user);
+        },
+        error: (error) => {
+          console.error('Error updating auth state:', error);
+          this.logout();
+        }
+      });
+    } else {
+      this.currentUserSubject.next(null);
+    }
+  }
+
   register(username: string, email: string, password: string, password2: string): Observable<any> {
     return this.http.post<any>(`${this.API_URL}/register/`, {
       username,

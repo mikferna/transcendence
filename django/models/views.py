@@ -101,16 +101,11 @@ class FortyTwoCallbackView(APIView):
             print(f"Token response status: {token_response.status_code}")
             print(f"Token response body: {token_response.text}")
             
-            # Extraer el access_token del JSON de la respuesta
-            access_token = token_response.json().get('access_token')
+            api_access_token = token_response.json().get('access_token')
+            if not api_access_token:
+                print("No se pudo obtener el api_access_token")
 
-            # Verificar si el access_token fue obtenido correctamente
-            if not access_token:
-                print("No se pudo obtener el access_token")
-                return redirect(f"{settings.FRONTEND_URL}/auth-error?error=missing_access_token")
-
-            # Imprimir el access_token para depuración
-            print(f"Access token is: {access_token}")
+            print(f"42 access token is: {api_access_token}")
 
             if token_response.status_code != 200:
                 print("Problema con el intercambio del token...")
@@ -118,7 +113,7 @@ class FortyTwoCallbackView(APIView):
 
             user_response = requests.get(
                 'https://api.intra.42.fr/v2/me',
-                headers={'Authorization': f'Bearer {access_token}'}
+                headers={'Authorization': f'Bearer {api_access_token}'}
             )
 
             if user_response.status_code != 200:
@@ -128,27 +123,55 @@ class FortyTwoCallbackView(APIView):
             user_data = user_response.json()
             username_42 = user_data.get('login')
             email_42 = user_data.get('email')
+            #avatar_42_small = user_data.get('image', {}).get('versions', {}).get('small')
 
-            # Imprimir los datos de usuario
-            print(user_data)
-            print(f"Username is: {username_42} and email is: {email_42}")
+            #print(user_data)
+            print(f"Username: {username_42}")
+            print(f"Email: {email_42}")
+            #print(f"Small image avatar URL: {avatar_42_small}")
 
             if not username_42 or not email_42:
                 print("Problema con los datos de usuario...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=invalid_user_data")
 
-            user, created = User.objects.get_or_create(username=username_42, defaults={'email': email_42})
+            # Registration process
+            try:
+                # Check if user exists
+                user = User.objects.get(username=username_42)
+                print(f"Usuario existente: {username_42}")
+            except User.DoesNotExist:
+                # Register new user
+                print(f"Registrando nuevo usuario: {username_42}")
+                user = User.objects.create_user(
+                    username=username_42,
+                    email=email_42,
+                    password=User.objects.make_random_password()
+                )
+                # Set initial values for new user
+                user.is_active = True
+                user.save()
+                print(f"Usuario registrado exitosamente: {username_42}")
 
-            refresh = RefreshToken.for_user(user)
-            access = str(refresh.access_token)
-            refresh_token = str(refresh)
+            app_refresh_token = RefreshToken.for_user(user)
+            app_access_token = str(app_refresh_token.access_token)
+            user.is_online = True
+            user.save()
 
-            # ✅ Redirigir al frontend con los tokens
-            # return redirect(f"{settings.FRONTEND_URL}/auth-success?access={access}&refresh={refresh_token}")
-            return redirect(f"{settings.FRONTEND_URL}/auth-success?access={access}&refresh={refresh_token}")
-        except Exception:
+            # Devolver los tokens en un JSON
+            #return Response({
+            #    'refresh': str(app_refresh_token),
+            #    'access': app_access_token
+            #}, status=status.HTTP_200_OK)
+
+            # Instead of returning a Response, redirect to frontend with tokens
+            return redirect(
+                f"{settings.FRONTEND_URL}/auth-success?access={app_access_token}&refresh={str(app_refresh_token)}"
+            )
+
+        except Exception as e:
+            print(f"Error interno: {str(e)}")
             return redirect(f"{settings.FRONTEND_URL}/auth-error?error=internal_server_error")
-            
+
 class register(APIView):
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
