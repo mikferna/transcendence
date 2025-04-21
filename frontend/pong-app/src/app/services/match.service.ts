@@ -51,11 +51,18 @@ export class MatchService {
     });
   }
 
-  // Nuevo método para partidas multijugador
+  // Método para partidas multijugador
   createMultiplayerMatch(matchData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/matches/create/`, {
       is_against_ai: false,
       ...matchData
+    });
+  }
+
+  // Nuevo método para torneo
+  createTournamentMatch(tournamentData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/tournaments/create/`, {
+      ...tournamentData
     });
   }
 }

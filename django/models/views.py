@@ -673,16 +673,43 @@ class createMatch(APIView):
             data = request.data
             is_against_ai = data.get('is_against_ai', False)
             match_type = data.get('match_type', 'local')
+            tournament_round = data.get('tournament_round')
+            is_tournament = match_type == 'tournament' or tournament_round is not None
             
-            logger.info(f"Creando partida: {match_type}, AI: {is_against_ai}, Datos: {data}")
+            logger.info(f"TORNEO - Creando partida: {match_type}, Round: {tournament_round}, AI: {is_against_ai}, Datos: {data}")
             
+            # Configuración básica del partido
             match_data = {
-                'player1': request.user.id,
                 'player1_score': data.get('player1_score', 0),
                 'player2_score': data.get('player2_score', 0),
                 'is_against_ai': is_against_ai,
                 'match_type': match_type,
             }
+            
+            # Para torneos, buscar player1 por username
+            if is_tournament:
+                player1_username = data.get('player1_username')
+                if not player1_username:
+                    return Response(
+                        {'error': 'Player 1 username is required for tournament matches'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                try:
+                    player1 = User.objects.get(username=player1_username)
+                    match_data['player1'] = player1.id
+                except User.DoesNotExist:
+                    return Response(
+                        {'error': f'Player 1 "{player1_username}" not found'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                    
+                # Guardar información específica del torneo
+                if tournament_round:
+                    match_data['tournament_round'] = tournament_round
+            else:
+                # Para partidas normales, player1 es el usuario actual
+                match_data['player1'] = request.user.id
             
             # Añadir puntajes de jugadores 3 y 4 si están presentes
             if data.get('player3_score') is not None:
@@ -698,10 +725,10 @@ class createMatch(APIView):
                 if match_data['is_player1_winner']:
                     match_data['winner'] = request.user.id
             
-            # Handle multiplayer matches
+            # Handle multiplayer matches (including tournaments)
             else:
                 # Para partidas con múltiples jugadores, necesitamos sus usernames
-                if match_type in ['local', '3players', '4players']:
+                if match_type in ['local', '3players', '4players'] or is_tournament:
                     # Player 2 es obligatorio para todos los modos multijugador
                     player2_username = data.get('player2_username')
                     if not player2_username:
@@ -715,7 +742,7 @@ class createMatch(APIView):
                         match_data['player2'] = player2.id
                     except User.DoesNotExist:
                         return Response(
-                            {'error': 'Player 2 not found'},
+                            {'error': f'Player 2 "{player2_username}" not found'},
                             status=status.HTTP_404_NOT_FOUND
                         )
                 
@@ -733,7 +760,7 @@ class createMatch(APIView):
                         match_data['player3'] = player3.id
                     except User.DoesNotExist:
                         return Response(
-                            {'error': 'Player 3 not found'},
+                            {'error': f'Player 3 "{player3_username}" not found'},
                             status=status.HTTP_404_NOT_FOUND
                         )
                 
@@ -751,32 +778,54 @@ class createMatch(APIView):
                         match_data['player4'] = player4.id
                     except User.DoesNotExist:
                         return Response(
-                            {'error': 'Player 4 not found'},
+                            {'error': f'Player 4 "{player4_username}" not found'},
                             status=status.HTTP_404_NOT_FOUND
                         )
                 
                 # Set winner based on username
                 winner_username = data.get('winner_username')
                 if winner_username:
-                    if winner_username == request.user.username:
-                        match_data['winner'] = request.user.id
-                        if match_type == 'local':
-                            match_data['is_player1_winner'] = True
-                    elif match_data.get('player2') and winner_username == player2_username:
-                        match_data['winner'] = player2.id
-                        if match_type == 'local':
-                            match_data['is_player1_winner'] = False
-                    elif match_type in ['3players', '4players'] and match_data.get('player3') and winner_username == player3_username:
-                        match_data['winner'] = player3.id
-                    elif match_type == '4players' and match_data.get('player4') and winner_username == player4_username:
-                        match_data['winner'] = player4.id
+                    winner_username = winner_username.strip()
+                    logger.info(f"TORNEO - Verificando ganador: {winner_username}")
+                    
+                    # Lógica específica para torneos
+                    if is_tournament:
+                        player1_username = data.get('player1_username')
+                        player2_username = data.get('player2_username')
+                        
+                        if winner_username == player1_username:
+                            match_data['winner'] = match_data['player1']
+                            logger.info(f"TORNEO - Ganador es player1: {player1_username}")
+                        elif winner_username == player2_username and match_data.get('player2'):
+                            match_data['winner'] = match_data['player2']
+                            logger.info(f"TORNEO - Ganador es player2: {player2_username}")
+                        else:
+                            logger.error(f"TORNEO - Error de ganador: {winner_username} no es {player1_username} ni {player2_username}")
+                            return Response(
+                                {'error': f'Winner "{winner_username}" must be one of the players: {player1_username} or {player2_username}'},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
                     else:
-                        return Response(
-                            {'error': 'Winner must be one of the players'},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
+                        # Lógica original para partidas no-torneo
+                        if winner_username == request.user.username:
+                            match_data['winner'] = request.user.id
+                            if match_type == 'local':
+                                match_data['is_player1_winner'] = True
+                        elif match_data.get('player2') and winner_username == player2_username:
+                            match_data['winner'] = player2.id
+                            if match_type == 'local':
+                                match_data['is_player1_winner'] = False
+                        elif match_type in ['3players', '4players'] and match_data.get('player3') and winner_username == player3_username:
+                            match_data['winner'] = player3.id
+                        elif match_type == '4players' and match_data.get('player4') and winner_username == player4_username:
+                            match_data['winner'] = player4.id
+                        else:
+                            return Response(
+                                {'error': 'Winner must be one of the players'},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
             
-            logger.info(f"Datos finales para crear partida: {match_data}")
+            logger.info(f"TORNEO - Datos finales para crear partida: {match_data}")
             
             # Validate and save
             serializer = MatchSerializer(data=match_data)
@@ -790,7 +839,7 @@ class createMatch(APIView):
                     status=status.HTTP_201_CREATED
                 )
             else:
-                logger.error(f"Error de validación: {serializer.errors}")
+                logger.error(f"TORNEO - Error de validación: {serializer.errors}")
                 return Response(
                     serializer.errors,
                     status=status.HTTP_400_BAD_REQUEST
