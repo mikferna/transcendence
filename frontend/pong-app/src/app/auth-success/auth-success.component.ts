@@ -13,11 +13,36 @@ import { CommonModule } from '@angular/common';
     </div>
   `,
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  styles: [`
+    .auth-success-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    .error-message {
+      color: red;
+      margin-top: 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `]
 })
 export class AuthSuccessComponent implements OnInit {
   error: string = '';
-  isLoading: boolean = false;
+  isLoading: boolean = true;
 
   constructor(
     private authService: AuthService,
@@ -25,19 +50,36 @@ export class AuthSuccessComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+  setTimeout(() => {  
     const urlParams = new URLSearchParams(window.location.search);
     const access = urlParams.get('access');
     const refresh = urlParams.get('refresh');
+    const api_token = urlParams.get('ft_token'); // Añadir esto
 
-    if (access && refresh) {
-      // Store tokens and redirect
+
+    // Imprimir los valores completos
+    console.log('Access Token:', access);
+    console.log('Refresh Token:', refresh);
+
+    console.log('URL Params:', { 
+      access: access ? 'present' : 'missing',
+      refresh: refresh ? 'present' : 'missing'
+    });
+
+    if (access && refresh && api_token) {
+      console.log('Tokens received, storing in localStorage');
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
-      this.authService.updateAuthState();
+      localStorage.setItem('ft_api_token', api_token); // Guardar el token de 42
+      this.authService.handle42Callback(access, refresh);
+      this.isLoading = false;
       this.router.navigate(['/home']);
     } else {
+      console.error('No tokens found in URL parameters');
       this.error = 'No se recibieron los tokens de autenticación';
+      this.isLoading = false;
       setTimeout(() => this.router.navigate(['/login']), 3000);
     }
+  });
   }
 }

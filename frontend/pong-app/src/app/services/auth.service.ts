@@ -48,21 +48,33 @@ export class AuthService {
     );
   }
 
-  handle42Callback(code: string): Observable<AuthResponse> {
-    return this.http.get<AuthResponse>(`${this.API_URL}/auth/callback/`, { 
-      params: { code } 
-    }).pipe(
-      tap(response => {
-        console.log('Received tokens from backend:', {
-          access: response.access ? 'Token received' : 'No access token',
-          refresh: response.refresh ? 'Token received' : 'No refresh token'
-        });
-        console.log('Full response:', response);
-        this.tokenService.setTokens(response.access, response.refresh);
-        this.getCurrentUser().subscribe();
-      })
-    );
+  handle42Callback(access: string, refresh: string): void {
+    console.log('Processing 42 callback with tokens');
+    console.log('Access token received:', access ? 'yes' : 'no');
+    console.log('Refresh token received:', refresh ? 'yes' : 'no');
+
+    if (access && refresh) {
+      this.tokenService.setTokens(access, refresh);
+      localStorage.setItem('is_42_user', 'true');  // Marcar como usuario de 42
+      this.getCurrentUser().subscribe();
+    }
   }
+
+  //handle42Callback(code: string): Observable<AuthResponse> {
+  //  return this.http.get<AuthResponse>(`${this.API_URL}/auth/callback/`, { 
+  //    params: { code } 
+  //  }).pipe(
+  //    tap(response => {
+  //      console.log('Received tokens from backend:', {
+  //        access: response.access ? 'Token received' : 'No access token',
+  //        refresh: response.refresh ? 'Token received' : 'No refresh token'
+  //      });
+  //      console.log('Full response:', response);
+  //      this.tokenService.setTokens(response.access, response.refresh);
+  //      this.getCurrentUser().subscribe();
+  //    })
+  //  );
+  //}
 
   updateAuthState(): void {
     const accessToken = this.tokenService.getAccessToken();
@@ -107,21 +119,45 @@ export class AuthService {
 
   logout(): Observable<any> {
     const refreshToken = this.tokenService.getRefreshToken();
+    const is42User = localStorage.getItem('is_42_user') === 'true';
+    const ft_token = localStorage.getItem('ft_api_token');
+    const accessToken = this.tokenService.getAccessToken();
+
     return this.http.post(`${this.API_URL}/logout/`, { refresh: refreshToken }).pipe(
       tap({
         next: () => {
           this.tokenService.removeTokens();
           localStorage.removeItem('currentUser');
+          localStorage.removeItem('is_42_user');
+          localStorage.removeItem('ft_api_token');
           this.currentUserSubject.next(null);
+
           this.router.navigate(['/']);
+          // Si es usuario de 42, hacer logout también de 42
+          //if (is42User && ft_token) {
+          //  window.location.href = `https://api.intra.42.fr/oauth/logout?client_id=${environment.auth42.clientId}&access_token=${ft_token}`;
+          //  //window.location.href = 'https://api.intra.42.fr/oauth/logout';
+          //} else {
+          //  // Redirigir a la página de inicio
+          //  this.router.navigate(['/']);  
+          //}
         },
         error: (error) => {
           console.error('Error during logout:', error);
           // Aún así limpiamos los tokens locales en caso de error
           this.tokenService.removeTokens();
           localStorage.removeItem('currentUser');
+          localStorage.removeItem('is_42_user');
+          localStorage.removeItem('ft_api_token');
           this.currentUserSubject.next(null);
+
           this.router.navigate(['/']);
+          // Si es usuario de 42, hacer logout también de 42
+          //if (is42User && accessToken) {
+          //  window.location.href = `https://api.intra.42.fr/oauth/logout?client_id=${environment.auth42.clientId}&access_token=${ft_token}`;
+          //} else {
+          //  this.router.navigate(['/']);
+          //}
         }
       })
     );

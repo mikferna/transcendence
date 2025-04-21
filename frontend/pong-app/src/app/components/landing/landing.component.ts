@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-landing',
@@ -9,24 +10,37 @@ import { environment } from '../../../environments/environment';
 })
 export class LandingComponent {
   
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
   
-  login42(): void {
+  login(): void {
     // Display loading screen (communication happens through service)
     const loadingScreenElement = document.querySelector('.loading-screen') as HTMLElement;
     if (loadingScreenElement) {
       loadingScreenElement.style.display = 'flex';
     }
     
-  // Redirigir a la URL de autorización del backend Django
-  //window.location.href = '${environment.apiUrl}/auth/authorize/';
-  window.location.href = `${environment.apiUrl}/auth/authorize/`;
     // Navigate to home after delay
-   // setTimeout(() => {
-   //   if (loadingScreenElement) {
-   //     loadingScreenElement.style.display = 'none';
-   //   }
-   //   this.router.navigate(['/home']);
-   // }, 2000);
+    setTimeout(() => {
+      if (loadingScreenElement) {
+        loadingScreenElement.style.display = 'none';
+      }
+      this.router.navigate(['/home']);
+    }, 2000);
+  }
+
+  login42(): void {
+  
+    try {
+      const loadingScreenElement = document.querySelector('.loading-screen') as HTMLElement;
+      if (loadingScreenElement) {
+        loadingScreenElement.style.display = 'flex';
+      }
+      window.location.href = `${environment.apiUrl}/auth/authorize/?force_verify=true`;
+    } catch (error) {
+      console.error('Error initiating 42 login:', error);
+    }
   }
 }

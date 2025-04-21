@@ -66,12 +66,27 @@ class login42(APIView):
 
     def get(self, request):
         redirect_uri = settings.FT_REDIRECT_URI
-        return redirect(
+        force_verify = request.query_params.get('force_verify', 'false')
+
+        #return redirect(
+        #    f"https://api.intra.42.fr/oauth/authorize"
+        #    f"?client_id={settings.FT_CLIENT_ID}"
+        #    f"&redirect_uri={redirect_uri}"
+        #    f"&response_type=code"
+        #)
+    
+        auth_url = (
             f"https://api.intra.42.fr/oauth/authorize"
             f"?client_id={settings.FT_CLIENT_ID}"
             f"&redirect_uri={redirect_uri}"
             f"&response_type=code"
         )
+
+        # Añadir force_verify si está presente
+        if force_verify.lower() == 'true':
+            auth_url += "&force_verify=true"
+
+        return redirect(auth_url)
 
 class FortyTwoCallbackView(APIView):
     permission_classes = [AllowAny]
@@ -125,7 +140,6 @@ class FortyTwoCallbackView(APIView):
             email_42 = user_data.get('email')
             #avatar_42_small = user_data.get('image', {}).get('versions', {}).get('small')
 
-            #print(user_data)
             print(f"Username: {username_42}")
             print(f"Email: {email_42}")
             #print(f"Small image avatar URL: {avatar_42_small}")
@@ -139,35 +153,47 @@ class FortyTwoCallbackView(APIView):
                 # Check if user exists
                 user = User.objects.get(username=username_42)
                 print(f"Usuario existente: {username_42}")
+            
             except User.DoesNotExist:
+
+                # Generar contraseña simple
+                import random
+                import string
+
+                def generate_password(length=6):
+                    characters = string.ascii_letters + string.digits + "!@#$%^&*()"
+                    password = ''.join(random.choice(characters) for i in range(length))
+                    return password
+                
+                # Generar y guardar la contraseña antes del hash
+                raw_password = generate_password()
+                print(f"Contraseña generada (sin hash): {raw_password}")
+
                 # Register new user
                 print(f"Registrando nuevo usuario: {username_42}")
                 user = User.objects.create_user(
                     username=username_42,
                     email=email_42,
-                    password=User.objects.make_random_password()
+                    password=raw_password
                 )
                 # Set initial values for new user
                 user.is_active = True
                 user.save()
                 print(f"Usuario registrado exitosamente: {username_42}")
 
+            print(f"Usuario existente: {username_42}")
+            print(f"Contraseña hasheada: {user.password}")
+            
             app_refresh_token = RefreshToken.for_user(user)
             app_access_token = str(app_refresh_token.access_token)
             user.is_online = True
             user.save()
-
-            # Devolver los tokens en un JSON
-            #return Response({
-            #    'refresh': str(app_refresh_token),
-            #    'access': app_access_token
-            #}, status=status.HTTP_200_OK)
-
-            # Instead of returning a Response, redirect to frontend with tokens
+            print(f"TOKEN aplicacion: {app_access_token}")
+            
             return redirect(
-                f"{settings.FRONTEND_URL}/auth-success?access={app_access_token}&refresh={str(app_refresh_token)}"
+                f"{settings.FRONTEND_URL}/auth-success?access={app_access_token}&refresh={str(app_refresh_token)}&ft_token={api_access_token}"
             )
-
+        
         except Exception as e:
             print(f"Error interno: {str(e)}")
             return redirect(f"{settings.FRONTEND_URL}/auth-error?error=internal_server_error")

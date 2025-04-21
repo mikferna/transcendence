@@ -148,17 +148,36 @@ export class HeaderComponent implements OnInit {
   logout() {
     this.authService.logout().subscribe({
       next: () => {
-        this.router.navigate(['/login']);
+        // La redirección ahora se maneja en el servicio para usuarios de 42
+        if (!localStorage.getItem('is_42_user')) {
+          this.router.navigate(['/']);
+        }
         this.closeAllMenus();
       },
       error: (error) => {
         console.error('Error al cerrar sesión:', error);
-        // Aún así intentamos navegar a la página de login
-        this.router.navigate(['/login']);
+        if (!localStorage.getItem('is_42_user')) {
+          this.router.navigate(['/']);
+        }
         this.closeAllMenus();
       }
     });
-  }
+}
+
+  //logout() {
+  //  this.authService.logout().subscribe({
+  //    next: () => {
+  //      this.router.navigate(['/login']);
+  //      this.closeAllMenus();
+  //    },
+  //    error: (error) => {
+  //      console.error('Error al cerrar sesión:', error);
+  //      // Aún así intentamos navegar a la página de login
+  //      this.router.navigate(['/login']);
+  //      this.closeAllMenus();
+  //    }
+  //  });
+  //}
 
   getAbsoluteAvatarUrl(avatarUrl: string): string {
     if (!avatarUrl) return '';

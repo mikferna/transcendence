@@ -7,6 +7,13 @@
     text-align: center;
   }
   
+  .button-container {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: center;
+    gap: 20px;
+  }
+
   .landing-title {
     font-size: 80px;
     margin-bottom: 50px;
