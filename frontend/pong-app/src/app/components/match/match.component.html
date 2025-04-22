@@ -187,11 +187,9 @@
         
         <!-- Área de juego -->
         <div class="game-area">
-          <!-- Visualización del juego para 1v1 -->
-          <div class="pong-canvas" *ngIf="playerCount === 2 && !isTournament">
-            <div class="paddle left-paddle"></div>
-            <div class="paddle right-paddle"></div>
-            <div class="ball"></div>
+          <!-- Canvas para Pong (modo 1v1 y torneos) -->
+          <div class="pong-canvas" *ngIf="(playerCount === 2 && !isTournament) || (isTournament && !gameEnded && currentMatch)">
+            <canvas #pongCanvas width="600" height="300"></canvas>
           </div>
           
           <!-- Visualización para modo de 3 jugadores -->
@@ -202,8 +200,8 @@
             <div class="ball"></div>
           </div>
           
-          <!-- Visualización para modo de 4 jugadores o torneo -->
-          <div class="pong-canvas four-players" *ngIf="(playerCount === 4 && !isTournament) || (isTournament && !gameEnded)">
+          <!-- Visualización para modo de 4 jugadores -->
+          <div class="pong-canvas four-players" *ngIf="playerCount === 4 && !isTournament">
             <div class="paddle paddle-p1"></div>
             <div class="paddle paddle-p2"></div>
             <div class="paddle paddle-p3"></div>
@@ -238,9 +236,15 @@
         
         <!-- Controles de juego -->
         <div class="game-controls">
-          <p *ngIf="!gameEnded && !isTournament">La partida está en curso...</p>
+          <p *ngIf="!gameEnded && !isTournament && playerCount === 2">
+            Controles: Jugador 1 (W/S) - Jugador 2 (Flecha Arriba/Flecha Abajo)
+          </p>
+          <p *ngIf="!gameEnded && isAgainstAI">
+            Controles: Usa W/S para mover tu paleta
+          </p>
+          <p *ngIf="!gameEnded && !isTournament && playerCount > 2">La partida está en curso...</p>
           <p *ngIf="!gameEnded && isTournament && currentMatch">
-            {{ currentMatch.player1.username }} vs {{ currentMatch.player2.username }}
+            Controles: {{ currentMatch.player1.username }} (W/S) - {{ currentMatch.player2.username }} (Flecha Arriba/Flecha Abajo)
           </p>
           
           <button class="back-button" (click)="goBack()">
