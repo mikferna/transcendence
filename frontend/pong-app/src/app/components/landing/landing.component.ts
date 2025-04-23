@@ -38,7 +38,14 @@ export class LandingComponent {
       if (loadingScreenElement) {
         loadingScreenElement.style.display = 'flex';
       }
-      window.location.href = `${environment.apiUrl}/auth/authorize/?force_verify=true`;
+
+      // Limpiar cualquier token almacenado de sesiones anteriores
+      localStorage.removeItem('ft_api_token');
+      localStorage.removeItem('is_42_user');
+            
+      // Añadir timestamp para evitar cacheo
+      const timestamp = new Date().getTime();
+      window.location.href = `${environment.apiUrl}/auth/authorize/?force_verify=true&t=${timestamp}`;
     } catch (error) {
       console.error('Error initiating 42 login:', error);
     }
