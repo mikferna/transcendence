@@ -1,4 +1,4 @@
-/* Mantenemos las variables CSS para consistencia */
+/* Variables CSS */
 :root {
   --bg-primary: #1a1a1a;
   --bg-secondary: #1a1a1a;
@@ -12,10 +12,6 @@
   --hover: #45a049;
   --warning-color: #ff9800;
   --warning-color-hover: #e68a00;
-  --friend-color: #4CAF50;
-  --pending-color: #ff9800;
-  --received-color: #2196F3;
-  --blocked-color: #9e9e9e;
   --border-radius: 8px;
   --border-radius-sm: 6px;
   --border-radius-md: 8px;
@@ -38,7 +34,7 @@
 }
 
 .match-content {
-  max-width: 600px;
+  max-width: 800px;
   width: 100%;
   padding: 2rem;
   background-color: rgba(255, 255, 255, 0.05);
@@ -328,79 +324,42 @@
   color: var(--accent-primary);
 }
 
+/* Área principal del juego - espacio aumentado */
 .game-area {
   width: 100%;
-  height: 300px;
+  height: auto;
+  min-height: 400px;
   background-color: var(--bg-tertiary);
   border-radius: 8px;
   position: relative;
   margin-bottom: 20px;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
 }
 
 /* Elementos del juego Pong */
 .pong-canvas {
   width: 100%;
-  height: 100%;
+  max-width: 800px;
+  aspect-ratio: 3/2;
   position: relative;
+  overflow: hidden;
+  margin: 0 auto;
 }
 
 .paddle {
-  width: 12px;
-  height: 80px;
   background-color: var(--text-primary);
   position: absolute;
   border-radius: 4px;
 }
 
-.left-paddle {
-  left: 20px;
-  top: calc(50% - 40px);
-  animation: paddleMove 3s infinite alternate;
-}
-
-.right-paddle {
-  right: 20px;
-  top: calc(50% - 40px);
-  animation: paddleMove 2.5s infinite alternate-reverse;
-}
-
 .ball {
-  width: 15px;
-  height: 15px;
   background-color: var(--accent-primary);
   border-radius: 50%;
   position: absolute;
-  top: calc(50% - 7.5px);
-  left: calc(50% - 7.5px);
-  animation: ballMove 4s infinite linear;
-}
-
-@keyframes paddleMove {
-  0% {
-    transform: translateY(-70px);
-  }
-  100% {
-    transform: translateY(70px);
-  }
-}
-
-@keyframes ballMove {
-  0% {
-    transform: translate(-100px, -60px);
-  }
-  25% {
-    transform: translate(100px, 60px);
-  }
-  50% {
-    transform: translate(-20px, -80px);
-  }
-  75% {
-    transform: translate(80px, 30px);
-  }
-  100% {
-    transform: translate(-100px, -60px);
-  }
 }
 
 .game-controls {
@@ -408,38 +367,19 @@
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  margin-top: 15px;
 }
 
 .game-controls p {
   color: var(--text-secondary);
   text-align: center;
   margin: 0;
+  line-height: 1.5;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: var(--border-radius-sm);
+  width: 100%;
 }
-
-/* Responsive */
-@media (max-width: 600px) {
-  .match-content {
-    padding: 1.5rem;
-  }
-  
-  .match-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .match-header p {
-    font-size: 0.9rem;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-  }
-  
-  .game-area {
-    height: 250px;
-  }
-}
-
-/* Añadir a los estilos existentes */
 
 /* Estilos para la visualización de partidas multijugador */
 .score-display.multi-player {
@@ -447,165 +387,32 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  width: 100%;
 }
 
 .player-names-multi {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  width: 100%;
 }
 
 .multi-player .player-name {
-  flex: 0 1 auto;
-  padding: 5px 10px;
+  padding: 10px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius-sm);
+  text-align: center;
 }
 
-.multi-player .score {
-  font-size: 28px;
-  padding: 10px;
-  background-color: rgba(76, 175, 80, 0.1);
-  border-radius: var(--border-radius-md);
-  margin-top: 10px;
+/* Estilos para el canvas de 4 jugadores */
+.pong-canvas.four-players-game {
+  aspect-ratio: 6/5;
+  max-height: 500px;
 }
 
-/* Estilos para el canvas de 3 jugadores (forma triangular) */
-.pong-canvas.three-players {
-  position: relative;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 50%;
-}
-
-.pong-canvas.three-players .paddle {
-  width: 12px;
-  height: 60px;
-  background-color: var(--text-primary);
-  position: absolute;
-  border-radius: 4px;
-}
-
-.pong-canvas.three-players .paddle-p1 {
-  bottom: 20px;
-  left: calc(50% - 6px);
-  animation: paddleMoveVertical 2.5s infinite alternate;
-}
-
-.pong-canvas.three-players .paddle-p2 {
-  top: calc(50% - 30px);
-  right: 20px;
-  transform: rotate(60deg);
-  animation: paddleMoveHorizontal 3s infinite alternate;
-}
-
-.pong-canvas.three-players .paddle-p3 {
-  top: calc(50% - 30px);
-  left: 20px;
-  transform: rotate(-60deg);
-  animation: paddleMoveHorizontal 2.8s infinite alternate-reverse;
-}
-
-/* Estilos para el canvas de 4 jugadores (forma cuadrada) */
-.pong-canvas.four-players {
-  position: relative;
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.pong-canvas.four-players .paddle {
-  background-color: var(--text-primary);
-  position: absolute;
-  border-radius: 4px;
-}
-
-.pong-canvas.four-players .paddle-p1 {
-  width: 60px;
-  height: 12px;
-  bottom: 20px;
-  left: calc(50% - 30px);
-  animation: paddleMoveHorizontal 2.5s infinite alternate;
-}
-
-.pong-canvas.four-players .paddle-p2 {
-  width: 60px;
-  height: 12px;
-  top: 20px;
-  left: calc(50% - 30px);
-  animation: paddleMoveHorizontal 3s infinite alternate-reverse;
-}
-
-.pong-canvas.four-players .paddle-p3 {
-  width: 12px;
-  height: 60px;
-  left: 20px;
-  top: calc(50% - 30px);
-  animation: paddleMoveVertical 2.8s infinite alternate;
-}
-
-.pong-canvas.four-players .paddle-p4 {
-  width: 12px;
-  height: 60px;
-  right: 20px;
-  top: calc(50% - 30px);
-  animation: paddleMoveVertical 3.2s infinite alternate-reverse;
-}
-
-/* Animaciones para los modos multijugador */
-.pong-canvas.multi-player .multi-ball {
-  width: 15px;
-  height: 15px;
-  background-color: var(--accent-primary);
-  border-radius: 50%;
-  position: absolute;
-  top: calc(50% - 7.5px);
-  left: calc(50% - 7.5px);
-  animation: multiplayerBallMove 5s infinite linear;
-}
-
-@keyframes paddleMoveHorizontal {
-  0% {
-    transform: translateX(-40px);
-  }
-  100% {
-    transform: translateX(40px);
-  }
-}
-
-@keyframes paddleMoveVertical {
-  0% {
-    transform: translateY(-40px);
-  }
-  100% {
-    transform: translateY(40px);
-  }
-}
-
-@keyframes multiplayerBallMove {
-  0% {
-    transform: translate(-80px, -60px);
-  }
-  20% {
-    transform: translate(80px, 60px);
-  }
-  40% {
-    transform: translate(-20px, 80px);
-  }
-  60% {
-    transform: translate(80px, -30px);
-  }
-  80% {
-    transform: translate(-80px, 30px);
-  }
-  100% {
-    transform: translate(-80px, -60px);
-  }
-}
-
-/* Añadir al archivo match.component.css existente */
-
-/* Estilos para el anunciador de combates del torneo */
+/* Anunciador de combates del torneo */
 .tournament-announcement {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -639,20 +446,19 @@
 /* Estilos para los resultados del torneo */
 .tournament-results {
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  max-width: 700px;
+  margin: 0 auto;
   padding: 20px;
   color: var(--text-primary);
   text-align: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: var(--border-radius-md);
 }
 
 .tournament-results h3 {
   font-size: 24px;
   color: var(--accent-primary);
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   text-transform: uppercase;
 }
 
@@ -691,32 +497,31 @@
 
 .tournament-match-result {
   margin: 15px 0;
-  padding: 12px;
+  padding: 15px;
   background-color: var(--bg-secondary);
   border-radius: var(--border-radius-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .match-round {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--accent-secondary);
   font-weight: bold;
+  margin-bottom: 8px;
 }
 
 .match-score {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text-primary);
+  margin-bottom: 8px;
 }
 
 .match-winner {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--accent-primary);
   font-style: italic;
 }
 
-/* Animaciones adicionales */
+/* Animaciones */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -737,69 +542,393 @@
   }
 }
 
-/* Estilos para los combates del torneo */
-.tournament-combat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
-.versus-display {
+/* Estilos para el modal de configuración */
+.config-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  margin: 10px 0;
+  z-index: 1000;
 }
 
-.player-card {
-  background-color: var(--bg-tertiary);
-  padding: 15px;
-  border-radius: var(--border-radius-md);
-  width: 120px;
+.config-content {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 25px;
+  width: 90%;
+  max-width: 500px;
+  color: white;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.config-content h2 {
   text-align: center;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition-normal);
+  margin-bottom: 20px;
+  color: #4CAF50;
+  font-size: 24px;
 }
 
-.player-card.winner {
-  background-color: rgba(76, 175, 80, 0.3);
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
-  transform: scale(1.05);
+.config-section {
+  margin-bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 6px;
 }
 
-.player-card.loser {
-  opacity: 0.7;
+.config-section h3 {
+  margin-bottom: 15px;
+  color: #2196F3;
+  font-size: 18px;
 }
 
-.versus-icon {
-  color: var(--text-secondary);
-  font-size: 20px;
+.config-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.config-item label {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.config-item input[type="range"] {
+  flex: 2;
+  margin-right: 10px;
+}
+
+.config-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+.config-item select {
+  flex: 2;
+  background-color: #333;
+  color: white;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+}
+
+.config-item span {
+  flex: 0 0 30px;
+  text-align: center;
+}
+
+.theme-options {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.theme-option {
+  text-align: center;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  flex: 1;
+  margin: 0 5px;
+}
+
+.theme-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-option.active {
+  background-color: rgba(33, 150, 243, 0.3);
+}
+
+.theme-preview {
+  width: 80px;
+  height: 50px;
+  margin: 0 auto 5px;
+  border-radius: 5px;
+  border: 1px solid #555;
+}
+
+.default-theme {
+  background-color: #041a0d;
+  position: relative;
+}
+
+.default-theme::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+}
+
+.blue-matrix-theme {
+  background-color: #001520;
+  position: relative;
+}
+
+.blue-matrix-theme::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #00ffff;
+}
+
+.red-matrix-theme {
+  background-color: #200000;
+  position: relative;
+}
+
+.red-matrix-theme::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ff0000;
+}
+
+.config-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.save-button, .cancel-button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
   font-weight: bold;
+  transition: background-color 0.3s;
 }
 
-/* Responsive para el modo torneo */
-@media (max-width: 600px) {
+.save-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #388E3C;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #D32F2F;
+}
+
+.config-button {
+  background-color: #673AB7;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  margin: 5px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.config-button:hover {
+  background-color: #5E35B1;
+}
+
+.config-button .button-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  fill: currentColor;
+}
+
+/* Estilos para canvas con temas */
+.pong-canvas.default {
+  background-color: #041a0d;
+  border: 2px solid #00ff41;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.pong-canvas.blue-matrix {
+  background-color: #001520;
+  border: 2px solid #00ffff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.pong-canvas.red-matrix {
+  background-color: #200000;
+  border: 2px solid #ff0000;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+}
+
+/* Power-ups UI */
+.power-ups-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+
+.active-power-ups {
+  display: flex;
+  flex-direction: column;
+}
+
+.power-up-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  min-width: 180px;
+}
+
+.power-up-icon {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+}
+
+.power-up-icon.giant-paddle {
+  background-color: #4CAF50;
+}
+
+.power-up-icon.mini-paddle {
+  background-color: #f44336;
+}
+
+.power-up-icon.fast-ball {
+  background-color: #FF9800;
+}
+
+.power-up-icon.inverted-controls {
+  background-color: #9C27B0;
+}
+
+.power-up-timer {
+  flex: 1;
+  height: 5px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2.5px;
+  overflow: hidden;
+}
+
+.timer-bar {
+  height: 100%;
+  background-color: #2196F3;
+  transition: width 0.1s linear;
+}
+
+/* Pantalla de carga inicial */
+.matrix-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.matrix-loading-text {
+  color: #00ff41;
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+}
+
+.matrix-loading-bar {
+  width: 300px;
+  height: 10px;
+  background-color: rgba(0, 255, 65, 0.2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.matrix-loading-progress {
+  height: 100%;
+  width: 0;
+  background-color: #00ff41;
+  animation: loadProgress 3s ease-in-out forwards;
+}
+
+@keyframes loadProgress {
+  0% { width: 0; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .match-content {
+    padding: 1.5rem;
+  }
+  
+  .match-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .match-header p {
+    font-size: 0.9rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .player-names-multi {
+    grid-template-columns: 1fr;
+  }
+  
   .announcement-content {
-    padding: 20px;
     max-width: 90%;
+    padding: 20px;
   }
   
-  .announcement-content h2 {
-    font-size: 20px;
+  .tournament-results {
+    padding: 15px;
   }
   
-  .tournament-results h3 {
-    font-size: 20px;
+  .config-content {
+    max-width: 95%;
+    padding: 15px;
   }
   
-  .winner-name {
-    font-size: 24px;
-  }
-  
-  .player-card {
-    width: 100px;
-    padding: 10px;
+  .theme-preview {
+    width: 60px;
+    height: 40px;
   }
 }
