@@ -130,4 +130,25 @@
   .matrix-link:active {
     transform: scale(0.95);
   }
+
   
+ .login-42-container {
+   width: 100%;
+   text-align: center;
+   margin-top: 20px;
+ }
+
+ .login-42-button {
+   background-color: #42b983;
+   color: white;
+   border: none;
+   padding: 10px 20px;
+   font-size: 16px;
+   cursor: pointer;
+   border-radius: 5px;
+   width: auto;
+ }
+
+ .login-42-button:hover {
+   background-color: #38a169;
+ }

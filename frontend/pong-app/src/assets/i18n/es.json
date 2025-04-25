@@ -1,0 +1,15 @@
+{
+    "LOGIN": {
+      "TITLE": "Iniciar Sesión",
+      "USERNAME": "Usuario",
+      "PASSWORD": "Contraseña",
+      "USERNAME_PLACEHOLDER": "Ingresa tu usuario",
+      "PASSWORD_PLACEHOLDER": "Ingresa tu contraseña",
+      "LOADING": "Iniciando sesión...",
+      "LOGIN_BUTTON": "Iniciar Sesión",
+      "NO_ACCOUNT": "¿No tienes una cuenta?",
+      "REGISTER": "Regístrate",
+      "LOGIN_42": "Login 42"
+    }
+  }
+  

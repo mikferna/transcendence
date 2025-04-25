@@ -54,23 +54,19 @@ export class AuthSuccessComponent implements OnInit {
     const urlParams = new URLSearchParams(window.location.search);
     const access = urlParams.get('access');
     const refresh = urlParams.get('refresh');
-    const api_token = urlParams.get('ft_token'); // Añadir esto
-
-
-    // Imprimir los valores completos
-    console.log('Access Token:', access);
-    console.log('Refresh Token:', refresh);
+    const api_token = urlParams.get('ft_token');
 
     console.log('URL Params:', { 
       access: access ? 'present' : 'missing',
-      refresh: refresh ? 'present' : 'missing'
+      refresh: refresh ? 'present' : 'missing',
+      api_token: api_token ? 'present' : 'missing'
     });
 
     if (access && refresh && api_token) {
       console.log('Tokens received, storing in localStorage');
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
-      localStorage.setItem('ft_api_token', api_token); // Guardar el token de 42
+      localStorage.setItem('ft_api_token', api_token);
       this.authService.handle42Callback(access, refresh);
       this.isLoading = false;
       this.router.navigate(['/home']);

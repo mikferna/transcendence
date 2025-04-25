@@ -1,0 +1,15 @@
+{
+    "LOGIN": {
+      "TITLE": "Login",
+      "USERNAME": "Username",
+      "PASSWORD": "Password",
+      "USERNAME_PLACEHOLDER": "Enter your username",
+      "PASSWORD_PLACEHOLDER": "Enter your password",
+      "LOADING": "Logging in...",
+      "LOGIN_BUTTON": "Login",
+      "NO_ACCOUNT": "Don't have an account?",
+      "REGISTER": "Register",
+      "LOGIN_42": "Login 42"
+    }
+  }
+  

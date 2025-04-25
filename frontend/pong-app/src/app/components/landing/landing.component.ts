@@ -39,11 +39,9 @@ export class LandingComponent {
         loadingScreenElement.style.display = 'flex';
       }
 
-      // Limpiar cualquier token almacenado de sesiones anteriores
       localStorage.removeItem('ft_api_token');
       localStorage.removeItem('is_42_user');
             
-      // Añadir timestamp para evitar cacheo
       const timestamp = new Date().getTime();
       window.location.href = `${environment.apiUrl}/auth/authorize/?force_verify=true&t=${timestamp}`;
     } catch (error) {

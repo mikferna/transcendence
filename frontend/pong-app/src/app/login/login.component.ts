@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -60,4 +61,23 @@ export class LoginComponent implements OnInit {
   goToRegister(): void {
     this.router.navigate(['/register']);
   }
+
+  login42(): void {
+  
+    try {
+      const loadingScreenElement = document.querySelector('.loading-screen') as HTMLElement;
+      if (loadingScreenElement) {
+        loadingScreenElement.style.display = 'flex';
+      }
+
+      localStorage.removeItem('ft_api_token');
+      localStorage.removeItem('is_42_user');
+            
+      const timestamp = new Date().getTime();
+      window.location.href = `${environment.apiUrl}/auth/authorize/?force_verify=true&t=${timestamp}`;
+    } catch (error) {
+      console.error('Error initiating 42 login:', error);
+    }
+  }
+  
 }
