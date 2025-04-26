@@ -68,7 +68,9 @@ class Match(models.Model):
     MATCH_TYPES = [
         ('tournament', 'Tournament'),
         ('local', 'Local'),
-        ('ai', 'Against AI')
+        ('ai', 'Against AI'),
+        ('3players', '3 Players'),  # Nuevo tipo para 1v1v1
+        ('4players', '4 Players')   # Nuevo tipo para 1v1v1v1
     ]
     
     AI_DIFFICULTY = [
@@ -78,13 +80,19 @@ class Match(models.Model):
     
     player1 = models.ForeignKey(User, related_name='matches_as_player1', on_delete=models.CASCADE)
     player2 = models.ForeignKey(User, related_name='matches_as_player2', on_delete=models.CASCADE, null=True, blank=True)
+    player3 = models.ForeignKey(User, related_name='matches_as_player3', on_delete=models.CASCADE, null=True, blank=True)
+    player4 = models.ForeignKey(User, related_name='matches_as_player4', on_delete=models.CASCADE, null=True, blank=True)
+    
     is_against_ai = models.BooleanField(default=False)
     ai_difficulty = models.CharField(max_length=10, choices=AI_DIFFICULTY, null=True, blank=True)
     
     player1_score = models.IntegerField(default=0)
     player2_score = models.IntegerField(default=0)
+    player3_score = models.IntegerField(default=0)
+    player4_score = models.IntegerField(default=0)
+    
     winner = models.ForeignKey(User, related_name='matches_won', on_delete=models.CASCADE, null=True, blank=True)
-    is_player1_winner = models.BooleanField(default=False)
+    is_player1_winner = models.BooleanField(default=False)  # Mantenemos por compatibilidad
     
     match_date = models.DateTimeField(auto_now_add=True)
     match_type = models.CharField(max_length=20, choices=MATCH_TYPES)
@@ -96,43 +104,94 @@ class Match(models.Model):
         if self.is_against_ai:
             difficulty = dict(self.AI_DIFFICULTY).get(self.ai_difficulty, '')
             return f"{self.player1.username} vs AI ({difficulty}) - {self.match_date.strftime('%Y-%m-%d')}"
+        elif self.match_type == '3players' and self.player3:
+            return f"{self.player1.username} vs {self.player2.username} vs {self.player3.username} - {self.match_date.strftime('%Y-%m-%d')}"
+        elif self.match_type == '4players' and self.player4:
+            return f"{self.player1.username} vs {self.player2.username} vs {self.player3.username} vs {self.player4.username} - {self.match_date.strftime('%Y-%m-%d')}"
         else:
             return f"{self.player1.username} vs {self.player2.username} - {self.match_date.strftime('%Y-%m-%d')}"
     
     def clean(self):
         """Validar los datos del partido"""
         from django.core.exceptions import ValidationError
+        
         if self.is_against_ai:
             if not self.ai_difficulty:
                 raise ValidationError("Se requiere especificar la dificultad de la IA")
             if self.player2 is not None:
                 raise ValidationError("El jugador 2 debe estar vacío para partidos contra IA")
-        else:
+        elif self.match_type == 'local':
             if self.player2 is None:
                 raise ValidationError("Se requiere el jugador 2 para partidos entre humanos")
-            if self.ai_difficulty:
-                raise ValidationError("La dificultad de IA debe estar vacía para partidos entre humanos")
+        elif self.match_type == '3players':
+            if self.player2 is None or self.player3 is None:
+                raise ValidationError("Se requieren 3 jugadores para el modo 3 jugadores")
+        elif self.match_type == '4players':
+            if self.player2 is None or self.player3 is None or self.player4 is None:
+                raise ValidationError("Se requieren 4 jugadores para el modo 4 jugadores")
     
     def save(self, *args, **kwargs):
         self.clean()
         is_new = self.pk is None
         
         if is_new:
+            # Actualizar estadísticas de juego para cada jugador
             self.player1.games_played += 1
+            
             if not self.is_against_ai:
-                self.player2.games_played += 1
-                if self.winner == self.player1:
-                    self.player1.games_won += 1
-                    self.player2.games_lost += 1
-                else:
-                    self.player2.games_won += 1
-                    self.player1.games_lost += 1
-                self.player2.save()
+                if self.player2:
+                    self.player2.games_played += 1
+                if self.player3:
+                    self.player3.games_played += 1
+                if self.player4:
+                    self.player4.games_played += 1
+                
+                # Actualizar estadísticas de victoria/derrota
+                if self.winner:
+                    if self.winner == self.player1:
+                        self.player1.games_won += 1
+                        if self.player2:
+                            self.player2.games_lost += 1
+                        if self.player3:
+                            self.player3.games_lost += 1
+                        if self.player4:
+                            self.player4.games_lost += 1
+                    elif self.player2 and self.winner == self.player2:
+                        self.player2.games_won += 1
+                        self.player1.games_lost += 1
+                        if self.player3:
+                            self.player3.games_lost += 1
+                        if self.player4:
+                            self.player4.games_lost += 1
+                    elif self.player3 and self.winner == self.player3:
+                        self.player3.games_won += 1
+                        self.player1.games_lost += 1
+                        if self.player2:
+                            self.player2.games_lost += 1
+                        if self.player4:
+                            self.player4.games_lost += 1
+                    elif self.player4 and self.winner == self.player4:
+                        self.player4.games_won += 1
+                        self.player1.games_lost += 1
+                        if self.player2:
+                            self.player2.games_lost += 1
+                        if self.player3:
+                            self.player3.games_lost += 1
+                
+                # Guardar cambios en los jugadores
+                if self.player2:
+                    self.player2.save()
+                if self.player3:
+                    self.player3.save()
+                if self.player4:
+                    self.player4.save()
             else:
+                # Partida contra IA
                 if self.is_player1_winner:
                     self.player1.games_won += 1
                 else:
                     self.player1.games_lost += 1
+            
             self.player1.save()
             
         super().save(*args, **kwargs)

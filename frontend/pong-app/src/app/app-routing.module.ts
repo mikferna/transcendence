@@ -10,6 +10,8 @@ import { LogoutComponent } from './components/logout/logout.component';
 import { RegisterComponent } from './components/register/register.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { AuthSuccessComponent } from './auth-success/auth-success.component';
+import { MatchComponent } from './components/match/match.component';
+import { TournamentComponent } from './components/tournament/tournament.component';
 
 const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -19,6 +21,8 @@ const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: UserSettingsComponent, canActivate: [AuthGuard] },
   { path: 'profile/:username', component: UserProfileComponent, canActivate: [AuthGuard] },
+  { path: 'match', component: MatchComponent, canActivate: [AuthGuard] },
+  { path: 'tournament', component: TournamentComponent, canActivate: [AuthGuard] },
   { path: 'logout', component: LogoutComponent },
   { path: '**', redirectTo: '' }
 ];

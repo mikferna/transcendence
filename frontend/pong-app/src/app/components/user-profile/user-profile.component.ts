@@ -23,11 +23,24 @@ interface UserProfile {
   }>;
   match_history: Array<{
     id: number;
-    opponent: string;
-    opponent_avatar: string | null;
-    result: 'win' | 'loss';
-    score: string;
-    date: string;
+    player1: string;
+    player2: string;
+    player3?: string;
+    player4?: string;
+    player1_username: string;
+    player2_username: string;
+    player3_username?: string;
+    player4_username?: string;
+    player1_score: number;
+    player2_score: number;
+    player3_score?: number;
+    player4_score?: number;
+    winner: string;
+    winner_username: string;
+    match_date: string;
+    is_against_ai: boolean;
+    ai_difficulty?: string;
+    match_type: string;
   }>;
   is_friend: boolean;
   has_pending_request: boolean;
@@ -115,6 +128,9 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         // Obtener información del perfil
         const profileData = data.user || data;
         
+        // Verificar que tenemos el ID del usuario
+        console.log('Datos recibidos de la API:', profileData);
+        
         // Obtener lista de amigos
         this.http.get(`${environment.apiUrl}/friends/${this.username}/list/`).subscribe({
           next: (friendsData: any) => {
@@ -124,33 +140,35 @@ export class UserProfileComponent implements OnInit, OnDestroy {
                 // Obtener estado de la solicitud de amistad
                 this.http.get(`${environment.apiUrl}/friend-requests/status/${this.username}/`).subscribe({
                   next: (statusData: any) => {
-                    this.profile = {
-                      ...profileData,
-                      id: profileData.id,
-                      date_joined: new Date(profileData.date_joined).toLocaleDateString(),
-                      match_history: matchesData.matches || [],
-                      friends: friendsData || [],
-                      is_friend: statusData.is_friend,
-                      has_pending_request: statusData.has_pending_request,
-                      is_current_user: this.isCurrentUserProfile()
-                    };
-                    
-                    this.loading = false;
+                    // Asegurarnos de que el ID existe
+                    if (!profileData.id) {
+                      // Intentar obtener el ID del usuario actual
+                      this.http.get(`${environment.apiUrl}/current-user/`).subscribe({
+                        next: (currentUserData: any) => {
+                          if (currentUserData && currentUserData.id) {
+                            profileData.id = currentUserData.id;
+                          }
+                          this.createProfile(profileData, friendsData, matchesData, statusData);
+                        },
+                        error: (error) => {
+                          this.createProfile(profileData, friendsData, matchesData, statusData);
+                        }
+                      });
+                    } else {
+                      this.createProfile(profileData, friendsData, matchesData, statusData);
+                    }
                   },
                   error: (error) => {
-                    console.error('Error al cargar estado de solicitud:', error);
                     this.loading = false;
                   }
                 });
               },
               error: (error) => {
-                console.error('Error al cargar historial de partidas:', error);
                 this.loading = false;
               }
             });
           },
           error: (error) => {
-            console.error('Error al cargar amigos:', error);
             this.loading = false;
           }
         });
@@ -158,9 +176,24 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.error = 'Error al cargar el perfil';
         this.loading = false;
-        console.error('Error:', error);
       }
     });
+  }
+  
+  // Método auxiliar para crear el perfil
+  private createProfile(profileData: any, friendsData: any, matchesData: any, statusData: any): void {
+    this.profile = {
+      ...profileData,
+      id: profileData.id || 0, // Asegurar que siempre haya un valor para id
+      date_joined: new Date(profileData.date_joined).toLocaleDateString(),
+      match_history: matchesData.matches || [],
+      friends: friendsData || [],
+      is_friend: statusData.is_friend,
+      has_pending_request: statusData.has_pending_request,
+      is_current_user: this.isCurrentUserProfile()
+    };
+    
+    this.loading = false;
   }
 
   // Método para verificar si el perfil es del usuario actual

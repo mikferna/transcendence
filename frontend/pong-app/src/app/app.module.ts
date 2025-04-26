@@ -18,6 +18,7 @@ import { LoginComponent } from './login/login.component';
 import { UserSettingsComponent } from './components/user-settings/user-settings.component';
 import { UserSearchComponent } from './components/user-search/user-search.component';
 //import { AuthSuccessComponent } from './auth-success/auth-success.component';
+import { TournamentComponent } from './components/tournament/tournament.component';
 
 // Services
 import { MatrixService } from './services/matrix.service';
@@ -43,7 +44,8 @@ import { HttpInterceptorService } from './services/http-interceptor.service';
     LoginComponent,
     UserSettingsComponent,
     UserSearchComponent,
-    HeaderComponent
+    HeaderComponent,
+    TournamentComponent
   ],
   providers: [
     MatrixService,

@@ -1,0 +1,323 @@
+<div class="match-container" [ngClass]="gameConfig.theme">
+  <!-- Pantalla de carga inicial -->
+  <div class="matrix-loading" *ngIf="isInitialLoading">
+    <div class="matrix-loading-text">Iniciando Sistema...</div>
+    <div class="matrix-loading-bar">
+      <div class="matrix-loading-progress"></div>
+    </div>
+  </div>
+
+  <div class="match-content">
+    <div *ngIf="!showGameModes && !showPlayerSelection && !gameStarted">
+      <div class="match-header">
+        <h1>PONG MATRIX</h1>
+        <p>Desafía a otros jugadores en línea</p>
+      </div>
+      
+      <div class="match-buttons">
+        <button class="play-button" (click)="playGame()">
+          <svg class="button-icon" viewBox="0 0 24 24">
+            <path d="M5 3l14 9-14 9V3z"></path>
+          </svg>
+          INICIAR JUEGO
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="showGameModes && !showPlayerSelection && !gameStarted">
+      <div class="match-header">
+        <h1>SELECCIONAR MODO</h1>
+        <p>Elige tu modo de juego</p>
+      </div>
+      
+      <div class="match-buttons">
+        <button class="game-mode-button" (click)="selectGameMode('1v1')">
+          JUEGO 1 VS 1
+        </button>
+        <button class="game-mode-button" (click)="selectGameMode('1v1v1v1')">
+          JUEGO 4 JUGADORES
+        </button>
+        <button class="game-mode-button" (click)="selectGameMode('AI')">
+          JUEGO VS COMPUTADORA
+        </button>
+        <button class="game-mode-button" (click)="selectGameMode('tournament')">
+          TORNEO (4 JUGADORES)
+        </button>
+        <button class="config-button" (click)="toggleConfig()">
+          <svg class="button-icon" viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
+          </svg>
+          CONFIGURACIÓN
+        </button>
+        <button class="back-button" (click)="goBack()">
+          VOLVER
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="showPlayerSelection && !gameStarted">
+      <div class="match-header">
+        <h1>SELECCIONAR JUGADORES</h1>
+        <p *ngIf="!isTournament">Se requieren {{ playerCount }} jugadores para iniciar</p>
+        <p *ngIf="isTournament">Se requieren 4 jugadores para el torneo</p>
+      </div>
+      
+      <div class="player-selection">
+        <div class="selected-players">
+          <h4>JUGADORES SELECCIONADOS ({{ selectedPlayers.length }}/{{ playerCount }})</h4>
+          <div class="player-list">
+            <div class="player-item" *ngFor="let player of selectedPlayers">
+              <span class="player-name">{{ player.username }}</span>
+              <button 
+                class="remove-player" 
+                *ngIf="player.id !== currentUser?.id"
+                (click)="removePlayer(player)"
+              >
+                <svg class="button-icon" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="player-search" *ngIf="selectedPlayers.length < playerCount">
+          <h4>BUSCAR JUGADORES</h4>
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+            </svg>
+            <input 
+              type="text" 
+              class="search-input" 
+              [(ngModel)]="searchQuery"
+              (ngModelChange)="searchUsers()"
+              placeholder="BUSCAR POR NOMBRE DE USUARIO"
+            >
+          </div>
+          
+          <div class="search-results" *ngIf="searchQuery.trim() !== ''">
+            <div *ngIf="isLoading" class="loading">
+              <div class="spinner"></div>
+              <p>BUSCANDO JUGADORES...</p>
+            </div>
+            
+            <div *ngIf="!isLoading && searchResults.length === 0" class="no-results">
+              <p>NO SE ENCONTRARON USUARIOS</p>
+            </div>
+            
+            <div 
+              class="player-item" 
+              *ngFor="let player of searchResults"
+              (click)="selectPlayer(player)"
+            >
+              <span class="player-name">{{ player.username }}</span>
+              <button class="add-player">
+                <svg class="button-icon" viewBox="0 0 24 24">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="action-buttons">
+          <button class="back-button" (click)="goBack()">
+            CANCELAR
+          </button>
+          <button 
+            class="start-button" 
+            [disabled]="selectedPlayers.length < playerCount"
+            (click)="startGame()"
+          >
+            INICIAR JUEGO
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Configuración Modal -->
+    <div *ngIf="showConfig" class="config-modal">
+      <div class="config-content">
+        <h2>CONFIGURACIÓN</h2>
+        
+        <div class="config-section">
+          <h3>PARÁMETROS DEL JUEGO</h3>
+          <div class="config-item">
+            <label>Velocidad de la bola:</label>
+            <input type="range" min="3" max="10" [(ngModel)]="gameConfig.ballSpeed">
+            <span>{{ gameConfig.ballSpeed }}</span>
+          </div>
+          <div class="config-item">
+            <label>Tamaño de la bola:</label>
+            <input type="range" min="4" max="16" [(ngModel)]="gameConfig.ballSize">
+            <span>{{ gameConfig.ballSize }}</span>
+          </div>
+          <div class="config-item">
+            <label>Tamaño de la paleta:</label>
+            <input type="range" min="40" max="120" [(ngModel)]="gameConfig.paddleSize">
+            <span>{{ gameConfig.paddleSize }}</span>
+          </div>
+          <div class="config-item">
+            <label>Habilitar power-ups:</label>
+            <input type="checkbox" [(ngModel)]="gameConfig.enablePowerUps">
+          </div>
+          <div class="config-item">
+            <label>Dificultad de la IA:</label>
+            <select [(ngModel)]="gameConfig.aiDifficulty">
+              <option value="easy">Fácil</option>
+              <option value="medium">Media</option>
+              <option value="hard">Difícil</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="config-section">
+          <h3>TEMA VISUAL</h3>
+          <div class="theme-options">
+            <div class="theme-option" [class.active]="gameConfig.theme === 'default'" (click)="gameConfig.theme = 'default'">
+              <div class="theme-preview default-theme"></div>
+              <span>Verde</span>
+            </div>
+            <div class="theme-option" [class.active]="gameConfig.theme === 'blue-matrix'" (click)="gameConfig.theme = 'blue-matrix'">
+              <div class="theme-preview blue-matrix-theme"></div>
+              <span>Azul</span>
+            </div>
+            <div class="theme-option" [class.active]="gameConfig.theme === 'red-matrix'" (click)="gameConfig.theme = 'red-matrix'">
+              <div class="theme-preview red-matrix-theme"></div>
+              <span>Rojo</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="config-actions">
+          <button class="save-button" (click)="saveConfig()">GUARDAR</button>
+          <button class="cancel-button" (click)="toggleConfig()">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+    
+    <div *ngIf="gameStarted" class="game-screen">
+      <div *ngIf="isTournament && showAnnouncement" class="tournament-announcement">
+        <div class="announcement-content">
+          <h2>{{ announcementMessage }}</h2>
+        </div>
+      </div>
+      
+      <div *ngIf="!showAnnouncement">
+        <div class="game-header">
+          <div *ngIf="isTournament">
+            <h2 *ngIf="tournamentRound === 'semifinals1' && currentMatch">SEMIFINAL 1</h2>
+            <h2 *ngIf="tournamentRound === 'semifinals2' && currentMatch">SEMIFINAL 2</h2>
+            <h2 *ngIf="tournamentRound === 'final' && currentMatch">FINAL DEL TORNEO</h2>
+            
+            <div class="score-display" *ngIf="currentMatch">
+              <div><span>{{ currentMatch.player1.username }}</span> <span class="score">{{ currentMatch.player1Score }}</span></div>
+              <div>VS</div>
+              <div><span>{{ currentMatch.player2.username }}</span> <span class="score">{{ currentMatch.player2Score }}</span></div>
+            </div>
+          </div>
+          
+          <div *ngIf="!isTournament">
+            <h2>PARTIDA EN PROGRESO</h2>
+            
+            <div class="score-display" *ngIf="playerCount === 2 && !isAgainstAI">
+              <div><span>{{ selectedPlayers[0] ? selectedPlayers[0].username : '' }}</span> <span class="score">{{ player1Score }}</span></div>
+              <div>VS</div>
+              <div><span>{{ selectedPlayers[1] ? selectedPlayers[1].username : '' }}</span> <span class="score">{{ player2Score }}</span></div>
+            </div>
+            
+            <div class="score-display" *ngIf="isAgainstAI">
+              <div><span>{{ currentUser?.username }}</span> <span class="score">{{ player1Score }}</span></div>
+              <div>VS</div>
+              <div><span>COMPUTADORA</span> <span class="score">{{ player2Score }}</span></div>
+            </div>
+            
+            <div class="score-display multi-player" *ngIf="playerCount > 2 && !isAgainstAI">
+              <div class="player-names-multi">
+                <div class="player-name" *ngFor="let player of selectedPlayers; let i = index">
+                  {{ player.username }}: 
+                  <span class="score">
+                    {{ i === 0 ? player1Score : i === 1 ? player2Score : i === 2 ? player3Score : player4Score }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="game-area">
+          <div class="power-ups-container" *ngIf="gameConfig.enablePowerUps && activePowerUps.length > 0">
+            <div class="active-power-ups">
+              <div class="power-up-item" *ngFor="let powerUp of activePowerUps">
+                <div class="power-up-icon" [ngClass]="powerUp.type"></div>
+                <div class="power-up-timer">
+                  <div class="timer-bar" [style.width.%]="(powerUp.remainingTime / powerUp.duration) * 100"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="pong-canvas" 
+               [ngClass]="gameConfig.theme" 
+               *ngIf="(playerCount === 2 && !isTournament) || (isTournament && !gameEnded && currentMatch)">
+            <canvas #pongCanvas width="600" height="400"></canvas>
+          </div>
+          
+          <div class="pong-canvas four-players-game" 
+               [ngClass]="gameConfig.theme" 
+               *ngIf="playerCount === 4 && !isTournament && !gameEnded">
+            <canvas #pongCanvas width="600" height="500"></canvas>
+          </div>
+          
+          <div class="tournament-results" *ngIf="isTournament && gameEnded && tournamentWinner">
+            <h3>TORNEO FINALIZADO</h3>
+            <div class="tournament-winner">
+              <span class="winner-label">CAMPEÓN:</span>
+              <span class="winner-name">{{ tournamentWinner ? tournamentWinner.username : 'Desconocido' }}</span>
+            </div>
+            
+            <div class="tournament-bracket">
+              <h4>HISTORIAL DE PARTIDOS:</h4>
+              <div class="tournament-match-result" *ngFor="let match of tournamentMatches; let i = index">
+                <div class="match-round">
+                  {{ i === 0 ? 'SEMIFINAL 1' : i === 1 ? 'SEMIFINAL 2' : 'FINAL' }}
+                </div>
+                <div class="match-score">
+                  {{ match.player1.username }} {{ match.player1Score }} - {{ match.player2Score }} {{ match.player2.username }}
+                </div>
+                <div class="match-winner">
+                  GANADOR: {{ match.winner ? match.winner.username : 'Desconocido' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="game-controls">
+          <p *ngIf="!gameEnded && !isTournament && playerCount === 2">
+            CONTROLES: Jugador 1 [W/S] - Jugador 2 [↑/↓]
+          </p>
+          <p *ngIf="!gameEnded && isAgainstAI">
+            CONTROLES: Usa [W/S] para mover la paleta
+          </p>
+          <p *ngIf="!gameEnded && !isTournament && playerCount === 4">
+            <strong>CONTROLES:</strong><br>
+            Jugador 1 (izquierda): [W/S]<br>
+            Jugador 2 (derecha): [↑/↓]<br>
+            Jugador 3 (arriba): [A/D]<br>
+            Jugador 4 (abajo): [J/L]
+          </p>
+          <p *ngIf="!gameEnded && isTournament && currentMatch">
+            CONTROLES: {{ currentMatch.player1.username }} [W/S] - {{ currentMatch.player2.username }} [↑/↓]
+          </p>
+          
+          <button class="back-button" (click)="goBack()">
+            SALIR
+          </button>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
