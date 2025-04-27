@@ -131,6 +131,23 @@
     transform: scale(0.95);
   }
 
+  .separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 2rem 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
+  
+  .separator::before,
+  .separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    margin: 0 1rem;
+  }
   
  .login-42-container {
    width: 100%;
@@ -139,6 +156,7 @@
  }
 
  .login-42-button {
+   width: 100%;
    background-color: #42b983;
    color: white;
    border: none;
@@ -146,7 +164,6 @@
    font-size: 16px;
    cursor: pointer;
    border-radius: 5px;
-   width: auto;
  }
 
  .login-42-button:hover {

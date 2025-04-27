@@ -61,6 +61,50 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   username: string = '';
   currentUsername: string = '';
   private statusUpdateInterval: any = null;
+ // Añadimos estas tres propiedades:
+ currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
+ currentTexts: any;
+ translations: any = {
+   es: {
+     matches: 'PARTIDAS',
+     wins: 'VICTORIAS',
+     efficiency: 'EFICIENCIA',
+     contacts: 'CONTACTOS',
+     no_contacts_found_ddbb: 'NO CONTACTOS ENCONTRADOS EN LA BASE DE DATOS',
+     combats_registry: 'REGISTRO DE COMBATES',
+     win: 'VICTORIA',
+     lose: 'DERROTA',
+     no_combat_registry_found_ddbb: 'NO HAY REGISTROS DE COMBATE EN LA BASE DE DATOS',
+     contact_established: 'CONTACTO ESTABLECIDO',
+     pending_request: 'SOLICITUD PENDIENTE',
+     add_contact: 'AÑADIR CONTACTO',
+     start_combat: 'INICIAR COMBATE',
+     accessing_system: 'ACCEDIENDO AL SISTEMA...',
+     system_error: 'ERROR DE SISTEMA:',
+     connected: 'CONECTADO',
+     disconnected: 'DESCONECTADO'
+
+   },
+   en: {
+     matches: 'MATCHES',
+     wins: 'WINS',
+     efficiency: 'EFFICIENCY',
+     contacts: 'CONTACTOS',
+     no_contacts_found_ddbb: 'NO CONTACTS FOUND ON THE DATABASE',
+     combats_registry: 'COMBAT REGISTRY',
+     win: 'WIN',
+     lose: 'LOSE',
+     no_combat_registry_found_ddbb: 'NO COMBAT REGISTRYS FOUND ON THE DATABASE',
+     contact_established: 'CONTACT ESTABLISHED',
+     pending_request: 'PENDING REQUEST',
+     add_contact: 'ADD CONTACT',
+     start_combat: 'START COMBAT',
+     accessing_system: 'ACCESSING SYSTEM...',
+     system_error: 'SYSTEM ERROR:',
+     connected: 'CONNECTED',
+     disconnected: 'DESCONCECTED'
+   }
+ };
 
   constructor(
     private http: HttpClient,
@@ -75,6 +119,18 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       this.username = params['username'];
       this.loadProfile();
     });
+
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage && this.translations[savedLanguage]) {
+      this.currentLanguage = savedLanguage;
+    }
+    // Nos suscribimos al usuario actual
+    this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
+    // Imprime el idioma seleccionado en la consola
+    console.log('Idioma seleccionado:', this.currentLanguage);
+
+    // Verifica que `accessing_system` esté presente
+    console.log('accessing_system:', this.currentTexts?.accessing_system);
   }
   
   ngOnDestroy() {

@@ -4,13 +4,14 @@ import { AuthService } from '../../services/auth.service';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-user-settings',
   templateUrl: './user-settings.component.html',
   styleUrls: ['./user-settings.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule]
 })
 export class UserSettingsComponent implements OnInit {
   userForm: FormGroup;
@@ -19,6 +20,33 @@ export class UserSettingsComponent implements OnInit {
   selectedFile: File | null = null;
   message: string = '';
   error: string = '';
+// Añadimos estas tres propiedades:
+currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
+currentTexts: any;
+translations: any = {
+  es: {
+    account_settings: 'Configuración del perfil',
+    change_avatar: 'Cambiar Avatar ',
+    username: 'Nombre de Usuario',
+    username_required: 'El nombre de usuario es requerido',
+    name_char_limit: 'El nombre no puede exceder los 30 caracteres',
+    email: 'Email',
+    email_required: 'El email es requerido',
+    insert_valid_email: 'Por favor, ingresa un email válido',
+    save_changes: 'Guardar cambios',
+  },
+  en: {
+    account_settings: 'Account settings',
+    change_avatar: 'Change Avatar ',
+    username: 'User Name',
+    username_required: 'User name required',
+    name_char_limit: 'User name must not exceed 30 chararcter length',
+    email: 'Email',
+    email_required: 'email required',
+    insert_valid_email: 'Insert a valid email, please',
+    save_changes: 'Save changes',
+  }
+};
 
   constructor(
     private http: HttpClient,
@@ -35,6 +63,14 @@ export class UserSettingsComponent implements OnInit {
 
   ngOnInit() {
     this.loadUserData();
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage && this.translations[savedLanguage]) {
+      this.currentLanguage = savedLanguage;
+    }
+    // Nos suscribimos al usuario actual
+    this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
+    // Imprime el idioma seleccionado en la consola
+    console.log('Idioma seleccionado:', this.currentLanguage);
   }
 
   loadUserData() {

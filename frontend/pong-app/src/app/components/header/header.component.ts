@@ -3,6 +3,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { UserSearchComponent } from '../user-search/user-search.component';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';  //añadir
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -12,7 +13,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule, UserSearchComponent],
+  imports: [CommonModule, RouterModule, FormsModule, UserSearchComponent],
   animations: [
     trigger('menuAnimation', [
       state('closed', style({
@@ -36,6 +37,7 @@ import { environment } from '../../../environments/environment';
 })
 export class HeaderComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
+  
   currentUser: any;
   showUserSearch: boolean = false;
   isProfileMenuOpen: boolean = false;
@@ -43,6 +45,34 @@ export class HeaderComponent implements OnInit {
   showNotifications: boolean = false;
   gearRotation: number = 0;
   friendRequests: any[] = [];
+
+  // Añadimos estas tres propiedades:
+  currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
+  currentTexts: any;
+  translations: any = {
+    es: {
+      search: 'Buscar usuario...',
+      account: 'Mi cuenta',
+      language: 'Idioma',
+      logout: 'Cerrar sesión',
+      account_settings: 'Opciones de cuenta',
+      my_profile: 'Mi Perfil',
+      configuration: 'Configuración',
+      friend_request: "Solicitudes de amistad",
+      no_pending_requests: 'No hay solicitudes pendientes'
+    },
+    en: {
+      search: 'Search user...',
+      account: 'My account',
+      language: 'Language',
+      logout: 'Logout',
+      account_settings: 'Account settings',
+      my_profile: 'My Profile',
+      configuration: 'Configuration',
+      friend_request: "Friendship request",
+      no_pending_requests: 'No pending requests'
+    }
+  };
 
   constructor(
     private router: Router,
@@ -52,6 +82,15 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage && this.translations[savedLanguage]) {
+      this.currentLanguage = savedLanguage;
+    }
+    // Nos suscribimos al usuario actual
+    this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
+    // Imprime el idioma seleccionado en la consola
+    console.log('Idioma seleccionado:', this.currentLanguage);
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
@@ -60,10 +99,16 @@ export class HeaderComponent implements OnInit {
     });
   }
 
+  onLanguageChange(event: Event) {
+    const selectedLang = (event.target as HTMLSelectElement).value;
+    this.currentLanguage = selectedLang;
+    this.currentTexts = this.translations[selectedLang];
+    localStorage.setItem('selectedLanguage', selectedLang);  // Guardar el idioma seleccionado
+    window.location.reload();
+  }
+
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
-    
-    // Cerramos otros menús abiertos
     if (this.isMenuOpen) {
       this.isProfileMenuOpen = false;
       this.showNotifications = false;
@@ -79,7 +124,6 @@ export class HeaderComponent implements OnInit {
   onDocumentClick(event: MouseEvent) {
     const targetElement = event.target as HTMLElement;
     const clickedInside = this.elementRef.nativeElement.contains(targetElement);
-    
     if (!clickedInside) {
       this.closeAllMenus();
     }
@@ -92,8 +136,6 @@ export class HeaderComponent implements OnInit {
   toggleProfileMenu(event: MouseEvent) {
     event.stopPropagation();
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
-    
-    // Cerramos otros menús abiertos
     if (this.isProfileMenuOpen) {
       this.isMenuOpen = false;
       this.showNotifications = false;
@@ -104,8 +146,6 @@ export class HeaderComponent implements OnInit {
   toggleNotifications(event: MouseEvent) {
     event.stopPropagation();
     this.showNotifications = !this.showNotifications;
-    
-    // Cerramos otros menús abiertos
     if (this.showNotifications) {
       this.isMenuOpen = false;
       this.isProfileMenuOpen = false;
@@ -148,7 +188,6 @@ export class HeaderComponent implements OnInit {
   logout() {
     this.authService.logout().subscribe({
       next: () => {
-        // La redirección ahora se maneja en el servicio para usuarios de 42
         if (!localStorage.getItem('is_42_user')) {
           this.router.navigate(['/']);
         }
@@ -162,22 +201,7 @@ export class HeaderComponent implements OnInit {
         this.closeAllMenus();
       }
     });
-}
-
-  //logout() {
-  //  this.authService.logout().subscribe({
-  //    next: () => {
-  //      this.router.navigate(['/login']);
-  //      this.closeAllMenus();
-  //    },
-  //    error: (error) => {
-  //      console.error('Error al cerrar sesión:', error);
-  //      // Aún así intentamos navegar a la página de login
-  //      this.router.navigate(['/login']);
-  //      this.closeAllMenus();
-  //    }
-  //  });
-  //}
+  }
 
   getAbsoluteAvatarUrl(avatarUrl: string): string {
     if (!avatarUrl) return '';

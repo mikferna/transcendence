@@ -1,24 +1,24 @@
 <div class="login-container">
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-    <h2>{{ 'LOGIN.TITLE' | translate }}</h2> <!-- Título traducible -->
+    <h2>Iniciar Sesión</h2> <!-- Título traducible -->
     
     <div class="form-group">
-      <label for="username">{{ 'LOGIN.USERNAME' | translate }}</label> <!-- Etiqueta Usuario traducible -->
+      <label for="username">Usuario</label> <!-- Etiqueta Usuario traducible -->
       <input 
         type="text" 
         id="username" 
         formControlName="username" 
-        placeholder="{{ 'LOGIN.USERNAME_PLACEHOLDER' | translate }}"
+        placeholder="Usuario"
         [class.error]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
     </div>
 
     <div class="form-group">
-      <label for="password">{{ 'LOGIN.PASSWORD' | translate }}</label> <!-- Etiqueta Contraseña traducible -->
+      <label for="password">Contraseña</label> <!-- Etiqueta Contraseña traducible -->
       <input 
         type="password" 
         id="password" 
         formControlName="password" 
-        placeholder="{{ 'LOGIN.PASSWORD_PLACEHOLDER' | translate }}"
+        placeholder="Ingresa tu contraseña"
         [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
     </div>
 
@@ -27,15 +27,19 @@
     </div>
 
     <button type="submit" [disabled]="loginForm.invalid || isLoading">
-      {{ isLoading ? ('LOGIN.LOADING' | translate) : ('LOGIN.LOGIN_BUTTON' | translate) }}
+      {{ isLoading ? ("Iniciando sesión...") : ("Iniciar Sesión") }}
     </button>
 
     <div class="form-footer">
-      <p>{{ 'LOGIN.NO_ACCOUNT' | translate }} <a class="matrix-link" (click)="goToRegister()">{{ 'LOGIN.REGISTER' | translate }}</a></p>
+      <p>¿No tienes una cuenta?<a class="matrix-link" (click)="goToRegister()">Regístrate</a></p>
+    </div>
+    
+    <div class="separator">
+      <span>o</span>
     </div>
 
     <div class="login-42-container">
-      <button class="login-42-button" (click)="login42()">{{ 'LOGIN.LOGIN_42' | translate }}</button>
+      <button class="login-42-button" (click)="login42()">Login 42</button>
     </div>
 
   </form>

@@ -18,15 +18,15 @@
         <div class="stats">         
           <div class="stat">           
             <span class="stat-value terminal-text">{{ profile.games_played }}</span>           
-            <span class="stat-label">PARTIDAS</span>         
+            <span class="stat-label">{{ currentTexts.matches }}</span>         
           </div>         
           <div class="stat">           
             <span class="stat-value terminal-text">{{ profile.games_won }}</span>           
-            <span class="stat-label">VICTORIAS</span>         
+            <span class="stat-label">{{ currentTexts.wins }}</span>         
           </div>         
           <div class="stat">           
             <span class="stat-value terminal-text">{{ getWinRate() }}%</span>           
-            <span class="stat-label">EFICIENCIA</span>         
+            <span class="stat-label">{{ currentTexts.efficiency }}</span>         
           </div>       
         </div>     
       </div>   
@@ -35,7 +35,7 @@
     <div class="profile-sections">     
       <div class="section hackercard">
         <div class="section-header">
-          <h2>[<span class="text-bracket-open">_</span> CONTACTOS <span class="blink">_</span> <span class="text-bracket-close">]</span></h2>
+          <h2>[<span class="text-bracket-open">_</span> {{ currentTexts.efficiency }} <span class="blink">_</span> <span class="text-bracket-close">]</span></h2>
           <div class="corner-decoration top-left"></div>
           <div class="corner-decoration top-right"></div>
           <div class="corner-decoration bottom-left"></div>
@@ -46,19 +46,19 @@
             <div class="friend-info">
               <span class="friend-name terminal-text">{{ friend.username }}</span>           
               <span class="online-status" [class.online]="friend.is_online" [class.offline]="!friend.is_online">             
-                {{ friend.is_online ? '● CONNECTED' : '○ DISCONNECTED' }}           
+                {{ friend.is_online ? '● {{ currentTexts.connected }}' : '○ {{ currentTexts.disconnected }}' }}           
               </span>
             </div>
           </div>
           <div *ngIf="profile.friends.length === 0" class="no-data">
-            <span>NO CONTACTOS ENCONTRADOS EN LA BASE DE DATOS</span>
+            <span>{{ currentTexts.no_contacts_found_ddbb }}</span>
           </div>       
         </div>     
       </div>          
       
       <div class="section hackercard">
         <div class="section-header">
-          <h2>[<span class="text-bracket-open">_</span> REGISTRO DE COMBATES <span class="blink">_</span> <span class="text-bracket-close">]</span></h2>
+          <h2>[<span class="text-bracket-open">_</span> {{ currentTexts.no_contacts_found_ddbb }} <span class="blink">_</span> <span class="text-bracket-close">]</span></h2>
           <div class="corner-decoration top-left"></div>
           <div class="corner-decoration top-right"></div>
           <div class="corner-decoration bottom-left"></div>
@@ -111,12 +111,12 @@
               </ng-container>
             </div>
             <div class="match-winner" [class.win]="match.winner_username === profile.username">
-              {{ match.winner_username === profile.username ? 'VICTORIA' : 'DERROTA' }}
+              {{ match.winner_username === profile.username ? '{{ currentTexts.win }}' : '{{ currentTexts.lose }}' }}
             </div>
             <div class="match-date">{{ match.match_date | date:'dd/MM/yyyy HH:mm' }}</div>
           </div>
           <div *ngIf="profile.match_history.length === 0" class="no-data">
-            <span>NO HAY REGISTROS DE COMBATE EN LA BASE DE DATOS</span>
+            <span>{{ currentTexts.no_combat_registry_found_ddbb }}</span>
           </div>       
         </div>     
       </div>   
@@ -125,10 +125,10 @@
     <!-- Action Buttons -->
     <div class="profile-actions" *ngIf="!profile.is_current_user">
       <button class="btn-matrix" [disabled]="profile.is_friend || profile.has_pending_request">
-        <span class="btn-text">{{ profile.is_friend ? 'CONTACTO ESTABLECIDO' : (profile.has_pending_request ? 'SOLICITUD PENDIENTE' : 'AÑADIR CONTACTO') }}</span>
+        <span class="btn-text">{{ profile.is_friend ? '{{ currentTexts.contact_established }}' : (profile.has_pending_request ? '{{ currentTexts.pending_request }}' : '{{ currentTexts.add_contact }}') }}</span>
       </button>
       <button class="btn-matrix">
-        <span class="btn-text">INICIAR COMBATE</span>
+        <span class="btn-text">{{ currentTexts.start_combat }}</span>
       </button>
     </div>
   </div>  
@@ -136,13 +136,13 @@
   <div *ngIf="loading" class="loading-container">
     <div class="matrix-loader">
       <div class="matrix-code">01101101011000010111010001110010011010010111100000100000001101110010111001100100</div>
-      <div class="loading-text">ACCEDIENDO AL SISTEMA...</div>
+      <div class="loading-text">{{ currentTexts.accessing_system }}</div>
     </div>
   </div>  
 
   <div *ngIf="error" class="error">
     <div class="error-icon">!</div>
-    <div class="error-message">ERROR DE SISTEMA: {{ error }}</div>
+    <div class="error-message">{{ currentTexts.system_error }} {{ error }}</div>
     <div class="error-code">CODE: 0xF1A7</div>
   </div>
 </div>
