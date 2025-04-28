@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -10,13 +10,40 @@ import { environment } from '../../environments/environment';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule]
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   error: string = '';
   isLoading: boolean = false;
 
+// Añadimos estas tres propiedades:
+currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
+currentTexts: any;
+translations: any = {
+  es: {
+    insert_user: 'Usuario',
+    email: 'Contraseña',
+    insert_email: 'Inserte un correo electrónico',
+    login_in: 'Iniciar Sesión',
+    login: 'Iniciando sesión...',
+    no_account: '¿No tienes una cuenta? ',
+    register: 'Regístrate',
+    login_42: 'Login 42'
+    },
+  en: {
+    insert_user: 'User',
+    email: 'Password',
+    insert_email: 'Insert an email address',
+    login_in: 'Log In',
+    login: 'Logging in...',
+    no_account: 'You don\'t have an account? ',
+    register: 'Register',
+    login_42: 'Login 42'
+        
+  }
+};
+  
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -33,6 +60,17 @@ export class LoginComponent implements OnInit {
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/home']);
     }
+
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage && this.translations[savedLanguage]) {
+      this.currentLanguage = savedLanguage;
+    }
+    // Nos suscribimos al usuario actual
+    this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
+    // Imprime el idioma seleccionado en la consola
+    console.log('Idioma seleccionado:', this.currentLanguage);
+  
+
   }
 
   onSubmit(): void {

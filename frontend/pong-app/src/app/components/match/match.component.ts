@@ -330,7 +330,10 @@ translations: any = {
     palyer_up: 'Jugador 3 (arriba): [A/D]',
     palyer_down: 'Jugador 4 (abajo): [J/L]',
     exit: 'SALIR',
-    confirm_abandon_game: '¿Seguro que quieres abandonar el juego en curso?'
+    confirm_abandon_game: '¿Seguro que quieres abandonar el juego en curso?',
+    game_end: 'JUEGO TERMINADO',
+    winner_win: 'GANADOR',
+    player: 'Jugador'
   },
   en: {
     initialicing_system: 'Initializing System...',
@@ -385,7 +388,11 @@ translations: any = {
     palyer_up: 'Player 3 (top): [A/D]',
     palyer_down: 'Player 4 (bottom): [J/L]',
     exit: 'EXIT',
-    confirm_abandon_game: 'Are you sure you want to abandon the current game?'
+    confirm_abandon_game: 'Are you sure you want to abandon the current game?',
+    game_end: 'Game end',
+    winner_win: 'WINNER',
+    player: 'Player'
+
   }
 };
 
@@ -1677,7 +1684,7 @@ translations: any = {
       this.ctx.shadowColor = this.ctx.fillStyle;
       this.ctx.shadowBlur = 15;
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('JUEGO TERMINADO', canvas.width / 2, canvas.height / 2 - 50);
+      this.ctx.fillText(this.translations[this.currentLanguage].game_end, canvas.width / 2, canvas.height / 2 - 50);
       
       this.ctx.font = 'bold 32px Arial';
       this.ctx.fillStyle = textColor;
@@ -1692,8 +1699,8 @@ translations: any = {
           (this.selectedPlayers[0]?.username || 'Jugador 1') : 
           (this.isAgainstAI ? 'IA' : this.selectedPlayers[1]?.username || 'Jugador 2');
       }
-      
-      this.ctx.fillText(`GANADOR: ${winner}`, canvas.width / 2, canvas.height / 2 + 10);
+
+      this.ctx.fillText(`${this.translations[this.currentLanguage].winner_win}: ${winner}`, canvas.width / 2, canvas.height / 2 + 10);
       this.ctx.font = 'bold 24px Arial';
       this.ctx.fillText(`${this.pongGame.player1Score} - ${this.pongGame.player2Score}`, canvas.width / 2, canvas.height / 2 + 60);
       this.ctx.shadowBlur = 0;

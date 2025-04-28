@@ -51,7 +51,67 @@ export class TournamentComponent implements OnInit {
   // Datos de la partida actual
   currentMatchPlayer1: User | null = null;
   currentMatchPlayer2: User | null = null;
-  
+
+  // Añadimos estas tres propiedades:
+  currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
+  currentTexts: any;
+  translations: any = {
+    es: {
+      tournamentTitle: 'Torneo de Pong',
+      selectFourPlayers: 'Selecciona 4 jugadores para comenzar el torneo',
+      tournamentNameLabel: 'Nombre del Torneo:',
+      tournamentNamePlaceholder: 'Nombre del torneo',
+      selectedPlayers: 'Jugadores seleccionados',
+      searchPlayers: 'Buscar jugadores',
+      searchUsersPlaceholder: 'Buscar usuarios...',
+      noUsersFound: 'No se encontraron usuarios',
+      searching: 'Buscando...',
+      play_match: 'Jugar Partida',
+      startTournament: 'Iniciar Torneo',
+      semifinals: 'Semifinales',
+      final: 'Final',
+      abandonTournament: 'Abandonar Torneo',
+      newTournament: 'Nuevo Torneo',
+      matchInProgress: 'Partido en curso',
+      simulateMatch: 'Simular partida',
+      matchNote: 'Nota: En la implementación final, aquí se mostraría el componente real de partida.',
+      tournament_end: '¡El torneo ha finalizado! Ganador:',
+      tournament_needs_4_players: 'Se necesitan exactamente 4 jugadores para iniciar el torneo',
+      tournament_of_user: 'Torneo de',
+      semifinals_not_completed: 'Error: no se han completado las semifinales',
+      game_no_match_assigned: 'Error: la partida no tiene jugadores asignados',
+      abandon_current_tournament: '¿Seguro que quieres abandonar el torneo en curso?'  
+    },
+    en: {
+      tournamentTitle: 'Pong Tournament',
+      selectFourPlayers: 'Select 4 players to start the tournament',
+      tournamentNameLabel: 'Tournament Name:',
+      tournamentNamePlaceholder: 'Tournament name',
+      selectedPlayers: 'Selected Players',
+      searchPlayers: 'Search Players',
+      searchUsersPlaceholder: 'Search users...',
+      noUsersFound: 'No users found',
+      searching: 'Searching...',
+      play_match: 'Play Match',
+      startTournament: 'Start Tournament',
+      semifinals: 'Semifinals',
+      final: 'Final',
+      abandonTournament: 'Leave Tournament',
+      newTournament: 'New Tournament',
+      matchInProgress: 'Match In Progress',
+      simulateMatch: 'Simulate Match',
+      matchNote: 'Note: In the final implementation, the real match component would be shown here.',
+      tournament_end: '¡The tournament is ove! Winner:',
+      tournament_needs_4_players: 'Exactly 4 players are needed to start the tournament',
+      tournament_of_user: 'Tournament of',
+      semifinals_not_completed: 'Error: the semifinals have not been completed',
+      game_no_match_assigned: 'Error: the match has no players assigned',
+      no_users_assigned_to_match: 'Error: the match has no players assigned',
+      error_saving_match_result: 'Error saving match result',
+      abandon_current_tournament: 'Are you sure you want to abandon the current tournament?',      
+    }
+  };
+
   constructor(
     private matchService: MatchService,
     private router: Router
@@ -62,6 +122,16 @@ export class TournamentComponent implements OnInit {
     
     // Verificar si hay un torneo guardado en localStorage
     this.loadTournamentState();
+
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage && this.translations[savedLanguage]) {
+      this.currentLanguage = savedLanguage;
+    }
+    // Nos suscribimos al usuario actual
+    this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
+    // Imprime el idioma seleccionado en la consola
+    console.log('Idioma seleccionado:', this.currentLanguage);
+  
   }
   
   getCurrentUser(): void {
@@ -123,12 +193,12 @@ export class TournamentComponent implements OnInit {
   
   initTournament(): void {
     if (this.selectedPlayers.length !== 4) {
-      alert('Se necesitan exactamente 4 jugadores para iniciar el torneo');
+      alert(this.currentTexts.tournament_needs_4_players);
       return;
     }
     
     if (!this.tournamentName.trim()) {
-      this.tournamentName = `Torneo de ${this.currentUser?.username}`;
+      this.tournamentName = this.currentTexts.tournament_of_user + ' ' + (this.currentUser?.username || '');
     }
     
     // Crear estructura del torneo con los jugadores
@@ -196,7 +266,7 @@ export class TournamentComponent implements OnInit {
           currentMatch.player2 = semifinal2.winner;
           this.saveTournamentState();
         } else {
-          alert('Error: no se han completado las semifinales');
+          alert(this.currentTexts.semifinals_not_completed);
           return;
         }
       }
@@ -214,7 +284,7 @@ export class TournamentComponent implements OnInit {
       // Todas las partidas completadas, torneo finalizado
       this.tournamentInProgress = false;
       const winner = this.tournamentMatches[2].winner;
-      alert(`¡El torneo ha finalizado! Ganador: ${winner?.username}`);
+      alert(this.translations[this.currentLanguage].tournament_end + ' ' + (winner?.username || ''));
       this.saveTournamentState();
     }
   }
@@ -225,7 +295,7 @@ export class TournamentComponent implements OnInit {
     const currentMatch = this.tournamentMatches[this.currentMatchIndex];
     
     if (!currentMatch.player1 || !currentMatch.player2) {
-      alert('Error: la partida no tiene jugadores asignados');
+      alert(this.translations[this.currentLanguage].game_no_match_assigned);
       return;
     }
     
@@ -274,7 +344,7 @@ export class TournamentComponent implements OnInit {
     const currentMatch = this.tournamentMatches[this.currentMatchIndex];
     
     if (!currentMatch.player1 || !currentMatch.player2) {
-      alert('Error: la partida no tiene jugadores asignados');
+      alert(this.translations[this.currentLanguage].no_users_assigned_to_match);
       return;
     }
     
@@ -317,14 +387,14 @@ export class TournamentComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al guardar el partido:', error);
-        alert('Error al guardar el resultado del partido');
+        alert(this.translations[this.currentLanguage].error_saving_match_result);
       }
     });
   }
   
   resetTournament(): void {
     if (this.tournamentInProgress) {
-      if (!confirm('¿Seguro que quieres abandonar el torneo en curso?')) {
+      if (!confirm(this.translations[this.currentLanguage].abandon_current_tournament)) {
         return;
       }
     }

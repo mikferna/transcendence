@@ -1,15 +1,15 @@
 <div class="tournament-container">
   <div class="tournament-content">
     <div class="tournament-header">
-      <h1>Torneo de Pong</h1>
-      <p *ngIf="showPlayerSelection">Selecciona 4 jugadores para comenzar el torneo</p>
+      <h1>{{ currentTexts.tournamentTitle }}</h1>
+      <p *ngIf="showPlayerSelection">{{ currentTexts.selectFourPlayers }}</p>
       <p *ngIf="showTournament">{{ tournamentName }}</p>
     </div>
     
     <!-- Selección de jugadores -->
     <div class="player-selection" *ngIf="showPlayerSelection">
       <div class="tournament-name">
-        <label for="tournamentName">Nombre del Torneo:</label>
+        <label for="tournamentName">{{ currentTexts.tournamentNameLabel }}</label>
         <input 
           type="text" 
           id="tournamentName"
@@ -20,7 +20,7 @@
       </div>
       
       <div class="selected-players">
-        <h4>Jugadores seleccionados ({{ selectedPlayers.length }}/4)</h4>
+        <h4>{{ currentTexts.selectedPlayers }} ({{ selectedPlayers.length }}/4)</h4>
         <div class="player-list">
           <div class="player-item" *ngFor="let player of selectedPlayers">
             <div class="player-name">{{ player.username }}</div>
@@ -35,7 +35,7 @@
       </div>
       
       <div class="player-search" *ngIf="selectedPlayers.length < 4">
-        <h4>Buscar jugadores</h4>
+        <h4>{{ currentTexts.searchPlayers }}</h4>
         <div class="search-input-wrapper">
           <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"></circle>
@@ -68,12 +68,12 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <span>No se encontraron usuarios</span>
+          <span>{{ currentTexts.noUsersFound }}</span>
         </div>
         
         <div class="loading" *ngIf="isLoading">
           <div class="spinner"></div>
-          <span>Buscando...</span>
+          <span>{{ currentTexts.searching }}</span>
         </div>
       </div>
       
@@ -82,7 +82,7 @@
           <svg class="button-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
-          Iniciar Torneo
+          {{ currentTexts.startTournament }}
         </button>
       </div>
     </div>
@@ -92,7 +92,7 @@
       <div class="bracket-container">
         <!-- Semifinales -->
         <div class="round">
-          <h3>Semifinales</h3>
+          <h3>{{ currentTexts.semifinals }}</h3>
           <div class="matches">
             <div class="match-card" [class.completed]="tournamentMatches[0].completed">
               <div class="match-players">
@@ -110,7 +110,7 @@
               
               <!-- Botón de jugar para la primera semifinal -->
               <button class="play-match-button" *ngIf="!tournamentMatches[0].completed && currentMatchIndex === 0" (click)="simulateMatch()">
-                Jugar Partida
+                {{ currentTexts.play_match }}
               </button>
             </div>
             
@@ -130,7 +130,7 @@
               
               <!-- Botón de jugar para la segunda semifinal -->
               <button class="play-match-button" *ngIf="!tournamentMatches[1].completed && currentMatchIndex === 1" (click)="simulateMatch()">
-                Jugar Partida
+                {{ currentTexts.play_match }}
               </button>
             </div>
           </div>
@@ -138,7 +138,7 @@
         
         <!-- Final -->
         <div class="round">
-          <h3>Final</h3>
+          <h3>{{ currentTexts.final }}</h3>
           <div class="matches">
             <div class="match-card final" [class.completed]="tournamentMatches[2].completed">
               <div class="match-players">
@@ -156,7 +156,7 @@
               
               <!-- Botón de jugar para la final -->
               <button class="play-match-button" *ngIf="!tournamentMatches[2].completed && currentMatchIndex === 2" (click)="simulateMatch()">
-                Jugar Partida
+                {{ currentTexts.play_match }}
               </button>
             </div>
           </div>
@@ -175,14 +175,14 @@
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
-          {{ tournamentInProgress ? 'Abandonar Torneo' : 'Nuevo Torneo' }}
+          {{ tournamentInProgress ? currentTexts.abandonTournament : currentTexts.newTournament }}
         </button>
       </div>
     </div>
     
     <!-- Componente de partida (simulación, en la implementación real sería un app-match) -->
     <div class="match-simulation" *ngIf="showMatchComponent">
-      <h3>Partido en curso</h3>
+      <h3>{{ currentTexts.matchInProgress }}</h3>
       
       <div class="match-players-display">
         <div class="player-name">{{ currentMatchPlayer1?.username }}</div>
@@ -192,11 +192,11 @@
       
       <div class="match-simulation-controls">
         <button class="play-button" (click)="simulateMatch()">
-          Simular partida
+          {{ currentTexts.simulateMatch }}
         </button>
       </div>
       
-      <p class="match-note">Nota: En la implementación final, aquí se mostraría el componente real de partida.</p>
+      <p class="match-note">{{ currentTexts.matchNote }}</p>
     </div>
   </div>
 </div>
