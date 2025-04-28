@@ -53,3 +53,7 @@ app-footer {
   justify-content: center;
   align-items: center;
 }
+
+.main-content.no-footer {
+  margin-bottom: 0 !important;; /* Quitamos el espacio reservado para el footer */
+}

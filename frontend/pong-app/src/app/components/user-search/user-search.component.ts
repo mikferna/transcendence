@@ -63,6 +63,38 @@ export class UserSearchComponent implements OnInit {
   loading: boolean = false;
   pendingRequests: any[] = [];
 
+ // Añadimos estas tres propiedades:
+ currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
+ currentTexts: any;
+ translations: any = {
+   es: {
+     search_users: 'Buscar Usuarios',
+     online: 'En línea',
+     offline: 'Desconectado',
+     request_received: 'Solicitud recibida',
+     friend: 'Amigo',
+     delete: 'Eliminar',
+     pending: 'Pendiente',
+     add: 'Agregar',
+     bloqued: 'Bloqueado',
+     searching_users: 'Buscando usuarios...',
+     no_users_found: 'No se encontraron usuarios'
+   },
+   en: {
+    search_users: 'Search Users',
+    online: 'Online',
+    offline: 'Offline',
+    request_received: 'Request Received',
+    friend: 'Friend',
+    delete: 'Delete',
+    pending: 'Pending',
+    add: 'Add',
+    bloqued: 'Blocked',
+    searching_users: 'Searching users...',
+    no_users_found: 'No users found'
+   }
+ };
+
   constructor(
     private http: HttpClient,
     private router: Router

@@ -273,6 +273,124 @@ export class MatchComponent implements OnInit, OnDestroy, AfterViewChecked {
   private pendingInitPong: boolean = false;
   private pendingPongConfig: {isAI: boolean, isTournament: boolean, tournamentRound?: 'semifinals1' | 'semifinals2' | 'final'} | null = null;
   
+// Añadimos estas tres propiedades:
+currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
+currentTexts: any;
+translations: any = {
+  es: {
+    initialicing_system: 'Iniciando Sistema...',
+    defy_other_users: 'Desafía a otros jugadores en línea',
+    start_game: 'INICIAR JUEGO',
+    choose_mode: 'SELECCIONAR MODO',
+    choose_game_mode: 'Elige tu modo de juego',
+    one_vs_one_game: 'JUEGO 1 VS 1',
+    four_players_game: 'JUEGO 4 JUGADORES',
+    game_vs_computer: 'JUEGO VS COMPUTADORA',
+    four_player_tornament: 'TORNEO (4 JUGADORES)',
+    configuration: 'CONFIGURACIÓN',
+    go_back: 'VOLVER',
+    choose_players: 'SELECCIONAR JUGADORES',
+    required: 'Se requieren ',
+    to_play: ' jugadores para iniciar',
+    required_four_player_for_tournament: 'Se requieren 4 jugadores para el torneo',
+    chosed_players: 'JUGADORES SELECCIONADOS ',
+    search_players: 'BUSCAR JUGADORES',
+    search_by_username: 'BUSCAR POR NOMBRE DE USUARIO',
+    searching_players: 'BUSCANDO JUGADORES...',
+    no_players_found: 'NO SE ENCONTRARON USUARIOS',
+    cancel: 'CANCELAR',
+    game_parameters: 'INICIAR JUEGO',
+    ball_speed: 'Velocidad de la bola:',
+    ball_size: 'Tamaño de la bola',
+    paddle_size: 'Tamaño de la paleta:',
+    enable_power_ups: 'Habilitar power-ups:',
+    ai_difficulty: 'Dificultad de la IA',
+    easy: 'Fácil',
+    medium: 'Media',
+    hard: 'Difícil',
+    theme: 'TEMA VISUAL',
+    green: 'Verde',
+    blue: 'Azul',
+    red: 'Rojo',
+    save: 'GUARDAR',
+    semifinal_one: 'SEMIFINAL 1',
+    semifinal_two: 'SEMIFINAL 2',
+    tournament_end: 'FINAL DEL TORNEO',
+    game_on: 'PARTIDA EN PROGRESO',
+    vs: 'VS',
+    computer: 'COMPUTADORA',
+    tournament_ended: 'TORNEO FINALIZADO',
+    winner: 'CAMPEÓN',
+    matches_history: 'HISTORIAL DE PARTIDOS:',
+    control_two_players: 'CONTROLES: Jugador 1 [W/S] - Jugador 2 [↑/↓]',
+    controls_ai: 'CONTROLES: Usa [W/S] para mover la paleta',
+    controls: 'CONTROLES:',
+    player_left: 'Jugador 1 (izquierda): [W/S]',
+    palyer_right: 'Jugador 2 (derecha): [↑/↓]',
+    palyer_up: 'Jugador 3 (arriba): [A/D]',
+    palyer_down: 'Jugador 4 (abajo): [J/L]',
+    exit: 'SALIR',
+    confirm_abandon_game: '¿Seguro que quieres abandonar el juego en curso?'
+  },
+  en: {
+    initialicing_system: 'Initializing System...',
+    defy_other_users: 'Challenge other players online',
+    start_game: 'START GAME',
+    choose_mode: 'SELECT MODE',
+    choose_game_mode: 'Choose your game mode',
+    one_vs_one_game: '1 VS 1 GAME',
+    four_players_game: '4 PLAYERS GAME',
+    game_vs_computer: 'GAME VS COMPUTER',
+    four_player_tornament: 'TOURNAMENT (4 PLAYERS)',
+    configuration: 'CONFIGURATION',
+    go_back: 'GO BACK',
+    choose_players: 'SELECT PLAYERS',
+    required: 'Required ',
+    to_play: ' players to start',
+    required_four_player_for_tournament: '4 players required for the tournament',
+    chosed_players: 'SELECTED PLAYERS ',
+    search_players: 'SEARCH PLAYERS',
+    search_by_username: 'SEARCH PLAYER BY USERNAME',
+    searching_players: 'SEARCHING PLAYERS...',
+    no_players_found: 'NO PLAYERS FOUND',
+    cancel: 'CANCEL',
+    game_parameters: 'START GAME',
+    ball_speed: 'Ball speed:',
+    ball_size: 'Ball size:',
+    paddle_size: 'Paddle size:',
+    enable_power_ups: 'Enable power-ups:',
+    ai_difficulty: 'AI Difficulty',
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+    theme: 'VISUAL THEME',
+    green: 'Green',
+    blue: 'Blue',
+    red: 'Red',
+    save: 'SAVE',
+    semifinal_one: 'SEMIFINAL 1',
+    semifinal_two: 'SEMIFINAL 2',
+    tournament_end: 'TOURNAMENT FINAL',
+    game_on: 'GAME IN PROGRESS',
+    vs: 'VS',
+    computer: 'COMPUTER',
+    tournament_ended: 'TOURNAMENT ENDED',
+    winner: 'CHAMPION',
+    matches_history: 'MATCHES HISTORY:',
+    control_two_players: 'CONTROLS: Player 1 [W/S] - Player 2 [↑/↓]',
+    controls_ai: 'CONTROLS: Use [W/S] to move the paddle',
+    controls: 'CONTROLS:',
+    player_left: 'Player 1 (left): [W/S]',
+    palyer_right: 'Player 2 (right): [↑/↓]',
+    palyer_up: 'Player 3 (top): [A/D]',
+    palyer_down: 'Player 4 (bottom): [J/L]',
+    exit: 'EXIT',
+    confirm_abandon_game: 'Are you sure you want to abandon the current game?'
+  }
+};
+
+
+
   constructor(
     private matchService: MatchService,
     private router: Router,
@@ -300,6 +418,15 @@ export class MatchComponent implements OnInit, OnDestroy, AfterViewChecked {
         console.error('Error al cargar la configuración:', e);
       }
     }
+
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage && this.translations[savedLanguage]) {
+      this.currentLanguage = savedLanguage;
+    }
+    // Nos suscribimos al usuario actual
+    this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
+    // Imprime el idioma seleccionado en la consola
+    console.log('Idioma seleccionado:', this.currentLanguage);
   }
   
   toggleConfig(): void {
@@ -2324,7 +2451,7 @@ export class MatchComponent implements OnInit, OnDestroy, AfterViewChecked {
   
   goBack(): void {
     if (this.gameStarted) {
-      if (confirm('¿Seguro que quieres abandonar el juego en curso?')) {
+      if (confirm(this.translations[this.currentLanguage].confirm_abandon_game)) {
         this.resetGame();
       }
     } else if (this.showPlayerSelection) {

@@ -30,8 +30,8 @@ export class GameModeSelectorComponent implements OnInit{
   // Definir los modos de juego con los valores predeterminados
   gameModes: GameMode[] = [
     {
-      name: this.translations[this.currentLanguage].play_name, // Traducido
-      description: this.translations[this.currentLanguage].play_description, // Traducido
+      name: "NeoPong", // Traducido
+      description: "^", // Traducido
       active: false
     },
   ];
@@ -54,8 +54,8 @@ export class GameModeSelectorComponent implements OnInit{
     updateGameModes(): void {
       this.gameModes = [
         {
-          name: this.translations[this.currentLanguage].play_name, // Traducido
-          description: this.translations[this.currentLanguage].play_description, // Traducido
+          name: "NeoPong", // Traducido
+          description: "^", // Traducido
           active: false
         },
       ];

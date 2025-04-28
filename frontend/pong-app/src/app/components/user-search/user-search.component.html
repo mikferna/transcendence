@@ -1,7 +1,7 @@
 <div class="user-search-overlay" (click)="onOverlayClick($event)" [@fadeAnimation]>
   <div class="user-search-container" [@slideAnimation]>
     <div class="search-header">
-      <h3>Buscar Usuarios</h3>
+      <h3>{{ currentTexts.search_users }}</h3>
       <button class="close-button" (click)="closeSearch()" aria-label="Cerrar búsqueda">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -48,14 +48,14 @@
           </div>
           <div class="user-details">
             <span class="username">{{ user.username }}</span>
-            <span class="status-text">{{ user.is_online ? 'En línea' : 'Desconectado' }}</span>
+            <span class="status-text">{{ user.is_online ? currentTexts.online : currentTexts.offline }}</span>
           </div>
         </div>
         
         <!-- Solicitud recibida: Mostrar botones de aceptar/rechazar -->
         <div class="user-actions" *ngIf="user.has_pending_request && user.request_direction === 'received'">
           <div class="status-badges">
-            <span class="status-badge received">Solicitud recibida</span>
+            <span class="status-badge received">{{ currentTexts.request_received }}</span>
           </div>
           <div class="action-buttons request-actions">
             <button 
@@ -100,7 +100,7 @@
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
-              Amigo
+              {{ currentTexts.friend }}
             </span>
           </div>
           <div class="action-buttons">
@@ -110,7 +110,7 @@
               [disabled]="user.sending_request"
               [class.loading]="user.sending_request"
             >
-              <span *ngIf="!user.sending_request">Eliminar</span>
+              <span *ngIf="!user.sending_request">{{ currentTexts.delete }}</span>
               <div *ngIf="user.sending_request" class="button-spinner"></div>
             </button>
           </div>
@@ -124,7 +124,7 @@
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
-              Pendiente
+              {{ currentTexts.pending }}
             </span>
           </div>
         </div>
@@ -144,7 +144,7 @@
                 <line x1="20" y1="8" x2="20" y2="14"></line>
                 <line x1="23" y1="11" x2="17" y2="11"></line>
               </svg>
-              <span *ngIf="!user.sending_request">Agregar</span>
+              <span *ngIf="!user.sending_request">{{ currentTexts.add }}</span>
               <div *ngIf="user.sending_request" class="button-spinner"></div>
             </button>
           </div>
@@ -158,7 +158,7 @@
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
               </svg>
-              Bloqueado
+              {{ currentTexts.bloqued }}
             </span>
           </div>
         </div>
@@ -167,7 +167,7 @@
 
     <div class="loading-container" *ngIf="loading">
       <div class="loading-spinner"></div>
-      <span>Buscando usuarios...</span>
+      <span>{{ currentTexts.searching_users }}</span>
     </div>
 
     <div class="error-container" *ngIf="error">
@@ -185,7 +185,7 @@
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         <line x1="8" y1="11" x2="14" y2="11"></line>
       </svg>
-      <span>No se encontraron usuarios</span>
+      <span>{{ currentTexts.no_users_found }}</span>
     </div>
   </div>
 </div>

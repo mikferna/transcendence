@@ -27,3 +27,40 @@
     margin: 0 auto;
     padding: 0 20px;
   }
+
+  .button-mode {
+    width: 150px;
+    height: 150px;
+    border: 1px solid #0f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+    z-index: 1;
+    transform-origin: center center;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: 26px;
+    color: #0f0;
+    text-shadow: 0 0 8px #0f0;
+    border-radius: 5px;
+  }
+  
+  .button-mode:hover,
+  .button-mode.active {
+    background-color: rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 15px #0f0;
+    transform: scale(1.3);
+    z-index: 2;
+  }
+
+  .button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px; /* opcional, por si quieres espacio arriba */
+  }
+  
