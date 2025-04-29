@@ -34,13 +34,6 @@ interface PongGameState {
   maxScore: number;
   isTournamentMatch: boolean;
   tournamentRound?: 'semifinals1' | 'semifinals2' | 'final';
-  powerUp?: {
-    active: boolean;
-    x: number;
-    y: number;
-    radius: number;
-    type: string;
-  }
 }
 
 interface Pong4PlayersGameState {
@@ -58,13 +51,6 @@ interface Pong4PlayersGameState {
   gameOver: boolean;
   winner: User | null;
   lastTouched: User | null;
-  powerUp?: {
-    active: boolean;
-    x: number;
-    y: number;
-    radius: number;
-    type: string;
-  }
 }
 
 class MatchSaveQueue {
@@ -222,37 +208,26 @@ export class MatchComponent implements OnInit, OnDestroy, AfterViewChecked {
     ballSpeed: number;
     ballSize: number;
     paddleSize: number;
-    enablePowerUps: boolean;
     theme: 'default' | 'blue-matrix' | 'red-matrix';
-    aiDifficulty: 'easy' | 'medium' | 'hard';
+    aiDifficulty: 'easy' | 'hard';
   } = {
     ballSpeed: 5,
     ballSize: 8,
     paddleSize: 80,
-    enablePowerUps: true,
     theme: 'default',
-    aiDifficulty: 'medium'
+    aiDifficulty: 'easy'
   };
-  
-  // Power-ups
-  powerUpTypes = [
-    { type: 'giant-paddle', name: 'Paleta Grande', duration: 10000 },
-    { type: 'mini-paddle', name: 'Paleta Pequeña', duration: 10000 },
-    { type: 'fast-ball', name: 'Bola Rápida', duration: 8000 },
-    { type: 'inverted-controls', name: 'Controles Invertidos', duration: 6000 }
-  ];
-  activePowerUps: Array<{
-    type: string,
-    name: string,
-    duration: number,
-    remainingTime: number
-  }> = [];
   
   // IA mejorada
   lastAIUpdate: number = 0;
   aiUpdateInterval: number = 1000; // 1 segundo
   aiPredictedBallPosition: { x: number, y: number } = { x: 0, y: 0 };
-  controlsInverted: boolean = false;
+  private aiTargetY: number = 0;                   // Posición objetivo del centro de la paleta
+  private aiPreviousTargets: number[] = [];        // Historial de objetivos para suavizar movimientos
+  private aiRandomFactor: number = 0;              // Factor aleatorio para comportamiento humano
+  private aiMissRate: number = 0;                  // Probabilidad de errar deliberadamente
+  private aiMaxPredictionSteps: number = 200;      // Máximo de pasos para predecir la trayectoria
+  private aiDecisionInProgress: boolean = false;   // Bandera para evitar cálculos simultáneos
   
   isTournament: boolean = false;
   tournamentRound: 'semifinals1' | 'semifinals2' | 'final' = 'semifinals1';
@@ -272,6 +247,7 @@ export class MatchComponent implements OnInit, OnDestroy, AfterViewChecked {
   private gameLoopSubscription?: Subscription;
   private pendingInitPong: boolean = false;
   private pendingPongConfig: {isAI: boolean, isTournament: boolean, tournamentRound?: 'semifinals1' | 'semifinals2' | 'final'} | null = null;
+  private consecutiveCollisions: number = 0;
   
 // Añadimos estas tres propiedades:
 currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
@@ -613,9 +589,14 @@ translations: any = {
       
       const container = canvas.parentElement;
       if (container) {
-        // Ajustamos el tamaño para que sea visible completamente
-        canvas.width = Math.min(800, container.clientWidth - 20);
-        canvas.height = Math.min(500, window.innerHeight * 0.6);
+        // Ajustar tamaño con proporción 16:9 y asegurar que se vea todo el campo
+        const containerWidth = Math.min(1000, container.clientWidth - 20);
+        canvas.width = containerWidth;
+        // Aplicar relación de aspecto 16:9
+        canvas.height = containerWidth * (9/16);
+        
+        // Asegurar que el canvas se ajuste correctamente al contenedor
+        container.style.height = canvas.height + 'px';
       }
       
       // Usar valores de configuración
@@ -657,13 +638,6 @@ translations: any = {
         },
         isTournamentMatch: isTournament,
         tournamentRound: tournamentRound,
-        powerUp: {
-          active: false,
-          x: canvas.width / 2,
-          y: canvas.height / 2,
-          radius: 15,
-          type: this.getRandomPowerUpType()
-        }
       };
       
       // Inicializar la IA
@@ -673,12 +647,6 @@ translations: any = {
           x: this.pongGame.ball.x, 
           y: this.pongGame.ball.y 
         };
-      }
-      
-      // Crear power-up inicial en el centro si están habilitados
-      if (this.gameConfig.enablePowerUps) {
-        this.activePowerUps = [];
-        this.spawnCenterPowerUp();
       }
       
       this.ngZone.runOutsideAngular(() => {
@@ -702,107 +670,6 @@ translations: any = {
     }
   }
   
-  getRandomPowerUpType(): string {
-    return this.powerUpTypes[Math.floor(Math.random() * this.powerUpTypes.length)].type;
-  }
-  
-  spawnCenterPowerUp(): void {
-    if (!this.gameConfig.enablePowerUps || !this.pongGame || this.pongGame.gameOver) return;
-    
-    // Activar un power-up en el centro del campo
-    this.pongGame.powerUp = {
-      active: true,
-      x: this.pongGame.canvas.width / 2,
-      y: this.pongGame.canvas.height / 2,
-      radius: 15,
-      type: this.getRandomPowerUpType()
-    };
-  }
-  
-  applyPowerUpEffect(type: string): void {
-    if (!this.pongGame) return;
-    
-    // Seleccionar un power-up aleatorio si no se especificó
-    if (!type) {
-      type = this.getRandomPowerUpType();
-    }
-    
-    // Buscar la definición del power-up
-    const powerUpDef = this.powerUpTypes.find(p => p.type === type);
-    if (!powerUpDef) return;
-    
-    // Añadir power-up a la lista de activos
-    this.activePowerUps.push({
-      type: powerUpDef.type,
-      name: powerUpDef.name,
-      duration: powerUpDef.duration,
-      remainingTime: powerUpDef.duration
-    });
-    
-    // Aplicar efectos según el tipo
-    switch (type) {
-      case 'giant-paddle':
-        this.pongGame.paddleLeft.height = this.gameConfig.paddleSize * 1.5;
-        this.pongGame.paddleRight.height = this.gameConfig.paddleSize * 1.5;
-        break;
-      case 'mini-paddle':
-        this.pongGame.paddleLeft.height = this.gameConfig.paddleSize * 0.6;
-        this.pongGame.paddleRight.height = this.gameConfig.paddleSize * 0.6;
-        break;
-      case 'fast-ball':
-        const speedMultiplier = 1.5;
-        this.pongGame.ball.dx *= speedMultiplier;
-        this.pongGame.ball.dy *= speedMultiplier;
-        break;
-      case 'inverted-controls':
-        this.controlsInverted = true;
-        break;
-    }
-    
-    // Programar la finalización del power-up
-    setTimeout(() => {
-      this.endPowerUpEffect(type);
-      this.activePowerUps = this.activePowerUps.filter(p => p.type !== type);
-      
-      // Volver a crear un power-up después de un tiempo
-      setTimeout(() => {
-        if (this.pongGame && this.pongGame.running && !this.pongGame.gameOver) {
-          this.spawnCenterPowerUp();
-        }
-      }, 3000);
-    }, powerUpDef.duration);
-    
-    console.log(`Power-up activado: ${powerUpDef.name}`);
-  }
-  
-  endPowerUpEffect(type: string): void {
-    if (!this.pongGame) return;
-    
-    switch (type) {
-      case 'giant-paddle':
-      case 'mini-paddle':
-        this.pongGame.paddleLeft.height = this.gameConfig.paddleSize;
-        this.pongGame.paddleRight.height = this.gameConfig.paddleSize;
-        break;
-      case 'fast-ball':
-        // No reducir velocidad para mantener dificultad
-        break;
-      case 'inverted-controls':
-        this.controlsInverted = false;
-        break;
-    }
-    
-    console.log(`Power-up finalizado: ${type}`);
-  }
-  
-  updatePowerUpTimers(): void {
-    const elapsed = 16; // ~16ms por frame a 60fps
-    
-    for (const powerUp of this.activePowerUps) {
-      powerUp.remainingTime = Math.max(0, powerUp.remainingTime - elapsed);
-    }
-  }
-  
   initPong4PlayersGame(): void {
     if (!this.pongCanvasRef) {
       console.error('Canvas no disponible, reprogramando inicialización...');
@@ -820,9 +687,14 @@ translations: any = {
       
       const container = canvas.parentElement;
       if (container) {
-        // Ajustamos el tamaño para que sea visible completamente
-        canvas.width = Math.min(800, container.clientWidth - 20);
-        canvas.height = Math.min(600, window.innerHeight * 0.6);
+        // Ajustar tamaño con proporción 16:9 y asegurar que se vea todo el campo
+        const containerWidth = Math.min(1000, container.clientWidth - 20);
+        canvas.width = containerWidth;
+        // Aplicar relación de aspecto 16:9
+        canvas.height = containerWidth * (9/16);
+        
+        // Asegurar que el canvas se ajuste correctamente al contenedor
+        container.style.height = canvas.height + 'px';
       }
       
       // Usar valores de configuración para paletas y bola
@@ -892,14 +764,7 @@ translations: any = {
         maxScore: 5,
         gameOver: false,
         winner: null,
-        lastTouched: null,
-        powerUp: {
-          active: this.gameConfig.enablePowerUps,
-          x: canvas.width / 2,
-          y: canvas.height / 2,
-          radius: 15,
-          type: this.getRandomPowerUpType()
-        }
+        lastTouched: null
       };
       
       this.resetPlayersScores();
@@ -945,68 +810,105 @@ translations: any = {
   }
   
   updatePongGame(isAI: boolean): void {
-    const { paddleLeft, paddleRight, ball, canvas, powerUp } = this.pongGame;
-    
-    // Actualizar timers de power-ups
-    if (this.gameConfig.enablePowerUps) {
-      this.updatePowerUpTimers();
-    }
+    const { paddleLeft, ball, canvas } = this.pongGame;
+    const paddleRight = this.pongGame.paddleRight;
     
     // Controles del jugador 1 (izquierda)
-    const moveUp1 = this.controlsInverted ? 's' : 'w';
-    const moveDown1 = this.controlsInverted ? 'w' : 's';
-    
-    if (this.keysPressed.has(moveUp1)) {
+    if (this.keysPressed.has('w')) {
       paddleLeft.y = Math.max(0, paddleLeft.y - 8);
     }
-    if (this.keysPressed.has(moveDown1)) {
+    if (this.keysPressed.has('s')) {
       paddleLeft.y = Math.min(canvas.height - paddleLeft.height, paddleLeft.y + 8);
     }
     
     // IA o jugador 2 (derecha)
     if (isAI) {
-      const now = Date.now();
+      // Actualizar la lógica de la IA (simulación de teclas)
+      this.updateAI();
       
-      // Actualizar la predicción de la IA solo una vez por segundo
-      if (now - this.lastAIUpdate >= this.aiUpdateInterval) {
-        this.lastAIUpdate = now;
-        this.predictBallPosition();
-        
-        // Simular pulsaciones de teclas en lugar de mover directamente
-        this.simulateAIKeyPresses();
-      }
+      // Aplicar el movimiento basado en las teclas simuladas
+      this.applyAIMovement();
     } else {
-      // Controles del jugador 2 (derecha)
-      const moveUp2 = this.controlsInverted ? 'arrowdown' : 'arrowup';
-      const moveDown2 = this.controlsInverted ? 'arrowup' : 'arrowdown';
-      
-      if (this.keysPressed.has(moveUp2)) {
+      // Controles manuales del jugador 2 (derecha)
+      if (this.keysPressed.has('arrowup')) {
         paddleRight.y = Math.max(0, paddleRight.y - 8);
       }
-      if (this.keysPressed.has(moveDown2)) {
+      if (this.keysPressed.has('arrowdown')) {
         paddleRight.y = Math.min(canvas.height - paddleRight.height, paddleRight.y + 8);
       }
     }
+    
+    // Guardar la posición anterior para poder corregirla si hay problemas
+    const prevBallX = ball.x;
+    const prevBallY = ball.y;
     
     // Actualización de la física de la bola
     ball.x += ball.dx;
     ball.y += ball.dy;
     
+    // Variables para detectar colisiones múltiples
+    let hasCollided = false;
+    
     // Colisiones con paredes superior e inferior
-    if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-      ball.dy = -ball.dy;
+    if (ball.y - ball.radius < 0) {
+      // Colisión con pared superior
+      ball.dy = Math.abs(ball.dy); // Asegurar que la dirección es positiva (hacia abajo)
+      ball.y = ball.radius; // Reposicionar para evitar quedarse atrapado
+      
+      // Añadir pequeña variación para evitar patrones repetitivos
+      ball.dx = ball.dx * (1 + (Math.random() * 0.1 - 0.05));
+      hasCollided = true;
+    } else if (ball.y + ball.radius > canvas.height) {
+      // Colisión con pared inferior
+      ball.dy = -Math.abs(ball.dy); // Asegurar que la dirección es negativa (hacia arriba)
+      ball.y = canvas.height - ball.radius; // Reposicionar
+      
+      // Añadir pequeña variación para evitar patrones repetitivos
+      ball.dx = ball.dx * (1 + (Math.random() * 0.1 - 0.05));
+      hasCollided = true;
     }
     
     // Colisiones con paletas
-    if (this.checkPaddleCollision(ball, paddleLeft) || 
-        this.checkPaddleCollision(ball, paddleRight)) {
-      ball.dx = -ball.dx * 1.05;
+    if (this.checkPaddleCollision(ball, paddleLeft)) {
+      // Colisión con paleta izquierda
+      ball.dx = Math.abs(ball.dx) * 1.05; // Asegurar dirección positiva (hacia la derecha)
+      // Reposicionar para evitar quedarse atrapado
+      ball.x = paddleLeft.x + paddleLeft.width + ball.radius;
       
-      const hitPosition = this.lastCollisionPaddle === 'left' ? 
-        (ball.y - (paddleLeft.y + paddleLeft.height / 2)) / (paddleLeft.height / 2) :
-        (ball.y - (paddleRight.y + paddleRight.height / 2)) / (paddleRight.height / 2);
-      
+      const hitPosition = (ball.y - (paddleLeft.y + paddleLeft.height / 2)) / (paddleLeft.height / 2);
       ball.dy = hitPosition * 6;
+      
+      this.lastCollisionPaddle = 'left';
+      hasCollided = true;
+    } else if (this.checkPaddleCollision(ball, paddleRight)) {
+      // Colisión con paleta derecha
+      ball.dx = -Math.abs(ball.dx) * 1.05; // Asegurar dirección negativa (hacia la izquierda)
+      // Reposicionar para evitar quedarse atrapado
+      ball.x = paddleRight.x - ball.radius;
+      
+      const hitPosition = (ball.y - (paddleRight.y + paddleRight.height / 2)) / (paddleRight.height / 2);
+      ball.dy = hitPosition * 6;
+      
+      this.lastCollisionPaddle = 'right';
+      hasCollided = true;
+    }
+    
+    // Si hay múltiples colisiones consecutivas, añadir un factor aleatorio más grande
+    if (hasCollided && this.consecutiveCollisions > 3) {
+      // Añadir un impulso aleatorio para romper los patrones de colisión
+      const randomAngle = (Math.random() * Math.PI / 4) - (Math.PI / 8); // Entre -22.5 y 22.5 grados
+      const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+      const currentAngle = Math.atan2(ball.dy, ball.dx);
+      const newAngle = currentAngle + randomAngle;
+      
+      ball.dx = Math.cos(newAngle) * speed;
+      ball.dy = Math.sin(newAngle) * speed;
+      
+      this.consecutiveCollisions = 0;
+    } else if (hasCollided) {
+      this.consecutiveCollisions++;
+    } else {
+      this.consecutiveCollisions = 0;
     }
     
     // Manejo de puntuación
@@ -1032,18 +934,6 @@ translations: any = {
       });
     }
     
-    // Verificar colisión con power-up
-    if (powerUp && powerUp.active) {
-      const distance = Math.hypot(ball.x - powerUp.x, ball.y - powerUp.y);
-      if (distance < (ball.radius + powerUp.radius)) {
-        // Activar el power-up
-        this.applyPowerUpEffect(powerUp.type);
-        
-        // Desactivar el power-up visual
-        powerUp.active = false;
-      }
-    }
-    
     // Verificar fin del juego
     if (this.pongGame.player1Score >= this.pongGame.maxScore) {
       this.pongGame.gameOver = true;
@@ -1054,123 +944,224 @@ translations: any = {
     }
   }
   
-  simulateAIKeyPresses(): void {
-    // Esta función simula las pulsaciones de teclas de la IA
-    // en lugar de mover directamente la paleta
+  // Mover la paleta de la IA simulando pulsaciones de teclas
+  moveAIPaddle(): void {
     if (!this.pongGame) return;
     
-    const paddleCenter = this.pongGame.paddleRight.y + this.pongGame.paddleRight.height / 2;
+    const paddleRight = this.pongGame.paddleRight;
+    const paddleCenter = paddleRight.y + paddleRight.height / 2;
+    const speed = this.getAISpeed();
     
-    // Eliminar teclas anteriores (simulando soltar teclas)
+    // Limpiar pulsaciones anteriores
     this.keysPressed.delete('arrowup');
     this.keysPressed.delete('arrowdown');
     
-    // Determinar dirección basada en la predicción
-    if (this.aiPredictedBallPosition.y > paddleCenter + 10) {
-      // Simular presionar tecla abajo
-      this.keysPressed.add('arrowdown');
-    } else if (this.aiPredictedBallPosition.y < paddleCenter - 10) {
-      // Simular presionar tecla arriba
-      this.keysPressed.add('arrowup');
-    }
-  }
-  
-  predictBallPosition(): void {
-    if (!this.pongGame) return;
+    // Determinar qué tecla presionar basado en la distancia al objetivo
+    const distance = this.aiTargetY - paddleCenter;
     
-    const { ball, canvas, paddleLeft, paddleRight } = this.pongGame;
-    
-    // Crear una copia de la bola para la simulación
-    const simBall = { 
-      x: ball.x, 
-      y: ball.y, 
-      dx: ball.dx, 
-      dy: ball.dy, 
-      radius: ball.radius 
-    };
-    
-    // Predecir la trayectoria de la bola (máximo 50 pasos para evitar bucles infinitos)
-    let iterations = 0;
-    
-    // Solo predecir si la bola se dirige hacia la paleta de la IA
-    if (simBall.dx > 0) {
-      while (simBall.x < paddleRight.x && iterations < 50) {
-        simBall.x += simBall.dx;
-        simBall.y += simBall.dy;
-        
-        // Simular rebotes en paredes
-        if (simBall.y - simBall.radius < 0 || simBall.y + simBall.radius > canvas.height) {
-          simBall.dy = -simBall.dy;
-        }
-        
-        // Simular rebotes en paleta izquierda
-        if (simBall.x - simBall.radius < paddleLeft.x + paddleLeft.width && 
-            simBall.x + simBall.radius > paddleLeft.x &&
-            simBall.y + simBall.radius > paddleLeft.y &&
-            simBall.y - simBall.radius < paddleLeft.y + paddleLeft.height) {
-          
-          // Simular cambio de dirección y velocidad
-          simBall.dx = -simBall.dx * 1.05;
-          
-          const hitPosition = (simBall.y - (paddleLeft.y + paddleLeft.height / 2)) / (paddleLeft.height / 2);
-          simBall.dy = hitPosition * 6;
-        }
-        
-        iterations++;
+    // Solo moverse si la distancia es significativa (evitar micro-movimientos)
+    if (Math.abs(distance) > speed) {
+      if (distance < 0) {
+        // Simular presionar tecla arriba
+        this.keysPressed.add('arrowup');
+      } else {
+        // Simular presionar tecla abajo
+        this.keysPressed.add('arrowdown');
       }
       
-      // Si la bola alcanza la pared derecha, predecir dónde estará
-      if (iterations < 50) {
-        this.aiPredictedBallPosition = { x: simBall.x, y: simBall.y };
-      } else {
-        // Si no podemos predecir, hacer un movimiento basado en la posición actual
-        this.aiPredictedBallPosition = { 
-          x: paddleRight.x, 
-          y: Math.min(
-            Math.max(ball.y, paddleRight.height / 2),
-            canvas.height - paddleRight.height / 2
-          )
-        };
-      }
-    } else {
-      // Si la bola va en dirección contraria, mantener la paleta en posición central
-      this.aiPredictedBallPosition = { 
-        x: paddleRight.x, 
-        y: canvas.height / 2 
-      };
+      // Registro para depuración
+      console.log(`IA: moviendo paleta hacia ${distance < 0 ? 'arriba' : 'abajo'}, 
+        distancia=${Math.abs(distance).toFixed(1)}, 
+        target=${this.aiTargetY.toFixed(1)}, 
+        actual=${paddleCenter.toFixed(1)}`);
     }
-    
-    // Añadir un poco de "error humano" a la predicción según la dificultad
-    const errorMargin = this.getAIDifficultyErrorMargin();
-    this.aiPredictedBallPosition.y += (Math.random() * 2 - 1) * errorMargin;
-    
-    // Asegurar que la predicción esté dentro de los límites del canvas
-    this.aiPredictedBallPosition.y = Math.min(
-      Math.max(this.aiPredictedBallPosition.y, 0),
-      canvas.height
-    );
   }
   
-  getAIDifficultyErrorMargin(): number {
-    switch (this.gameConfig.aiDifficulty) {
-      case 'easy': return 40; // Gran margen de error
-      case 'medium': return 20; // Error moderado
-      case 'hard': return 5; // Error mínimo
-      default: return 20;
+  // Predicción de la trayectoria de la pelota
+  predictBallPosition(): number {
+    const { ball, canvas, paddleLeft } = this.pongGame;
+    const paddleRight = this.pongGame.paddleRight;
+    
+    // Crear una copia de la pelota para la simulación
+    const simBall = {
+      x: ball.x,
+      y: ball.y,
+      dx: ball.dx,
+      dy: ball.dy,
+      radius: ball.radius
+    };
+    
+    // Variables para rastrear rebotes
+    let hitYPosition = 0;
+    let iterations = 0;
+    let foundImpact = false;
+    
+    // Simular la trayectoria hasta que alcance el lado derecho o se exceda el límite
+    while (!foundImpact && iterations < this.aiMaxPredictionSteps) {
+      // Actualizar posición
+      simBall.x += simBall.dx;
+      simBall.y += simBall.dy;
+      iterations++;
+      
+      // Comprobar rebotes en paredes superior e inferior
+      if (simBall.y - simBall.radius < 0 || simBall.y + simBall.radius > canvas.height) {
+        simBall.dy = -simBall.dy;
+        // Asegurar que la pelota no quede atrapada en las paredes
+        if (simBall.y < simBall.radius) {
+          simBall.y = simBall.radius;
+        } else if (simBall.y > canvas.height - simBall.radius) {
+          simBall.y = canvas.height - simBall.radius;
+        }
+      }
+      
+      // Comprobar rebote en paleta izquierda (jugador)
+      if (simBall.x - simBall.radius < paddleLeft.x + paddleLeft.width && 
+          simBall.x + simBall.radius > paddleLeft.x &&
+          simBall.y + simBall.radius > paddleLeft.y &&
+          simBall.y - simBall.radius < paddleLeft.y + paddleLeft.height &&
+          simBall.dx < 0) {  // Solo si va hacia la izquierda
+        
+        // Simular el cálculo de ángulo basado en donde golpea la paleta
+        const hitPosition = (simBall.y - (paddleLeft.y + paddleLeft.height / 2)) / (paddleLeft.height / 2);
+        const bounceAngle = hitPosition * Math.PI * 0.35; // -35 a +35 grados aprox
+        
+        // Calcular nueva dirección y velocidad
+        const speed = Math.sqrt(simBall.dx * simBall.dx + simBall.dy * simBall.dy);
+        simBall.dx = Math.abs(Math.cos(bounceAngle) * speed) * 1.05; // 5% más rápido en cada golpe
+        simBall.dy = Math.sin(bounceAngle) * speed * 1.05;
+      }
+      
+      // Comprobar si la pelota llega al lado de la IA
+      if (simBall.x + simBall.radius >= canvas.width - paddleRight.width && !foundImpact) {
+        foundImpact = true;
+        hitYPosition = simBall.y;
+      }
     }
+    
+    // Si encontramos el punto de impacto, usarlo como objetivo
+    if (foundImpact) {
+      return hitYPosition;
+    }
+    
+    // Si no se encontró el punto de impacto, usar una predicción simple
+    return simBall.y;
+  }
+  
+  // Este método debe aplicar el movimiento basado en las teclas simuladas
+  applyAIMovement(): void {
+    const { canvas } = this.pongGame;
+    const paddleRight = this.pongGame.paddleRight;
+    const speed = this.getAISpeed();
+    
+    // Aplicar el movimiento basado en las teclas simuladas
+    if (this.keysPressed.has('arrowup')) {
+      paddleRight.y = Math.max(0, paddleRight.y - speed);
+    }
+    if (this.keysPressed.has('arrowdown')) {
+      paddleRight.y = Math.min(canvas.height - paddleRight.height, paddleRight.y + speed);
+    }
+  }
+  
+  // Configuración de la IA según la dificultad
+  configureAIDifficulty(): void {
+    if (this.gameConfig.aiDifficulty === 'easy') {
+      this.aiMissRate = 0.3;                 // 30% de probabilidad de error intencional
+      this.aiMaxPredictionSteps = 100;       // Predicción limitada
+      this.aiRandomFactor = 0.4;             // Mayor aleatoriedad en movimientos
+    } else { // Modo difícil
+      this.aiMissRate = 0.05;                // 5% de probabilidad de error intencional
+      this.aiMaxPredictionSteps = 300;       // Predicción más extensa
+      this.aiRandomFactor = 0.1;             // Menor aleatoriedad
+    }
+  }
+  
+  // Calcular dónde debería moverse la paleta
+  calculateAITargetPosition(): void {
+    const { ball, canvas } = this.pongGame;
+    const paddleRight = this.pongGame.paddleRight;
+    
+    // A) Si la pelota se aleja de la IA, regresar gradualmente al centro
+    if (ball.dx < 0) {
+      // Agregar algo de aleatoriedad al centro para parecer más humano
+      const randomOffset = (Math.random() * 2 - 1) * canvas.height * 0.2 * this.aiRandomFactor;
+      this.aiTargetY = canvas.height / 2 + randomOffset;
+      return;
+    }
+    
+    // B) Simular el recorrido de la pelota para predecir dónde golpeará
+    let targetY = this.predictBallPosition();
+    
+    // C) Determinar si debemos fallar intencionalmente (comportamiento humano)
+    if (Math.random() < this.aiMissRate) {
+      // Crear un error intencional significativo
+      const errorMagnitude = paddleRight.height * (Math.random() > 0.5 ? 1 : -1);
+      targetY += errorMagnitude;
+      console.log("IA: Error intencional aplicado");
+    }
+    
+    // D) Agregar variación aleatoria sutil
+    const randomVariation = (Math.random() * 2 - 1) * this.aiRandomFactor * paddleRight.height * 0.5;
+    targetY += randomVariation;
+    
+    // E) Mantener un historial de objetivos para crear movimientos más suaves
+    this.aiPreviousTargets.push(targetY);
+    // Mantener solo las últimas 3 posiciones
+    if (this.aiPreviousTargets.length > 3) {
+      this.aiPreviousTargets.shift();
+    }
+    
+    // F) Promedio ponderado de posiciones recientes (movimiento más natural)
+    if (this.aiPreviousTargets.length > 1) {
+      let weightedSum = 0;
+      let totalWeight = 0;
+      
+      for (let i = 0; i < this.aiPreviousTargets.length; i++) {
+        const weight = i + 1; // Dar más peso a los objetivos más recientes
+        weightedSum += this.aiPreviousTargets[i] * weight;
+        totalWeight += weight;
+      }
+      
+      this.aiTargetY = weightedSum / totalWeight;
+    } else {
+      this.aiTargetY = targetY;
+    }
+  }
+  
+  // Método principal que maneja la IA
+  updateAI(): void {
+    if (!this.pongGame) return;
+    
+    const now = Date.now();
+    
+    // Solo actualizar la IA cada segundo como se requiere
+    if (now - this.lastAIUpdate >= this.aiUpdateInterval) {
+      this.lastAIUpdate = now;
+      
+      // Evitar múltiples cálculos simultáneos
+      if (!this.aiDecisionInProgress) {
+        this.aiDecisionInProgress = true;
+        
+        // Configurar parámetros de dificultad
+        this.configureAIDifficulty();
+        
+        // Predecir la posición futura de la pelota
+        this.calculateAITargetPosition();
+        
+        // Resetear la bandera cuando termine
+        this.aiDecisionInProgress = false;
+      }
+    }
+    
+    // Mover la paleta basándose en el objetivo actual
+    this.moveAIPaddle();
   }
   
   getAISpeed(): number {
-    switch (this.gameConfig.aiDifficulty) {
-      case 'easy': return 4;
-      case 'medium': return 6;
-      case 'hard': return 8;
-      default: return 5;
-    }
+    return this.gameConfig.aiDifficulty === 'easy' ? 4 : 8; // 4 para fácil, 8 para difícil
   }
   
   updatePong4PlayersGame(): void {
-    const { paddles, ball, canvas, powerUp, scores } = this.pong4PlayersGame;
+    const { paddles, ball, canvas, scores } = this.pong4PlayersGame;
     
     if (this.keysPressed.has('w')) {
       paddles.left.y = Math.max(0, paddles.left.y - 6);
@@ -1200,23 +1191,21 @@ translations: any = {
       paddles.bottom.x = Math.min(canvas.width - paddles.bottom.width, paddles.bottom.x + 6);
     }
     
+    // Guardar posición anterior
+    const prevBallX = ball.x;
+    const prevBallY = ball.y;
+    
+    // Actualizar posición de la pelota
     ball.x += ball.dx;
     ball.y += ball.dy;
     
+    // Variable para detectar colisiones
+    let hasCollided = false;
+    
+    // Revisar colisiones con las paletas primero
     this.checkPaddle4PlayersCollision();
     
-    // Verificar colisión con power-up
-    if (powerUp && powerUp.active) {
-      const distance = Math.hypot(ball.x - powerUp.x, ball.y - powerUp.y);
-      if (distance < (ball.radius + powerUp.radius)) {
-        // Activar el power-up
-        this.apply4PlayerPowerUpEffect(powerUp.type);
-        
-        // Desactivar el power-up visual
-        powerUp.active = false;
-      }
-    }
-    
+    // Colisiones con bordes (puntuación)
     if (ball.x - ball.radius < 0) {
       if (this.pong4PlayersGame.lastTouched) {
         const playerId = this.pong4PlayersGame.lastTouched.id;
@@ -1252,112 +1241,32 @@ translations: any = {
     }
   }
   
-  apply4PlayerPowerUpEffect(type: string): void {
-    if (!this.pong4PlayersGame) return;
-    
-    // Añadir power-up a la lista de activos
-    const powerUpDef = this.powerUpTypes.find(p => p.type === type);
-    if (!powerUpDef) return;
-    
-    this.activePowerUps.push({
-      type: powerUpDef.type,
-      name: powerUpDef.name,
-      duration: powerUpDef.duration,
-      remainingTime: powerUpDef.duration
-    });
-    
-    // Aplicar efectos según el tipo
-    switch (type) {
-      case 'giant-paddle':
-        this.pong4PlayersGame.paddles.left.height = this.gameConfig.paddleSize * 1.5;
-        this.pong4PlayersGame.paddles.right.height = this.gameConfig.paddleSize * 1.5;
-        this.pong4PlayersGame.paddles.top.width = this.gameConfig.paddleSize * 1.5;
-        this.pong4PlayersGame.paddles.bottom.width = this.gameConfig.paddleSize * 1.5;
-        break;
-      case 'mini-paddle':
-        this.pong4PlayersGame.paddles.left.height = this.gameConfig.paddleSize * 0.6;
-        this.pong4PlayersGame.paddles.right.height = this.gameConfig.paddleSize * 0.6;
-        this.pong4PlayersGame.paddles.top.width = this.gameConfig.paddleSize * 0.6;
-        this.pong4PlayersGame.paddles.bottom.width = this.gameConfig.paddleSize * 0.6;
-        break;
-      case 'fast-ball':
-        const speedMultiplier = 1.5;
-        this.pong4PlayersGame.ball.dx *= speedMultiplier;
-        this.pong4PlayersGame.ball.dy *= speedMultiplier;
-        break;
-      case 'inverted-controls':
-        this.controlsInverted = true;
-        break;
-    }
-    
-    // Programar la finalización del power-up
-    setTimeout(() => {
-      this.end4PlayerPowerUpEffect(type);
-      this.activePowerUps = this.activePowerUps.filter(p => p.type !== type);
-      
-      // Volver a crear un power-up después de un tiempo
-      setTimeout(() => {
-        if (this.pong4PlayersGame && this.pong4PlayersGame.running && !this.pong4PlayersGame.gameOver) {
-          this.spawn4PlayerCenterPowerUp();
-        }
-      }, 3000);
-    }, powerUpDef.duration);
-    
-    console.log(`Power-up activado: ${powerUpDef.name}`);
-  }
-  
-  end4PlayerPowerUpEffect(type: string): void {
-    if (!this.pong4PlayersGame) return;
-    
-    switch (type) {
-      case 'giant-paddle':
-      case 'mini-paddle':
-        this.pong4PlayersGame.paddles.left.height = this.gameConfig.paddleSize;
-        this.pong4PlayersGame.paddles.right.height = this.gameConfig.paddleSize;
-        this.pong4PlayersGame.paddles.top.width = this.gameConfig.paddleSize;
-        this.pong4PlayersGame.paddles.bottom.width = this.gameConfig.paddleSize;
-        break;
-      case 'fast-ball':
-        // No reducir velocidad para mantener dificultad
-        break;
-      case 'inverted-controls':
-        this.controlsInverted = false;
-        break;
-    }
-    
-    console.log(`Power-up finalizado: ${type}`);
-  }
-  
-  spawn4PlayerCenterPowerUp(): void {
-    if (!this.gameConfig.enablePowerUps || !this.pong4PlayersGame || this.pong4PlayersGame.gameOver) return;
-    
-    // Activar un power-up en el centro del campo
-    this.pong4PlayersGame.powerUp = {
-      active: true,
-      x: this.pong4PlayersGame.canvas.width / 2,
-      y: this.pong4PlayersGame.canvas.height / 2,
-      radius: 15,
-      type: this.getRandomPowerUpType()
-    };
-  }
-  
   private lastCollisionPaddle: 'left' | 'right' | null = null;
   
   checkPaddleCollision(ball: any, paddle: any): boolean {
-    if (ball.x + ball.radius > paddle.x && 
-        ball.x - ball.radius < paddle.x + paddle.width && 
-        ball.y + ball.radius > paddle.y && 
-        ball.y - ball.radius < paddle.y + paddle.height) {
-      
-      this.lastCollisionPaddle = paddle === this.pongGame.paddleLeft ? 'left' : 'right';
-      return true;
-    }
-    return false;
+    // Calcular las distancias entre el centro de la bola y los bordes del rectángulo de la paleta
+    const distX = Math.abs(ball.x - (paddle.x + paddle.width / 2));
+    const distY = Math.abs(ball.y - (paddle.y + paddle.height / 2));
+  
+    // Si la distancia es mayor que la suma del radio y la mitad del ancho/alto, no hay colisión
+    if (distX > (paddle.width / 2 + ball.radius)) return false;
+    if (distY > (paddle.height / 2 + ball.radius)) return false;
+  
+    // Si la distancia es menor que la mitad del ancho/alto, hay colisión
+    if (distX <= (paddle.width / 2)) return true;
+    if (distY <= (paddle.height / 2)) return true;
+  
+    // Comprobar colisión en las esquinas
+    const dx = distX - paddle.width / 2;
+    const dy = distY - paddle.height / 2;
+    return (dx * dx + dy * dy <= (ball.radius * ball.radius));
   }
   
   checkPaddle4PlayersCollision(): void {
     const { paddles, ball } = this.pong4PlayersGame;
+    let hasCollided = false;
     
+    // Colisión con paleta izquierda
     if (ball.x - ball.radius < paddles.left.x + paddles.left.width &&
         ball.x + ball.radius > paddles.left.x &&
         ball.y + ball.radius > paddles.left.y &&
@@ -1366,11 +1275,16 @@ translations: any = {
       this.pong4PlayersGame.lastTouched = paddles.left.player;
       
       ball.dx = Math.abs(ball.dx) * 1.05;
+      // Reposicionar para evitar que se quede atrapada
+      ball.x = paddles.left.x + paddles.left.width + ball.radius;
       
       const hitPosition = (ball.y - (paddles.left.y + paddles.left.height / 2)) / (paddles.left.height / 2);
       ball.dy = hitPosition * 6;
+      
+      hasCollided = true;
     }
     
+    // Colisión con paleta derecha
     if (ball.x + ball.radius > paddles.right.x &&
         ball.x - ball.radius < paddles.right.x + paddles.right.width &&
         ball.y + ball.radius > paddles.right.y &&
@@ -1379,11 +1293,16 @@ translations: any = {
       this.pong4PlayersGame.lastTouched = paddles.right.player;
       
       ball.dx = -Math.abs(ball.dx) * 1.05;
+      // Reposicionar para evitar que se quede atrapada
+      ball.x = paddles.right.x - ball.radius;
       
       const hitPosition = (ball.y - (paddles.right.y + paddles.right.height / 2)) / (paddles.right.height / 2);
       ball.dy = hitPosition * 6;
+      
+      hasCollided = true;
     }
     
+    // Colisión con paleta superior
     if (ball.y - ball.radius < paddles.top.y + paddles.top.height &&
         ball.y + ball.radius > paddles.top.y &&
         ball.x + ball.radius > paddles.top.x &&
@@ -1392,11 +1311,16 @@ translations: any = {
       this.pong4PlayersGame.lastTouched = paddles.top.player;
       
       ball.dy = Math.abs(ball.dy) * 1.05;
+      // Reposicionar para evitar que se quede atrapada
+      ball.y = paddles.top.y + paddles.top.height + ball.radius;
       
       const hitPosition = (ball.x - (paddles.top.x + paddles.top.width / 2)) / (paddles.top.width / 2);
       ball.dx = hitPosition * 6;
+      
+      hasCollided = true;
     }
     
+    // Colisión con paleta inferior
     if (ball.y + ball.radius > paddles.bottom.y &&
         ball.y - ball.radius < paddles.bottom.y + paddles.bottom.height &&
         ball.x + ball.radius > paddles.bottom.x &&
@@ -1405,9 +1329,29 @@ translations: any = {
       this.pong4PlayersGame.lastTouched = paddles.bottom.player;
       
       ball.dy = -Math.abs(ball.dy) * 1.05;
+      // Reposicionar para evitar que se quede atrapada
+      ball.y = paddles.bottom.y - ball.radius;
       
       const hitPosition = (ball.x - (paddles.bottom.x + paddles.bottom.width / 2)) / (paddles.bottom.width / 2);
       ball.dx = hitPosition * 6;
+      
+      hasCollided = true;
+    }
+    
+    // Si hay múltiples colisiones consecutivas, añadir un factor aleatorio
+    if (hasCollided && this.consecutiveCollisions > 3) {
+      // Añadir un impulso aleatorio para romper los patrones de colisión
+      const randomAngle = (Math.random() * Math.PI / 4) - (Math.PI / 8);
+      const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+      const currentAngle = Math.atan2(ball.dy, ball.dx);
+      const newAngle = currentAngle + randomAngle;
+      
+      ball.dx = Math.cos(newAngle) * speed;
+      ball.dy = Math.sin(newAngle) * speed;
+      
+      this.consecutiveCollisions = 0;
+    } else if (hasCollided) {
+      this.consecutiveCollisions++;
     }
   }
   
@@ -1430,33 +1374,38 @@ translations: any = {
     const { ball, canvas } = this.pongGame;
     ball.x = canvas.width / 2;
     ball.y = canvas.height / 2;
-    ball.dx = this.gameConfig.ballSpeed * (Math.random() > 0.5 ? 1 : -1);
-    ball.dy = (this.gameConfig.ballSpeed * 0.6) * (Math.random() > 0.5 ? 1 : -1);
     
-    // Crear nuevo power-up si es necesario
-    if (this.gameConfig.enablePowerUps && (!this.pongGame.powerUp || !this.pongGame.powerUp.active) && 
-        this.activePowerUps.length === 0) {
-      this.spawnCenterPowerUp();
-    }
+    // Añadir más variación en el ángulo de lanzamiento
+    const angle = (Math.random() * Math.PI / 2) - (Math.PI / 4); // Entre -45 y 45 grados
+    const direction = Math.random() > 0.5 ? 1 : -1;
+    const speed = this.gameConfig.ballSpeed;
+    
+    ball.dx = Math.cos(angle) * speed * direction;
+    ball.dy = Math.sin(angle) * speed;
+    
+    // Resetear el contador de colisiones consecutivas
+    this.consecutiveCollisions = 0;
   }
   
   resetBall4Players(): void {
     const { ball, canvas } = this.pong4PlayersGame;
     ball.x = canvas.width / 2;
     ball.y = canvas.height / 2;
+    
+    // Usar un ángulo aleatorio para mayor variedad
     let angle = Math.random() * Math.PI * 2;
+    
+    // Asegurarse de que el ángulo no sea demasiado vertical u horizontal
     while (Math.abs(Math.cos(angle)) < 0.3 || Math.abs(Math.sin(angle)) < 0.3) {
       angle = Math.random() * Math.PI * 2;
     }
+    
     const speed = this.gameConfig.ballSpeed;
     ball.dx = Math.cos(angle) * speed;
     ball.dy = Math.sin(angle) * speed;
     
-    // Crear nuevo power-up si es necesario
-    if (this.gameConfig.enablePowerUps && (!this.pong4PlayersGame.powerUp || !this.pong4PlayersGame.powerUp.active) && 
-        this.activePowerUps.length === 0) {
-      this.spawn4PlayerCenterPowerUp();
-    }
+    // Resetear el contador de colisiones consecutivas
+    this.consecutiveCollisions = 0;
   }
   
   updatePlayerScore(player: User, score: number): void {
@@ -1481,7 +1430,7 @@ translations: any = {
   drawPongGame(): void {
     if (!this.ctx || !this.pongGame) return;
     
-    const { paddleLeft, paddleRight, ball, canvas, powerUp } = this.pongGame;
+    const { paddleLeft, paddleRight, ball, canvas } = this.pongGame;
     
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -1540,106 +1489,16 @@ translations: any = {
     this.ctx.fillRect(paddleRight.x, paddleRight.y, paddleRight.width, paddleRight.height);
     this.ctx.shadowBlur = 0;
     
-    // Añadir efectos visuales de power-ups activos
-    for (const powerUp of this.activePowerUps) {
-      if (powerUp.type === 'giant-paddle' || powerUp.type === 'mini-paddle') {
-        // Efecto visual para paletas
-        const glowColor = powerUp.type === 'giant-paddle' ? '#00ff00' : '#ff0000';
-        this.ctx.shadowColor = glowColor;
-        this.ctx.shadowBlur = 15;
-        this.ctx.strokeStyle = glowColor;
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(paddleLeft.x - 2, paddleLeft.y - 2, paddleLeft.width + 4, paddleLeft.height + 4);
-        this.ctx.strokeRect(paddleRight.x - 2, paddleRight.y - 2, paddleRight.width + 4, paddleRight.height + 4);
-        this.ctx.shadowBlur = 0;
-      }
-    }
-    
-    // Dibujar power-up si está activo
-    if (powerUp && powerUp.active) {
-      this.ctx.beginPath();
-      let powerUpColor;
-      
-      switch (powerUp.type) {
-        case 'giant-paddle': powerUpColor = '#00ff00'; break;
-        case 'mini-paddle': powerUpColor = '#ff0000'; break;
-        case 'fast-ball': powerUpColor = '#ffcc00'; break;
-        case 'inverted-controls': powerUpColor = '#cc00ff'; break;
-        default: powerUpColor = textColor;
-      }
-      
-      // Gradient para el power-up
-      const powerUpGradient = this.ctx.createRadialGradient(
-        powerUp.x, powerUp.y, 0,
-        powerUp.x, powerUp.y, powerUp.radius
-      );
-      powerUpGradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-      powerUpGradient.addColorStop(0.6, powerUpColor);
-      powerUpGradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
-      
-      this.ctx.shadowColor = powerUpColor;
-      this.ctx.shadowBlur = 15;
-      this.ctx.fillStyle = powerUpGradient;
-      this.ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, Math.PI * 2);
-      this.ctx.fill();
-      
-      // Icono en el power-up
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.font = 'bold 14px Arial';
-      
-      let icon = "P";
-      switch (powerUp.type) {
-        case 'giant-paddle': icon = "G"; break;
-        case 'mini-paddle': icon = "M"; break;
-        case 'fast-ball': icon = "F"; break;
-        case 'inverted-controls': icon = "I"; break;
-      }
-      
-      this.ctx.fillText(icon, powerUp.x, powerUp.y);
-      this.ctx.shadowBlur = 0;
-    }
-    
     // Dibujar la bola con efecto de brillo
     this.ctx.beginPath();
     this.ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     
-    // Cambiar color de la bola si hay power-up de bola rápida
-    const hasFastBall = this.activePowerUps.some(p => p.type === 'fast-ball');
-    const ballGlowColor = hasFastBall ? '#ffcc00' : ballColor;
-    
-    this.ctx.shadowColor = ballGlowColor;
+    this.ctx.shadowColor = ballColor;
     this.ctx.shadowBlur = 15;
-    this.ctx.fillStyle = ballGlowColor;
+    this.ctx.fillStyle = ballColor;
     this.ctx.fill();
     this.ctx.closePath();
     this.ctx.shadowBlur = 0;
-    
-    // Si hay power-ups activos, añadir efectos a la bola
-    if (hasFastBall) {
-      // Efecto de estela para bola rápida
-      for (let i = 1; i <= 3; i++) {
-        const opacity = 1 - (i * 0.25);
-        this.ctx.beginPath();
-        this.ctx.arc(ball.x - ball.dx * (i * 0.3), ball.y - ball.dy * (i * 0.3), 
-                    ball.radius * (1 - i * 0.2), 0, Math.PI * 2);
-        this.ctx.fillStyle = `rgba(${hasFastBall ? '255, 204, 0' : '0, 255, 65'}, ${opacity})`;
-        this.ctx.fill();
-        this.ctx.closePath();
-      }
-    }
-    
-    // Mostrar indicador de controles invertidos
-    if (this.controlsInverted) {
-      this.ctx.font = 'bold 18px Arial';
-      this.ctx.fillStyle = '#ff3333';
-      this.ctx.shadowColor = '#ff3333';
-      this.ctx.shadowBlur = 10;
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText('¡CONTROLES INVERTIDOS!', canvas.width / 2, 30);
-      this.ctx.shadowBlur = 0;
-    }
     
     // Puntuación
     this.ctx.font = 'bold 36px Arial';
@@ -1780,7 +1639,7 @@ translations: any = {
   drawPong4PlayersGame(): void {
     if (!this.ctx || !this.pong4PlayersGame) return;
     
-    const { paddles, ball, canvas, powerUp, scores } = this.pong4PlayersGame;
+    const { paddles, ball, canvas, scores } = this.pong4PlayersGame;
     
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -1846,63 +1705,14 @@ translations: any = {
     
     this.ctx.shadowBlur = 0;
     
-    // Dibujar power-up si está activo
-    if (powerUp && powerUp.active) {
-      this.ctx.beginPath();
-      let powerUpColor;
-      
-      switch (powerUp.type) {
-        case 'giant-paddle': powerUpColor = '#00ff00'; break;
-        case 'mini-paddle': powerUpColor = '#ff0000'; break;
-        case 'fast-ball': powerUpColor = '#ffcc00'; break;
-        case 'inverted-controls': powerUpColor = '#cc00ff'; break;
-        default: powerUpColor = textColor;
-      }
-      
-      // Gradient para el power-up
-      const powerUpGradient = this.ctx.createRadialGradient(
-        powerUp.x, powerUp.y, 0,
-        powerUp.x, powerUp.y, powerUp.radius
-      );
-      powerUpGradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-      powerUpGradient.addColorStop(0.6, powerUpColor);
-      powerUpGradient.addColorStop(1, 'rgba(0, 0, 0, 0.1)');
-      
-      this.ctx.shadowColor = powerUpColor;
-      this.ctx.shadowBlur = 15;
-      this.ctx.fillStyle = powerUpGradient;
-      this.ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, Math.PI * 2);
-      this.ctx.fill();
-      
-      // Icono en el power-up
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.font = 'bold 14px Arial';
-      
-      let icon = "P";
-      switch (powerUp.type) {
-        case 'giant-paddle': icon = "G"; break;
-        case 'mini-paddle': icon = "M"; break;
-        case 'fast-ball': icon = "F"; break;
-        case 'inverted-controls': icon = "I"; break;
-      }
-      
-      this.ctx.fillText(icon, powerUp.x, powerUp.y);
-      this.ctx.shadowBlur = 0;
-    }
-    
     // Dibujar la bola con efecto de brillo
     this.ctx.beginPath();
     this.ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     
-    // Color de la bola según quién la tocó por última vez o si hay power-up
+    // Color de la bola según quién la tocó por última vez
     let ballColor = textColor;
-    const hasFastBall = this.activePowerUps.some(p => p.type === 'fast-ball');
     
-    if (hasFastBall) {
-      ballColor = '#ffcc00';
-    } else if (this.pong4PlayersGame.lastTouched) {
+    if (this.pong4PlayersGame.lastTouched) {
       const playerIndex = this.selectedPlayers.findIndex(p => p.id === this.pong4PlayersGame.lastTouched?.id);
       if (playerIndex >= 0) {
         ballColor = paddleColors[playerIndex];
@@ -1915,30 +1725,6 @@ translations: any = {
     this.ctx.fill();
     this.ctx.closePath();
     this.ctx.shadowBlur = 0;
-    
-    // Efecto de estela para la bola si tiene fast-ball
-    if (hasFastBall) {
-      for (let i = 1; i <= 3; i++) {
-        const opacity = 1 - (i * 0.25);
-        this.ctx.beginPath();
-        this.ctx.arc(ball.x - ball.dx * (i * 0.3), ball.y - ball.dy * (i * 0.3), 
-                     ball.radius * (1 - i * 0.2), 0, Math.PI * 2);
-        this.ctx.fillStyle = `rgba(255, 204, 0, ${opacity})`;
-        this.ctx.fill();
-        this.ctx.closePath();
-      }
-    }
-    
-    // Mostrar indicador de controles invertidos
-    if (this.controlsInverted) {
-      this.ctx.font = 'bold 18px Arial';
-      this.ctx.fillStyle = '#ff3333';
-      this.ctx.shadowColor = '#ff3333';
-      this.ctx.shadowBlur = 10;
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText('¡CONTROLES INVERTIDOS!', canvas.width / 2, canvas.height / 2);
-      this.ctx.shadowBlur = 0;
-    }
     
     // Puntuaciones
     this.ctx.font = 'bold 24px Arial';
@@ -2023,10 +1809,6 @@ translations: any = {
     if (this.pong4PlayersGame) {
       this.pong4PlayersGame.running = false;
     }
-    
-    // Limpiar power-ups activos
-    this.activePowerUps = [];
-    this.controlsInverted = false;
   }
   
   finalizeGame(): void {
@@ -2058,7 +1840,10 @@ translations: any = {
       const winnerIndex = this.selectedPlayers.findIndex(p => p.id === this.pong4PlayersGame.winner?.id);
       
       if (winnerIndex >= 0) {
-        this.saveGameResult(winnerIndex === 0, winnerIndex);
+        // Antes del cambio: siempre pasaba isPlayer1Winner = true
+        // Después del cambio: pasa isPlayer1Winner solo si realmente ganó player1 (winnerIndex === 0)
+        const isPlayer1Winner = winnerIndex === 0;
+        this.saveGameResult(isPlayer1Winner, winnerIndex);
       } else {
         console.error('No se pudo determinar el ganador');
         this.resetGame();
@@ -2246,7 +2031,8 @@ translations: any = {
         winnerIndex = 3;
       }
       
-      this.saveGameResult(winnerIndex === 0, winnerIndex);
+      const isPlayer1Winner = winnerIndex === 0;
+      this.saveGameResult(isPlayer1Winner, winnerIndex);
     }, 3000);
   }
   
@@ -2352,7 +2138,7 @@ translations: any = {
     }, 3000);
   }
   
-  saveGameResult(isPlayer1Winner: boolean, winnerIndex: number = 0): void {
+  saveGameResult(isPlayer1Winner: boolean, winnerIndex: number = -1): void {
     if (this.isAgainstAI) {
       this.matchService.createAIMatch(
         this.player1Score,
@@ -2373,7 +2159,19 @@ translations: any = {
     } else {
       const matchType = this.playerCount === 2 ? 'local' : '4players';
       
+      // Si no se proporciona winnerIndex o es -1, determinar según isPlayer1Winner
+      if (winnerIndex === -1) {
+        winnerIndex = isPlayer1Winner ? 0 : 1;
+      }
+      
+      // Verificación adicional para asegurarse de que el índice es válido
+      if (winnerIndex < 0 || winnerIndex >= this.selectedPlayers.length) {
+        console.error('Índice de ganador no válido:', winnerIndex);
+        winnerIndex = 0; // Fallback
+      }
+      
       const winnerUsername = this.selectedPlayers[winnerIndex].username;
+      console.log(`Guardando partido con ganador: ${winnerUsername} (índice ${winnerIndex}, isPlayer1Winner: ${isPlayer1Winner})`);
       
       let matchData: any = {
         match_type: matchType,
@@ -2440,10 +2238,6 @@ translations: any = {
     this.tournamentMatches = [];
     this.currentMatch = null;
     this.tournamentWinner = null;
-    
-    // Resetear power-ups y estado relacionado
-    this.activePowerUps = [];
-    this.controlsInverted = false;
     
     // Resetear la IA
     this.lastAIUpdate = 0;
