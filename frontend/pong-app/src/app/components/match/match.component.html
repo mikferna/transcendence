@@ -38,7 +38,7 @@
           JUEGO 4 JUGADORES
         </button>
         <button class="game-mode-button" (click)="selectGameMode('AI')">
-          JUEGO VS COMPUTADORA
+          JUEGO VS AI
         </button>
         <button class="game-mode-button" (click)="selectGameMode('tournament')">
           TORNEO (4 JUGADORES)
@@ -159,14 +159,9 @@
             <span>{{ gameConfig.paddleSize }}</span>
           </div>
           <div class="config-item">
-            <label>Habilitar power-ups:</label>
-            <input type="checkbox" [(ngModel)]="gameConfig.enablePowerUps">
-          </div>
-          <div class="config-item">
             <label>Dificultad de la IA:</label>
             <select [(ngModel)]="gameConfig.aiDifficulty">
               <option value="easy">Fácil</option>
-              <option value="medium">Media</option>
               <option value="hard">Difícil</option>
             </select>
           </div>
@@ -230,7 +225,7 @@
             <div class="score-display" *ngIf="isAgainstAI">
               <div><span>{{ currentUser?.username }}</span> <span class="score">{{ player1Score }}</span></div>
               <div>VS</div>
-              <div><span>COMPUTADORA</span> <span class="score">{{ player2Score }}</span></div>
+              <div><span>AI</span> <span class="score">{{ player2Score }}</span></div>
             </div>
             
             <div class="score-display multi-player" *ngIf="playerCount > 2 && !isAgainstAI">
@@ -247,27 +242,16 @@
         </div>
         
         <div class="game-area">
-          <div class="power-ups-container" *ngIf="gameConfig.enablePowerUps && activePowerUps.length > 0">
-            <div class="active-power-ups">
-              <div class="power-up-item" *ngFor="let powerUp of activePowerUps">
-                <div class="power-up-icon" [ngClass]="powerUp.type"></div>
-                <div class="power-up-timer">
-                  <div class="timer-bar" [style.width.%]="(powerUp.remainingTime / powerUp.duration) * 100"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
           <div class="pong-canvas" 
-               [ngClass]="gameConfig.theme" 
-               *ngIf="(playerCount === 2 && !isTournament) || (isTournament && !gameEnded && currentMatch)">
-            <canvas #pongCanvas width="600" height="400"></canvas>
+              [ngClass]="gameConfig.theme" 
+              *ngIf="(playerCount === 2 && !isTournament) || (isTournament && !gameEnded && currentMatch)">
+            <canvas #pongCanvas width="800" height="450"></canvas>
           </div>
           
           <div class="pong-canvas four-players-game" 
-               [ngClass]="gameConfig.theme" 
-               *ngIf="playerCount === 4 && !isTournament && !gameEnded">
-            <canvas #pongCanvas width="600" height="500"></canvas>
+              [ngClass]="gameConfig.theme" 
+              *ngIf="playerCount === 4 && !isTournament && !gameEnded">
+            <canvas #pongCanvas width="800" height="450"></canvas>
           </div>
           
           <div class="tournament-results" *ngIf="isTournament && gameEnded && tournamentWinner">

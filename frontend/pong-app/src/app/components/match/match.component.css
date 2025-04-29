@@ -328,12 +328,12 @@
 .game-area {
   width: 100%;
   height: auto;
-  min-height: 400px;
+  min-height: 450px;
   background-color: var(--bg-tertiary);
   border-radius: 8px;
   position: relative;
   margin-bottom: 20px;
-  overflow: hidden;
+  overflow: visible; /* Cambiado de hidden a visible */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -343,10 +343,10 @@
 /* Elementos del juego Pong */
 .pong-canvas {
   width: 100%;
-  max-width: 800px;
-  aspect-ratio: 3/2;
+  max-width: 1000px; /* Aumentado de 800px a 1000px */
+  aspect-ratio: 16/9; /* Cambiado de 3/2 a 16/9 */
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Cambiado de hidden a visible */
   margin: 0 auto;
 }
 
@@ -406,8 +406,8 @@
 
 /* Estilos para el canvas de 4 jugadores */
 .pong-canvas.four-players-game {
-  aspect-ratio: 6/5;
-  max-height: 500px;
+  aspect-ratio: 16/9; /* Mantener la misma relación de aspecto */
+  max-height: none; /* Eliminar la restricción de altura máxima */
 }
 
 /* Anunciador de combates del torneo */
@@ -766,19 +766,25 @@
 /* Estilos para canvas con temas */
 .pong-canvas.default {
   background-color: #041a0d;
-  border: 2px solid #00ff41;
+  border: none; /* Quitar el borde actual */
+  outline: 2px solid #00ff41; /* Usar outline en su lugar */
+  outline-offset: 0px; /* Controlar la distancia del outline */
   box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
 }
 
 .pong-canvas.blue-matrix {
   background-color: #001520;
-  border: 2px solid #00ffff;
+  border: none;
+  outline: 2px solid #00ffff;
+  outline-offset: 0px;
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
 }
 
 .pong-canvas.red-matrix {
   background-color: #200000;
-  border: 2px solid #ff0000;
+  border: none;
+  outline: 2px solid #ff0000;
+  outline-offset: 0px;
   box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
 }
 
