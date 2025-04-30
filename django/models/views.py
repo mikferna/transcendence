@@ -646,8 +646,8 @@ class matchHistory(APIView):
         try:
             user = User.objects.get(username=username)
             matches = Match.objects.filter(
-                Q(player1=user) | Q(player2=user)
-            ).select_related('player1', 'player2', 'winner')
+                Q(player1=user) | Q(player2=user) | Q(player3=user) | Q(player4=user)
+            ).select_related('player1', 'player2', 'player3', 'player4', 'winner')
             
             serializer = MatchSerializer(matches, many=True)
             

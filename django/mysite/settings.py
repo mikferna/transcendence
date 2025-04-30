@@ -44,7 +44,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'channels',
     'corsheaders',
+    'django_extensions',
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = False  # Cambiar a True en producción
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -67,8 +72,8 @@ SESSION_COOKIE_SECURE = DEBUG is False  # True in production, False in developme
 SESSION_TOKEN_LIFETIME = 14400  # 4 hours in seconds
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
+    "https://localhost:4200",
+    "https://127.0.0.1:4200",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

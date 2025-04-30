@@ -121,17 +121,6 @@
         </div>     
       </div>   
     </div>
-    
-    <!-- Action Buttons -->
-    <div class="profile-actions" *ngIf="!profile.is_current_user">
-      <button class="btn-matrix" [disabled]="profile.is_friend || profile.has_pending_request">
-        <span class="btn-text">{{ profile.is_friend ? 'CONTACTO ESTABLECIDO' : (profile.has_pending_request ? 'SOLICITUD PENDIENTE' : 'AÑADIR CONTACTO') }}</span>
-      </button>
-      <button class="btn-matrix">
-        <span class="btn-text">INICIAR COMBATE</span>
-      </button>
-    </div>
-  </div>  
 
   <div *ngIf="loading" class="loading-container">
     <div class="matrix-loader">

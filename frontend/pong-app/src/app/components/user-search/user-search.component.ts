@@ -157,7 +157,7 @@ export class UserSearchComponent implements OnInit {
   getAbsoluteAvatarUrl(avatarUrl: string): string {
     if (!avatarUrl) return '';
     if (avatarUrl.startsWith('http')) return avatarUrl;
-    return `http://localhost:8000${avatarUrl}`;
+    return `https://localhost:8000${avatarUrl}`;
   }
 
   sendFriendRequest(userId: number, event: Event) {

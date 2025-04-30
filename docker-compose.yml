@@ -19,6 +19,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/code
+      - ./django/certs:/code/certs  # Asegúrate de que esté así
     networks:
       - miknet
     depends_on:
