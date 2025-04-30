@@ -15,6 +15,10 @@ export class HomeComponent implements OnInit {
       select_game_mode: 'Selecciona el modo de juego',
       play: 'JUGAR'
     },
+    eus: {
+      select_game_mode: 'Aukeratu joko modua',
+      play: 'JOKATU'
+    },
     en: {
       select_game_mode: 'Select Game Mode',
       play: 'PLAY'

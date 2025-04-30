@@ -40,8 +40,38 @@ export class RegisterComponent implements OnInit {
       username_on_use: 'El nombre de usuario ya está en uso',
       email_on_use: 'El correo electrónico ya está en uso',
       password_mismatch: 'Las contraseñas no coinciden',
-      registry_error: 'Error al registrarse. Por favor, inténtalo de nuevo.'
-      },
+      registry_error: 'Error al registrarse. Por favor, inténtalo de nuevo.',
+      select_language: 'Seleccionar idioma',
+      spanish: 'Español',
+      basque: 'Euskera',
+      english: 'Inglés'
+    },
+    eus: {
+        registry: 'Erregistroa',
+        insert_user: 'Erabiltzailea',
+        user_required: 'Erabiltzailea beharrezkoa da',
+        user_characters: 'Erabiltzaileak gutxienez 3 karaktere izan behar ditu',
+        insert_email: 'Posta elektronikoa',
+        email_required: 'Posta elektronikoa beharrezkoa da',
+        email_characters: 'Sartu baliozko posta elektronikoa',
+        insert_password: 'Pasahitza',
+        password_required: 'Pasahitza beharrezkoa da',
+        password_characters: 'Pasahitzak gutxienez 6 karaktere izan behar ditu',
+        confirm_password: 'Pasahitza berretsi',
+        password_confirmation_required: 'Pasahitzaren berrespena beharrezkoa da',
+        registering: "Erregistratzen...",
+        register: "Erregistratu",
+        already_registered: 'Dagoeneko kontu bat duzu?',
+        login: 'Hasi saioa',
+        username_on_use: 'Erabiltzaile izena dagoeneko erabilita dago',
+        email_on_use: 'Posta elektronikoa dagoeneko erabilita dago',
+        password_mismatch: 'Pasahitzak ez datoz bat',
+        registry_error: 'Errorea erregistratzean. Saiatu berriro, mesedez.',
+        select_language: 'Hizkuntza aukeratu',
+        spanish: 'Gaztelania',
+        basque: 'Euskara',
+        english: 'Ingelesa'
+    },
     en: {
       registry: 'Registry',
       insert_user: 'Username',
@@ -62,7 +92,11 @@ export class RegisterComponent implements OnInit {
       username_on_use: 'Username is already in use',
       email_on_use: 'Email is already in use',
       password_mismatch: 'Passwords do not match',
-      registry_error: 'Registration failed. Please try again.'
+      registry_error: 'Registration failed. Please try again.',
+      select_language: 'Select language',
+      spanish: 'Spanish',
+      basque: 'Basque',
+      english: 'English'
     }
   };
 
@@ -70,16 +104,19 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
-  ) {
+) {
     this.registerForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      password2: ['', [Validators.required]]
-    }, { validator: this.passwordMatchValidator });
-  }
+      password2: ['', Validators.required],
+      default_language: ['es', Validators.required]
+    }, {
+      validators: this.passwordMatchValidator // Añadir el validator aquí
+    });
+}
 
-  ngOnInit(): void {
+  ngOnInit() {
     // Si ya está logueado, redirigir a home
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/home']);
@@ -106,15 +143,15 @@ export class RegisterComponent implements OnInit {
       this.isLoading = true;
       this.error = '';
       
-      const { username, email, password, password2 } = this.registerForm.value;
+      const { username, email, password, password2, default_language } = this.registerForm.value;
       
-      this.authService.register(username, email, password, password2).subscribe({
+      this.authService.register(username, email, password, password2,default_language).subscribe({
         next: () => {
           this.isLoading = false;
           // Redirigir al login después de un registro exitoso
           this.router.navigate(['/login']);
         },
-        error: (err) => {
+        error: (err: any) => {
           this.isLoading = false;
           if (err.error && err.error.username) {
             this.error = this.translations[this.currentLanguage].username_on_use;
@@ -133,4 +170,4 @@ export class RegisterComponent implements OnInit {
   goToLogin(): void {
     this.router.navigate(['/login']);
   }
-} 
+}

@@ -20,33 +20,71 @@ export class UserSettingsComponent implements OnInit {
   selectedFile: File | null = null;
   message: string = '';
   error: string = '';
-// Añadimos estas tres propiedades:
-currentLanguage: string = 'es'; // Por defecto 'es' (o el que prefieras)
-currentTexts: any;
-translations: any = {
-  es: {
-    account_settings: 'Configuración del perfil',
-    change_avatar: 'Cambiar Avatar ',
-    username: 'Nombre de Usuario',
-    username_required: 'El nombre de usuario es requerido',
-    name_char_limit: 'El nombre no puede exceder los 30 caracteres',
-    email: 'Email',
-    email_required: 'El email es requerido',
-    insert_valid_email: 'Por favor, ingresa un email válido',
-    save_changes: 'Guardar cambios',
-  },
-  en: {
-    account_settings: 'Account settings',
-    change_avatar: 'Change Avatar ',
-    username: 'User Name',
-    username_required: 'User name required',
-    name_char_limit: 'User name must not exceed 30 chararcter length',
-    email: 'Email',
-    email_required: 'email required',
-    insert_valid_email: 'Insert a valid email, please',
-    save_changes: 'Save changes',
-  }
-};
+  currentLanguage: string = 'es';
+  currentTexts: any;
+
+  translations: any = {
+    es: {
+      account_settings: 'Configuración de la cuenta',
+      email: 'Correo electrónico',
+      username: 'Nombre de usuario',
+      email_required: 'El correo electrónico es requerido',
+      insert_valid_email: 'Ingresa un correo electrónico válido',
+      username_required: 'El nombre de usuario es requerido',
+      username_max_length: 'El nombre de usuario no puede exceder los 30 caracteres',
+      save_changes: 'Guardar cambios',
+      profile_updated: 'Perfil actualizado exitosamente',
+      error_loading_user: 'Error al cargar los datos del usuario',
+      error_updating_profile: 'Error al actualizar el perfil',
+      image_too_large: 'La imagen no puede superar los 2MB',
+      select_language: 'Seleccionar idioma',
+      spanish: 'Español',
+      basque: 'Euskera',
+      english: 'Inglés',
+      change_session_language: 'La preferencia de idioma del usuario se ha modificado. ¿Desea cambiar también el idioma de la sesión actual?',
+      change_avatar: 'Cambiar avatar'
+    },
+    eus: {
+      account_settings: 'Kontuaren ezarpenak',
+      email: 'Posta elektronikoa',
+      username: 'Erabiltzaile izena',
+      email_required: 'Posta elektronikoa beharrezkoa da',
+      insert_valid_email: 'Sartu baliozko posta elektronikoa',
+      username_required: 'Erabiltzaile izena beharrezkoa da',
+      username_max_length: 'Erabiltzaile izenak ezin ditu 30 karaktere baino gehiago izan',
+      save_changes: 'Aldaketak gorde',
+      profile_updated: 'Profila eguneratu da',
+      error_loading_user: 'Errorea erabiltzailearen datuak kargatzean',
+      error_updating_profile: 'Errorea profila eguneratzean',
+      image_too_large: 'Irudiak ezin ditu 2MB baino gehiago izan',
+      select_language: 'Hizkuntza aukeratu',
+      spanish: 'Gaztelania',
+      basque: 'Euskara',
+      english: 'Ingelesa',
+      change_session_language: 'Erabiltzailearen hizkuntza lehentasuna aldatu da. Saio honetako hizkuntza ere aldatu nahi duzu?',
+      change_avatar: 'Aldatu irudia'
+    },
+    en: {
+      account_settings: 'Account Settings',
+      email: 'Email',
+      username: 'Username',
+      email_required: 'Email is required',
+      insert_valid_email: 'Please enter a valid email',
+      username_required: 'Username is required',
+      username_max_length: 'Username must not exceed 30 characters',
+      save_changes: 'Save changes',
+      profile_updated: 'Profile updated successfully',
+      error_loading_user: 'Error loading user data',
+      error_updating_profile: 'Error updating profile',
+      image_too_large: 'Image cannot exceed 2MB',
+      select_language: 'Select language',
+      spanish: 'Spanish',
+      basque: 'Basque',
+      english: 'English',
+      change_session_language: 'User language preference has been modified. Do you want to change the current session language as well?',
+      change_avatar: 'Change avatar'
+    }
+  };
 
   constructor(
     private http: HttpClient,
@@ -54,19 +92,22 @@ translations: any = {
     private fb: FormBuilder
   ) {
     this.userForm = this.fb.group({
-      username: ['', [Validators.required, Validators.maxLength(30)]],
       email: ['', [Validators.required, Validators.email]],
-      tournament_name: ['', [Validators.required, Validators.maxLength(50)]],
-      avatar: [null]
+      username: ['', [Validators.required, Validators.maxLength(30)]],
+      avatar: [null],
+      default_language: ['es', Validators.required]
     });
-  }
 
-  ngOnInit() {
-    this.loadUserData();
+    // Inicializar el idioma actual
     const savedLanguage = localStorage.getItem('selectedLanguage');
     if (savedLanguage && this.translations[savedLanguage]) {
       this.currentLanguage = savedLanguage;
     }
+    this.currentTexts = this.translations[this.currentLanguage];
+  }
+
+  ngOnInit() {
+    this.loadUserData();
     // Nos suscribimos al usuario actual
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
     // Imprime el idioma seleccionado en la consola
@@ -80,6 +121,7 @@ translations: any = {
         this.userForm.patchValue({
           username: data.username,
           email: data.email,
+          default_language: data.default_language,
           tournament_name: data.tournament_name
         });
         if (data.avatar) {
@@ -116,22 +158,32 @@ translations: any = {
   onSubmit() {
     if (this.userForm.valid) {
       const formData = new FormData();
-      formData.append('username', this.userForm.get('username')?.value);
       formData.append('email', this.userForm.get('email')?.value);
-      formData.append('tournament_name', this.userForm.get('tournament_name')?.value);
+      formData.append('username', this.userForm.get('username')?.value);
+      formData.append('default_language', this.userForm.get('default_language')?.value);
       
       if (this.selectedFile) {
         formData.append('avatar', this.selectedFile);
       }
 
-      this.http.patch(`${environment.apiUrl}/user_update/`, formData).subscribe({
-        next: (response) => {
-          this.message = 'Perfil actualizado exitosamente';
+      this.http.post(`${environment.apiUrl}/user_update/`, formData).subscribe({
+        next: (response: any) => {
+          this.message = this.currentTexts.profile_updated;
           this.error = '';
-          this.loadUserData();
+          
+          // Al actualizar la preferencia de idioma
+          const newLanguage = this.userForm.get('default_language')?.value;
+          if (newLanguage) {
+            localStorage.setItem('defaultLanguage', newLanguage);
+            // Preguntar si quiere cambiar también el idioma de sesión
+            if (confirm(this.currentTexts.change_session_language)) {
+              localStorage.setItem('selectedLanguage', newLanguage);
+              window.location.reload();
+            }
+          }
         },
         error: (error) => {
-          this.error = error.error.error || 'Error al actualizar el perfil';
+          this.error = error.error.error || this.currentTexts.error_updating_profile;
           this.message = '';
         }
       });

@@ -31,6 +31,16 @@ translations: any = {
     register: 'Regístrate',
     login_42: 'Login 42'
     },
+  eus: {
+      insert_user: 'Erabiltzailea',
+      email: 'Pasahitza',
+      insert_email: 'Sartu helbide elektronikoa',
+      login_in: 'Saioa hasi',
+      login: 'Saioa hasten...',
+      no_account: 'Ez duzu konturik? ',
+      register: 'Erregistratu',
+      login_42: '42 saioa hasi'
+  },
   en: {
     insert_user: 'User',
     email: 'Password',
@@ -40,7 +50,6 @@ translations: any = {
     no_account: 'You don\'t have an account? ',
     register: 'Register',
     login_42: 'Login 42'
-        
   }
 };
   

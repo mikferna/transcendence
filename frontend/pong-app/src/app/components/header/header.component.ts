@@ -59,7 +59,24 @@ export class HeaderComponent implements OnInit {
       my_profile: 'Mi Perfil',
       configuration: 'Configuración',
       friend_request: "Solicitudes de amistad",
-      no_pending_requests: 'No hay solicitudes pendientes'
+      no_pending_requests: 'No hay solicitudes pendientes',
+      spanish: 'Español',
+      basque: 'Euskera',
+      english: 'Inglés'
+    },
+    eus: {
+      search: 'Erabiltzailea bilatu...',
+      account: 'Nire kontua',
+      language: 'Hizkuntza',
+      logout: 'Saioa itxi',
+      account_settings: 'Kontu aukerak',
+      my_profile: 'Nire profila',
+      configuration: 'Konfigurazioa',
+      friend_request: "Lagun eskaerak",
+      no_pending_requests: 'Ez dago eskaera berririk',
+      spanish: 'Erdara',
+      basque: 'Euskara',
+      english: 'Ingelesa'
     },
     en: {
       search: 'Search user...',
@@ -70,7 +87,10 @@ export class HeaderComponent implements OnInit {
       my_profile: 'My Profile',
       configuration: 'Configuration',
       friend_request: "Friendship request",
-      no_pending_requests: 'No pending requests'
+      no_pending_requests: 'No pending requests',
+      spanish: 'Spanish',
+      basque: 'Basque',
+      english: 'English'
     }
   };
 
@@ -101,9 +121,8 @@ export class HeaderComponent implements OnInit {
 
   onLanguageChange(event: Event) {
     const selectedLang = (event.target as HTMLSelectElement).value;
-    this.currentLanguage = selectedLang;
-    this.currentTexts = this.translations[selectedLang];
-    localStorage.setItem('selectedLanguage', selectedLang);  // Guardar el idioma seleccionado
+    // Solo actualizar el idioma de sesión, no el idioma por defecto
+    localStorage.setItem('selectedLanguage', selectedLang);
     window.location.reload();
   }
 

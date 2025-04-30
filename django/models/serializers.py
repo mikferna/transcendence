@@ -14,9 +14,15 @@ class LoginSerializer(serializers.Serializer):
         return data
 
 class RegisterSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField(write_only=True)
+    default_language = serializers.ChoiceField(
+        choices=['es', 'eus', 'en'],
+        default='es'
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'password2']
+        fields = ['username', 'email', 'password', 'password2', 'default_language']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -58,39 +64,23 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'avatar')
+        fields = ('username', 'email', 'avatar', 'default_language')
         extra_kwargs = {
             'username': {'required': False},
             'email': {'required': False},
-            'avatar': {'required': False}
+            'avatar': {'required': False},
+            'default_language': {'required': False}
         }
 
-    def validate_email(self, value):
-        """
-        Check that the email is unique
-        """
-        user = self.context['request'].user
-        if User.objects.exclude(pk=user.pk).filter(email=value).exists():
-            raise serializers.ValidationError("This email is already in use")
-        return value
-        
-    def validate_username(self, value):
-        """
-        Check that the username is unique
-        """
-        user = self.context['request'].user
-        if User.objects.exclude(pk=user.pk).filter(username=value).exists():
-            raise serializers.ValidationError("This username is already in use")
-        return value
-
     def update(self, instance, validated_data):
-        # Only update fields that were actually passed
         if 'email' in validated_data:
             instance.email = validated_data['email']
         if 'username' in validated_data:
             instance.username = validated_data['username']
         if 'avatar' in validated_data:
             instance.avatar = validated_data['avatar']
+        if 'default_language' in validated_data:
+            instance.default_language = validated_data['default_language']
         
         instance.save()
         return instance

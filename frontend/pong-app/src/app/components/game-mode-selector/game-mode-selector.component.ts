@@ -21,6 +21,10 @@ export class GameModeSelectorComponent implements OnInit{
       play_name: 'Jugar',
       play_description: 'Ve con cuidado',
     },
+    eus: {
+      play_name: 'Jokatu',
+      play_description: 'Kontuz ibili',
+    },
     en: {
       play_name: 'Play',
       play_description: 'Be Safe',

@@ -60,8 +60,9 @@
         </svg>
         <span class="language-label">{{ currentTexts.language }}</span>
         <select class="language-select" (change)="onLanguageChange($event)">
-          <option value="es" [selected]="currentLanguage === 'es'">Español</option>
-          <option value="en" [selected]="currentLanguage === 'en'">Inglés</option>
+          <option value="es" [selected]="currentLanguage === 'es'">{{ currentTexts.spanish }}</option>
+          <option value="eus" [selected]="currentLanguage === 'eus'">{{ currentTexts.basque }}</option>
+          <option value="en" [selected]="currentLanguage === 'en'">{{ currentTexts.english }}</option>
         </select>
       </div>
 

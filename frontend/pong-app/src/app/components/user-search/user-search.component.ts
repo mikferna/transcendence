@@ -80,6 +80,19 @@ export class UserSearchComponent implements OnInit {
      searching_users: 'Buscando usuarios...',
      no_users_found: 'No se encontraron usuarios'
    },
+   eus: {
+    search_users: 'Erabiltzaileak Bilatu',
+    online: 'Konektatuta',
+    offline: 'Deskonektatuta',
+    request_received: 'Eskaera jasota',
+    friend: 'Laguna',
+    delete: 'Ezabatu',
+    pending: 'Zain',
+    add: 'Gehitu',
+    bloqued: 'Blokeatuta',
+    searching_users: 'Erabiltzaileak bilatzen...',
+    no_users_found: 'Ez da erabiltzailerik aurkitu'
+   },
    en: {
     search_users: 'Search Users',
     online: 'Online',

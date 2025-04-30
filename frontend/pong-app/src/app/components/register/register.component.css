@@ -130,4 +130,62 @@ button:disabled {
 
 .form-footer a:hover {
   color: #00cc00;
-} 
+}
+
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-wrapper select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  background: rgba(40, 40, 40, 0.9);
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.custom-select-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #fff;
+  pointer-events: none;
+}
+
+.custom-select-wrapper select:focus {
+  outline: none;
+  border-color: #00ff00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.custom-select-wrapper select option {
+  background: #333;
+  color: #fff;
+  padding: 0.8rem;
+}
+
+/* Hover effect for the select */
+.custom-select-wrapper select:hover {
+  background: rgba(60, 60, 60, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Hover effect for options */
+.custom-select-wrapper select option:hover,
+.custom-select-wrapper select option:focus {
+  background: #444;
+}

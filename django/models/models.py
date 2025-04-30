@@ -25,6 +25,15 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     friends = models.ManyToManyField('self', blank=True, symmetrical=True)
     blocked_users = models.ManyToManyField('self', symmetrical=False, related_name='blocked_by', blank=True)
+    default_language = models.CharField(
+        max_length=3,
+        choices=[
+            ('es', 'Spanish'),
+            ('eus', 'Basque'),
+            ('en', 'English')
+        ],
+        default='es'
+    )
 
     REQUIRED_FIELDS = ['email']  # Added email as required for createsuperuser
 

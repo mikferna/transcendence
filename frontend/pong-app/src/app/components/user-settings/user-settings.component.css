@@ -124,3 +124,52 @@ label {
   background-color: #cccccc;
   cursor: not-allowed;
 }
+
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-wrapper select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #555;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.custom-select-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #555;
+  pointer-events: none;
+}
+
+.custom-select-wrapper select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.custom-select-wrapper select option {
+  background: #ffffff;
+  color: #555;
+  padding: 0.75rem;
+}
+
+.custom-select-wrapper select:hover {
+  border-color: #4CAF50;
+}

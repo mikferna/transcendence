@@ -14,6 +14,7 @@ interface AuthResponse {
 interface LoginResponse {
   access: string;
   refresh: string;
+  default_language?: string; // Optional property
 }
 
 @Injectable({
@@ -43,6 +44,11 @@ export class AuthService {
     }).pipe(
       tap(response => {
         this.tokenService.setTokens(response.access, response.refresh);
+        // Al hacer login, siempre establecer el idioma de sesión al idioma por defecto del usuario
+        if (response.default_language) {
+          localStorage.setItem('defaultLanguage', response.default_language);
+          localStorage.setItem('selectedLanguage', response.default_language);
+        }
         this.getCurrentUser().subscribe();
       })
     );
@@ -93,13 +99,20 @@ export class AuthService {
     }
   }
 
-  register(username: string, email: string, password: string, password2: string): Observable<any> {
+  register(username: string, email: string, password: string, password2: string, default_language: string): Observable<any> {
     return this.http.post<any>(`${this.API_URL}/register/`, {
       username,
       email,
       password,
-      password2
-    });
+      password2,
+      default_language
+    }).pipe(
+      tap(response => {
+        if (response.default_language) {
+          localStorage.setItem('selectedLanguage', response.default_language);
+        }
+      })
+    );
   }
 
   getCurrentUser(): Observable<any> {
@@ -118,47 +131,16 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
-    const refreshToken = this.tokenService.getRefreshToken();
-    const is42User = localStorage.getItem('is_42_user') === 'true';
-    const ft_token = localStorage.getItem('ft_api_token');
-    const accessToken = this.tokenService.getAccessToken();
-
-    return this.http.post(`${this.API_URL}/logout/`, { refresh: refreshToken }).pipe(
-      tap({
-        next: () => {
-          this.tokenService.removeTokens();
-          localStorage.removeItem('currentUser');
-          localStorage.removeItem('is_42_user');
-          localStorage.removeItem('ft_api_token');
-          this.currentUserSubject.next(null);
-
-          this.router.navigate(['/']);
-          // Si es usuario de 42, hacer logout también de 42
-          //if (is42User && ft_token) {
-          //  window.location.href = `https://api.intra.42.fr/oauth/logout?client_id=${environment.auth42.clientId}&access_token=${ft_token}`;
-          //  //window.location.href = 'https://api.intra.42.fr/oauth/logout';
-          //} else {
-          //  // Redirigir a la página de inicio
-          //  this.router.navigate(['/']);  
-          //}
-        },
-        error: (error) => {
-          console.error('Error during logout:', error);
-          // Aún así limpiamos los tokens locales en caso de error
-          this.tokenService.removeTokens();
-          localStorage.removeItem('currentUser');
-          localStorage.removeItem('is_42_user');
-          localStorage.removeItem('ft_api_token');
-          this.currentUserSubject.next(null);
-
-          this.router.navigate(['/']);
-          // Si es usuario de 42, hacer logout también de 42
-          //if (is42User && accessToken) {
-          //  window.location.href = `https://api.intra.42.fr/oauth/logout?client_id=${environment.auth42.clientId}&access_token=${ft_token}`;
-          //} else {
-          //  this.router.navigate(['/']);
-          //}
-        }
+    return this.http.post(`${this.API_URL}/logout/`, {
+      refresh: this.tokenService.getRefreshToken()
+    }).pipe(
+      tap(() => {
+        this.tokenService.removeTokens();
+        localStorage.removeItem('currentUser');
+        // Al hacer logout, mantener selectedLanguage pero eliminar defaultLanguage
+        localStorage.removeItem('defaultLanguage');
+        this.currentUserSubject.next(null);
+        this.router.navigate(['/']);
       })
     );
   }
@@ -188,4 +170,4 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('access_token');
   }
-} 
+}

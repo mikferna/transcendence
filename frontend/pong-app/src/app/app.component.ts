@@ -44,4 +44,16 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
   }
+
+  ngOnInit() {
+  // Si el usuario está logueado y no hay idioma de sesión seleccionado,
+  // usar el idioma por defecto del usuario
+  const isLoggedIn = this.authService.isLoggedIn();
+  if (isLoggedIn && !localStorage.getItem('selectedLanguage')) {
+    const defaultLanguage = localStorage.getItem('defaultLanguage');
+    if (defaultLanguage) {
+      localStorage.setItem('selectedLanguage', defaultLanguage);
+    }
+  }
+}
 }

@@ -83,7 +83,25 @@ export class UserProfileComponent implements OnInit, OnDestroy {
      system_error: 'ERROR DE SISTEMA:',
      connected: 'CONECTADO',
      disconnected: 'DESCONECTADO'
-
+   },
+   eus: {
+    matches: 'PARTIDAK',
+    wins: 'GARAIPENAK',
+    efficiency: 'ERAGINKORTASUNA',
+    contacts: 'KONTAKTUAK',
+    no_contacts_found_ddbb: 'EZ DA KONTAKTURIK AURKITU DATU-BASEAN',
+    combats_registry: 'BORROKA ERREGISTROA',
+    win: 'GARAIPENA',
+    lose: 'PORROTA',
+    no_combat_registry_found_ddbb: 'EZ DA BORROKA ERREGISTRORIK AURKITU DATU-BASEAN',
+    contact_established: 'KONTAKTUA EZARRITA',
+    pending_request: 'ESKAERA ZAIN',
+    add_contact: 'KONTAKTUA GEHITU',
+    start_combat: 'BORROKA HASI',
+    accessing_system: 'SISTEMARA SARTZEN...',
+    system_error: 'SISTEMA ERROREA:',
+    connected: 'KONEKTATUTA',
+    disconnected: 'DESKONEKTATUTA'
    },
    en: {
      matches: 'MATCHES',

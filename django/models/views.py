@@ -48,7 +48,8 @@ class login(GenericAPIView):
 
                 return Response({
                     'refresh': str(refresh),
-                    'access': access_token
+                    'access': access_token,
+                    'default_language': user.default_language  # Siempre devolver el idioma por defecto
                 })
             else:
                 return Response(
@@ -287,23 +288,18 @@ class deleteProfile(APIView):
             status=status.HTTP_200_OK
         )
 
-class updateProfile(UpdateAPIView):
+# Cambiar de UpdateAPIView a APIView
+class updateProfile(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = UpdateUserSerializer
-
-    def get_object(self):
-        return self.request.user
-
-    def update(self, request, *args, **kwargs):
-        partial = True
-        instance = self.get_object()
-
+    
+    def post(self, request):
+        user = request.user
         data_to_update = {}
         
         # Validate username
         if 'username' in request.data:
             username = request.data['username']
-            if username and len(username) > 30:  # Ejemplo de validación
+            if username and len(username) > 30:
                 return Response(
                     {'error': 'Username cannot exceed 30 characters'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -320,11 +316,20 @@ class updateProfile(UpdateAPIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             data_to_update['email'] = email
-        
+
+        # Validate language
+        if 'default_language' in request.data:
+            language = request.data['default_language']
+            if language not in ['es', 'eus', 'en']:
+                return Response(
+                    {'error': 'Invalid language selection'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            data_to_update['default_language'] = language
+    
         # Validate avatar size if present
         if 'avatar' in request.FILES:
             avatar = request.FILES['avatar']
-            # 2MB in bytes = 2 * 1024 * 1024 = 2,097,152 bytes
             if avatar.size > 2 * 1024 * 1024:
                 return Response(
                     {'error': 'Profile picture is too large. Maximum size is 2MB.'},
@@ -332,11 +337,20 @@ class updateProfile(UpdateAPIView):
                 )
             data_to_update['avatar'] = avatar
 
-        serializer = self.get_serializer(instance, data=data_to_update, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        # Update user data
+        for key, value in data_to_update.items():
+            setattr(user, key, value)
+        user.save()
 
-        return Response({'message': 'Profile updated successfully', 'data': serializer.data})
+        return Response({
+            'message': 'Profile updated successfully',
+            'data': {
+                'username': user.username,
+                'email': user.email,
+                'avatar': user.avatar.url if user.avatar else None,
+                'default_language': user.default_language
+            }
+        })
 
 class acceptFriendRequest(APIView):
     permission_classes = [IsAuthenticated]
@@ -1002,22 +1016,19 @@ class createMatch(APIView):
             )
 
 class currentUser(APIView):
-    permission_classes = [IsAuthenticated]
-    
     def get(self, request):
         user = request.user
-        avatar_url = user.avatar.url if user.avatar else None
-        
         return Response({
             'id': user.id,
             'username': user.username,
             'email': user.email,
-            'avatar': avatar_url,
+            'avatar': user.avatar.url if user.avatar else None,
             'tournament_name': user.tournament_name,
             'is_online': user.is_online,
             'games_played': user.games_played,
             'games_won': user.games_won,
             'games_lost': user.games_lost,
+            'default_language': user.default_language,
         }, status=status.HTTP_200_OK)
 
 class searchUsers(APIView):
