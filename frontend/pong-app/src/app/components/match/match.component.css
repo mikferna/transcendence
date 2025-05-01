@@ -939,3 +939,52 @@
     height: 40px;
   }
 }
+
+.player-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.tournament-name-field {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9em;
+}
+
+.tournament-name-field label {
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.tournament-name-input {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: #00ff00;
+  padding: 4px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  width: 140px;
+}
+
+.player-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px;
+  margin-bottom: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+/* Estilos para mostrar el tema visual adecuado en los inputs */
+.blue-matrix .tournament-name-input {
+  border-color: rgba(0, 150, 255, 0.5);
+  color: #00c8ff;
+}
+
+.red-matrix .tournament-name-input {
+  border-color: rgba(255, 0, 0, 0.5);
+  color: #ff0000;
+}

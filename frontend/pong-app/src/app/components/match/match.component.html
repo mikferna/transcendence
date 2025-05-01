@@ -66,8 +66,21 @@
         <div class="selected-players">
           <h4>JUGADORES SELECCIONADOS ({{ selectedPlayers.length }}/{{ playerCount }})</h4>
           <div class="player-list">
-            <div class="player-item" *ngFor="let player of selectedPlayers">
-              <span class="player-name">{{ player.username }}</span>
+            <div class="player-item" *ngFor="let player of selectedPlayers; let i = index">
+              <div class="player-details">
+                <span class="player-name">{{ player.username }}</span>
+                
+                <!-- Campo de nombre de torneo (solo visible en modo torneo) -->
+                <div *ngIf="isTournament" class="tournament-name-field">
+                  <label>Nombre en torneo:</label>
+                  <input 
+                    type="text" 
+                    class="tournament-name-input" 
+                    [(ngModel)]="player.tournamentName" 
+                    placeholder="Nombre de torneo"
+                  >
+                </div>
+              </div>
               <button 
                 class="remove-player" 
                 *ngIf="player.id !== currentUser?.id"
@@ -198,6 +211,7 @@
           <h2>{{ announcementMessage }}</h2>
         </div>
       </div>
+      <!-- Nota: Esta parte del HTML muestra el mensaje de anuncio, pero el contenido del mensaje se genera en el código TypeScript -->
       
       <div *ngIf="!showAnnouncement">
         <div class="game-header">
@@ -207,9 +221,15 @@
             <h2 *ngIf="tournamentRound === 'final' && currentMatch">FINAL DEL TORNEO</h2>
             
             <div class="score-display" *ngIf="currentMatch">
-              <div><span>{{ currentMatch.player1.username }}</span> <span class="score">{{ currentMatch.player1Score }}</span></div>
+              <div>
+                <span>{{ currentMatch.player1.tournamentName || currentMatch.player1.username }}</span> 
+                <span class="score">{{ currentMatch.player1Score }}</span>
+              </div>
               <div>VS</div>
-              <div><span>{{ currentMatch.player2.username }}</span> <span class="score">{{ currentMatch.player2Score }}</span></div>
+              <div>
+                <span>{{ currentMatch.player2.tournamentName || currentMatch.player2.username }}</span> 
+                <span class="score">{{ currentMatch.player2Score }}</span>
+              </div>
             </div>
           </div>
           
@@ -258,7 +278,7 @@
             <h3>TORNEO FINALIZADO</h3>
             <div class="tournament-winner">
               <span class="winner-label">CAMPEÓN:</span>
-              <span class="winner-name">{{ tournamentWinner ? tournamentWinner.username : 'Desconocido' }}</span>
+              <span class="winner-name">{{ tournamentWinner.tournamentName || tournamentWinner.username }}</span>
             </div>
             
             <div class="tournament-bracket">
@@ -268,10 +288,11 @@
                   {{ i === 0 ? 'SEMIFINAL 1' : i === 1 ? 'SEMIFINAL 2' : 'FINAL' }}
                 </div>
                 <div class="match-score">
-                  {{ match.player1.username }} {{ match.player1Score }} - {{ match.player2Score }} {{ match.player2.username }}
+                  {{ match.player1.tournamentName || match.player1.username }} {{ match.player1Score }} - 
+                  {{ match.player2Score }} {{ match.player2.tournamentName || match.player2.username }}
                 </div>
                 <div class="match-winner">
-                  GANADOR: {{ match.winner ? match.winner.username : 'Desconocido' }}
+                  GANADOR: {{ match.winner ? (match.winner.tournamentName || match.winner.username) : 'Desconocido' }}
                 </div>
               </div>
             </div>
@@ -293,7 +314,8 @@
             Jugador 4 (abajo): [J/L]
           </p>
           <p *ngIf="!gameEnded && isTournament && currentMatch">
-            CONTROLES: {{ currentMatch.player1.username }} [W/S] - {{ currentMatch.player2.username }} [↑/↓]
+            CONTROLES: {{ currentMatch.player1.tournamentName || currentMatch.player1.username }} [W/S] - 
+            {{ currentMatch.player2.tournamentName || currentMatch.player2.username }} [↑/↓]
           </p>
           
           <button class="back-button" (click)="goBack()">
