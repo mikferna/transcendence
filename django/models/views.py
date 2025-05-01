@@ -67,36 +67,15 @@ class login42(APIView):
 
     def get(self, request):
         redirect_uri = settings.FT_REDIRECT_URI
-        #force_verify = request.query_params.get('force_verify', 'false')
-        #state = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-        #return redirect(
-        #    f"https://api.intra.42.fr/oauth/authorize"
-        #    f"?client_id={settings.FT_CLIENT_ID}"
-        #    f"&redirect_uri={redirect_uri}"
-        #    f"&response_type=code"
-        #)
     
         auth_url = (
             f"https://api.intra.42.fr/oauth/authorize"
             f"?client_id={settings.FT_CLIENT_ID}"
             f"&redirect_uri={redirect_uri}"
             f"&response_type=code"
-            #f"&state={state}"  # Previene CSRF y ayuda a evitar el cacheo
-            #f"&force_verify=true"  # Fuerza la verificación
-            #f"&prompt=login"  # Fuerza la selección de cuenta
-            #f"&scope=public"  # Especifica el scope
         )
-
-        # Añadir force_verify si está presente
-        #if force_verify.lower() == 'true':
-        #    auth_url += "&force_verify=true"
-        # Forzar limpieza de la cookie de sesión de 42
-        #response = redirect(auth_url)
-        #response.delete_cookie('_42_session', domain='.intra.42.fr')
-        #response.delete_cookie('_42_session.shared', domain='.42.fr')
-        
+       
         return redirect(auth_url)
-        #return response
 
 class FortyTwoCallbackView(APIView):
     permission_classes = [AllowAny]

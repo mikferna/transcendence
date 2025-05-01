@@ -112,7 +112,7 @@ REST_FRAMEWORK = {
 
 # JWT settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -250,5 +250,5 @@ LOGGING = {
 # 42 API Credentials (se espera que estén en el entorno del contenedor)
 FT_CLIENT_ID = os.getenv('FT_CLIENT_ID')
 FT_CLIENT_SECRET = os.getenv('FT_CLIENT_SECRET')
-FT_REDIRECT_URI = os.getenv('FT_REDIRECT_URI', 'http://localhost:8000/auth/callback/')
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200")
+FT_REDIRECT_URI = os.getenv('FT_REDIRECT_URI', 'https://localhost:8000/auth/callback/')
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://localhost:4200")
