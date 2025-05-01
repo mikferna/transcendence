@@ -11,6 +11,7 @@ interface User {
   username: string;
   avatar?: string;
   is_online: boolean;
+  tournamentName: string;
 }
 
 interface TournamentMatch {
@@ -202,7 +203,7 @@ export class MatchComponent implements OnInit, OnDestroy, AfterViewChecked {
   player2Score: number = 0;
   player3Score: number = 0;
   player4Score: number = 0;
-  
+
   // Configuración del juego
   gameConfig: {
     ballSpeed: number;

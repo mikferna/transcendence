@@ -19,7 +19,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/code
-      - ./django/certs:/code/certs  # Asegúrate de que esté así
+      - ./frontend/certs:/code/certs  # Asegúrate de que esté así
     networks:
       - miknet
     depends_on:
@@ -34,6 +34,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./frontend/pong-app:/usr/src/app
+      - ./frontend/certs:/app/certs
     ports:
       - "4200:4200"  # Puerto del servidor Angular
     networks:
