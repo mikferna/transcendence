@@ -277,8 +277,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   getAbsoluteAvatarUrl(avatarUrl: string | null): string {
     if (!avatarUrl) return 'assets/default-avatar.png';
-    if (avatarUrl.startsWith('http')) return avatarUrl;
-    return `http://localhost:8000${avatarUrl}`;
+    if (avatarUrl.startsWith('https')) return avatarUrl;
+    return `https://localhost:8000${avatarUrl}`;
   }
 
   getWinRate(): number {

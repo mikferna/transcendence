@@ -16,7 +16,21 @@ WORKDIR /usr/src/app/pong-app/app
 # Instalar las dependencias de npm
 RUN npm install
 
-# Exponer el puerto 4200 para servir la app Angular
+# Instalar OpenSSL para generar certificados
+RUN apt-get update && apt-get install -y openssl
+
+# Generar certificados SSL auto-firmados
+RUN openssl req -new -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
+
+# Modificar el archivo angular.json para habilitar SSL
+RUN node -e "const fs = require('fs'); const config = JSON.parse(fs.readFileSync('angular.json')); \
+    if (!config.projects.app.architect.serve.options) config.projects.app.architect.serve.options = {}; \
+    config.projects.app.architect.serve.options.ssl = true; \
+    config.projects.app.architect.serve.options.sslKey = 'key.pem'; \
+    config.projects.app.architect.serve.options.sslCert = 'cert.pem'; \
+    fs.writeFileSync('angular.json', JSON.stringify(config, null, 2));"
+
+# Exponer el puerto 4200 para servir la app Angular con HTTPS
 EXPOSE 4200
 
 # Copiar el archivo entrypoint.sh al contenedor

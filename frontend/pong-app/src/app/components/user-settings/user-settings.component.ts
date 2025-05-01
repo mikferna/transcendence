@@ -126,7 +126,7 @@ export class UserSettingsComponent implements OnInit {
         });
         if (data.avatar) {
           if (!data.avatar.startsWith('http')) {
-            this.avatarPreview = `http://localhost:8000${data.avatar}`;
+            this.avatarPreview = `https://localhost:8000${data.avatar}`;
           } else {
             this.avatarPreview = data.avatar;
           }

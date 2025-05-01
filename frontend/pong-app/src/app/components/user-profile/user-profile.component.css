@@ -275,6 +275,9 @@
   grid-template-columns: 1fr 2fr;
   gap: 2rem;
   margin-bottom: 2rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 0;
 }
 
 .section {
@@ -290,6 +293,9 @@
 /* Hacker Card Effect */
 .hackercard {
   position: relative;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
 }
 
 .section-header {
@@ -297,6 +303,7 @@
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+  flex-shrink: 0; /* Evitar que el encabezado se encoja */
 }
 
 .section h2 {
@@ -352,26 +359,36 @@
   background-color: var(--matrix-green);
 }
 
-/* Friends List */
+/* Friends List - ACTUALIZADO */
 .friends-list {
-  max-height: 300px;
+  max-height: 450px;
   overflow-y: auto;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  flex-grow: 1; /* Ocupar el espacio disponible */
+  min-height: 200px; /* Altura mínima */
+  padding-bottom: 15px; /* Asegurar espacio inferior */
+  scrollbar-width: thin;
+  scrollbar-color: var(--matrix-green) rgba(0, 20, 0, 0.3);
 }
 
 .friend-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
+  padding: 15px;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--accent-color);
+  border: 1px solid var(--matrix-green);
   border-radius: 4px;
   transition: all 0.3s ease;
   position: relative;
+  width: calc(100% - 10px);
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  height: auto;
+  min-height: fit-content;
 }
 
 .friend-item:hover {
@@ -385,12 +402,13 @@
   align-items: center;
   gap: 1rem;
   width: 100%;
+  padding-bottom: 5px;
 }
 
 .friend-name {
   font-size: 1rem;
-  color: var(--text-primary);
-  text-shadow: 0 0 5px var(--accent-color);
+  color: var(--matrix-green);
+  text-shadow: 0 0 5px var(--matrix-green);
 }
 
 .friend-item .online-status {
@@ -421,27 +439,41 @@
   text-shadow: 0 0 5px #ff0000;
 }
 
-/* Match History */
+/* Match History - ACTUALIZADO */
 .match-history {
   display: flex;
   flex-direction: column;
   gap: 15px;
   margin-top: 10px;
+  max-height: 450px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--matrix-green) rgba(0, 20, 0, 0.3);
+  padding: 10px;
+  padding-right: 15px;
+  padding-bottom: 20px;
+  flex-grow: 1;
+  min-height: 200px;
 }
 
 .match-item {
   background: rgba(0, 20, 0, 0.3);
   border-radius: 0;
-  padding: 15px 20px;
+  padding: 20px 15px;
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   border: none;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
+  width: calc(100% - 10px);
+  box-sizing: border-box;
+  height: auto;
+  min-height: 60px;
 }
 
 .match-item.win {
@@ -461,12 +493,15 @@
   justify-content: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
+  padding-bottom: 5px;
+  height: auto;
+  min-height: fit-content;
 }
 
 .player {
   font-size: 0.9rem;
-  color: var(--text-primary);
-  text-shadow: 0 0 5px var(--accent-color);
+  color: var(--matrix-green);
+  text-shadow: 0 0 5px var(--matrix-green);
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -475,25 +510,29 @@
 
 .vs {
   font-size: 0.8rem;
-  color: var(--accent-color);
+  color: var(--matrix-green);
   margin: 0 0.25rem;
 }
 
 .match-score {
   font-size: 1.2rem;
   font-weight: bold;
-  color: var(--text-primary);
-  text-shadow: 0 0 5px var(--accent-color);
+  color: var(--matrix-green);
+  text-shadow: 0 0 5px var(--matrix-green);
   margin-bottom: 0.5rem;
   display: flex;
   justify-content: center;
   gap: 0.5rem;
+  padding-bottom: 5px;
+  height: auto;
+  min-height: fit-content;
 }
 
 /* Estilos específicos para partidas con múltiples jugadores */
-.match-item[class*="3players"],
-.match-item[class*="4players"] {
-  padding: 1rem;
+.match-item[match-type="3players"],
+.match-item[match-type="4players"] {
+  padding: 25px 15px;
+  grid-template-rows: auto auto auto auto;
 }
 
 .match-item[class*="3players"] .match-players,
@@ -512,20 +551,6 @@
   font-size: 1rem;
 }
 
-/* Responsive para pantallas pequeñas */
-@media (max-width: 600px) {
-  .match-item[class*="3players"] .player,
-  .match-item[class*="4players"] .player {
-    max-width: 80px;
-    font-size: 0.8rem;
-  }
-  
-  .match-item[class*="3players"] .match-score,
-  .match-item[class*="4players"] .match-score {
-    font-size: 0.9rem;
-  }
-}
-
 .match-winner {
   text-align: center;
   padding: 8px 15px;
@@ -537,6 +562,9 @@
   letter-spacing: 1px;
   font-size: 0.9em;
   text-transform: uppercase;
+  padding-bottom: 10px;
+  height: auto;
+  min-height: fit-content;
 }
 
 .match-winner.win {
@@ -551,6 +579,9 @@
   text-align: right;
   font-family: 'Share Tech Mono', monospace;
   letter-spacing: 0.5px;
+  padding-bottom: 5px;
+  height: auto;
+  min-height: fit-content;
 }
 
 /* Empty States */
@@ -565,11 +596,6 @@
   white-space: nowrap;
   overflow: hidden;
   animation: typing 3.5s steps(40, end);
-}
-
-@keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
 }
 
 /* Matrix Button */
@@ -721,6 +747,54 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* Scrollbar personalizada */
+.friends-list::-webkit-scrollbar,
+.match-history::-webkit-scrollbar {
+  width: 5px;
+}
+
+.friends-list::-webkit-scrollbar-track,
+.match-history::-webkit-scrollbar-track {
+  background: rgba(0, 20, 0, 0.3);
+}
+
+.friends-list::-webkit-scrollbar-thumb,
+.match-history::-webkit-scrollbar-thumb {
+  background-color: var(--matrix-green);
+  border-radius: 3px;
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  box-shadow: 0 0 3px var(--matrix-green);
+}
+
+.friends-list::-webkit-scrollbar-thumb:hover,
+.match-history::-webkit-scrollbar-thumb:hover {
+  background-color: #00ff65;
+  box-shadow: 0 0 5px #00ff65;
+}
+
+/* Efectos de hover mejorados en scroll */
+.friends-list:hover,
+.match-history:hover {
+  box-shadow: inset 0 0 5px var(--matrix-green);
+}
+
+/* Animación de terminal para recién añadidos */
+@keyframes new-item-appear {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.friend-item:first-child,
+.match-item:first-child {
+  animation: new-item-appear 0.5s ease-out;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 960px) {
   .profile-header {
@@ -736,6 +810,11 @@
   .profile-sections {
     grid-template-columns: 1fr;
   }
+  
+  .friends-list, 
+  .match-history {
+    max-height: 350px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -743,6 +822,7 @@
     grid-template-columns: 1fr;
     text-align: center;
     gap: 5px;
+    padding: 15px 10px;
   }
 
   .match-players {
@@ -756,5 +836,27 @@
   .profile-avatar {
     width: 150px;
     height: 150px;
+  }
+  
+  .match-item[class*="3players"] .player,
+  .match-item[class*="4players"] .player {
+    max-width: 80px;
+    font-size: 0.8rem;
+  }
+  
+  .match-item[class*="3players"] .match-score,
+  .match-item[class*="4players"] .match-score {
+    font-size: 0.9rem;
+  }
+  
+  .friends-list, 
+  .match-history {
+    max-height: 300px;
+  }
+  
+  .friend-item, 
+  .match-item {
+    padding: 10px 5px;
+    margin-bottom: 10px;
   }
 }

@@ -64,7 +64,7 @@
           <div class="corner-decoration bottom-left"></div>
           <div class="corner-decoration bottom-right"></div>
         </div>       
-        <div class="match-history">         
+        <div class="match-history scrollable hide-scrollbar">         
           <div *ngFor="let match of profile.match_history" class="match-item" [class.win]="match.winner_username === profile.username">           
             <div class="match-players">
               <!-- Partida 1v1 -->
@@ -121,17 +121,7 @@
         </div>     
       </div>   
     </div>
-    
-    <!-- Action Buttons -->
-    <div class="profile-actions" *ngIf="!profile.is_current_user">
-      <button class="btn-matrix" [disabled]="profile.is_friend || profile.has_pending_request">
-        <span class="btn-text">{{ profile.is_friend ? '{{ currentTexts.contact_established }}' : (profile.has_pending_request ? '{{ currentTexts.pending_request }}' : '{{ currentTexts.add_contact }}') }}</span>
-      </button>
-      <button class="btn-matrix">
-        <span class="btn-text">{{ currentTexts.start_combat }}</span>
-      </button>
-    </div>
-  </div>  
+  </div>
 
   <div *ngIf="loading" class="loading-container">
     <div class="matrix-loader">
