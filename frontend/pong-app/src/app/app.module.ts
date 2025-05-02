@@ -22,7 +22,9 @@ import { TournamentComponent } from './components/tournament/tournament.componen
 // Services
 import { MatrixService } from './services/matrix.service';
 import { AuthService } from './services/auth.service';
-import { HttpInterceptorService } from './services/http-interceptor.service';
+// Importamos nuestro nuevo AuthInterceptor en lugar del HttpInterceptorService
+import { AuthInterceptor } from './services/auth.interceptor';
+import { TokenService } from './services/token.service';
 
 @NgModule({
   declarations: [
@@ -48,9 +50,10 @@ import { HttpInterceptorService } from './services/http-interceptor.service';
   providers: [
     MatrixService,
     AuthService,
+    TokenService, // Añadimos el TokenService a los providers
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: HttpInterceptorService,
+      useClass: AuthInterceptor, // Usamos AuthInterceptor en lugar de HttpInterceptorService
       multi: true
     }
   ],

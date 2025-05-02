@@ -113,8 +113,8 @@ class EnhancedSessionMiddleware(SessionMiddleware):
                         response.set_cookie(
                             settings.SESSION_COOKIE_NAME,
                             str(auth_token),
-                            max_age=max_age,
-                            expires=expires,
+                            max_age=max_age,         # <-- Mantener este
+                            # expires=expires,       # <-- Eliminar o comentar esta línea
                             domain=settings.SESSION_COOKIE_DOMAIN,
                             path=settings.SESSION_COOKIE_PATH,
                             secure=settings.SESSION_COOKIE_SECURE or None,

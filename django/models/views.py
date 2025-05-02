@@ -154,11 +154,19 @@ class updateProfile(UpdateAPIView):
         # Validate username
         if 'username' in request.data:
             username = request.data['username']
-            if username and len(username) > 30:  # Ejemplo de validación
+            if username and len(username) > 30:
                 return Response(
                     {'error': 'Username cannot exceed 30 characters'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            # Check if username is already taken by another user
+            if username != instance.username and User.objects.filter(username=username).exists():
+                return Response(
+                    {'error': 'This username is already taken'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             data_to_update['username'] = username
         
         # Validate email
@@ -170,6 +178,14 @@ class updateProfile(UpdateAPIView):
                     {'error': 'Invalid email format'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            # Check if email is already taken by another user
+            if email != instance.email and User.objects.filter(email=email).exists():
+                return Response(
+                    {'error': 'This email is already registered'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             data_to_update['email'] = email
         
         # Validate avatar size if present

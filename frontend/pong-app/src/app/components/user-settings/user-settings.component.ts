@@ -87,12 +87,20 @@ export class UserSettingsComponent implements OnInit {
       if (this.selectedFile) {
         formData.append('avatar', this.selectedFile);
       }
-
+  
       this.http.patch(`${environment.apiUrl}/user_update/`, formData).subscribe({
         next: (response) => {
           this.message = 'Perfil actualizado exitosamente';
           this.error = '';
-          this.loadUserData();
+          // Reemplazamos loadUserData() con la llamada al nuevo método
+          this.authService.updateCurrentUser().subscribe({
+            next: (user) => {
+              console.log('Datos de usuario actualizados en toda la aplicación');
+            },
+            error: (err) => {
+              console.error('Error al actualizar los datos de usuario en la aplicación', err);
+            }
+          });
         },
         error: (error) => {
           this.error = error.error.error || 'Error al actualizar el perfil';
