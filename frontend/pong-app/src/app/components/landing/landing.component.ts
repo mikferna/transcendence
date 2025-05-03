@@ -27,7 +27,7 @@ export class LandingComponent {
       if (loadingScreenElement) {
         loadingScreenElement.style.display = 'none';
       }
-      this.router.navigate(['/home']);
+      this.router.navigate(['/login']);
     }, 2000);
   }
 

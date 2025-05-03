@@ -26,4 +26,4 @@ EOF
 
 # Ejecutar servidor con HTTPS
 echo "Iniciando servidor Django con HTTPS..."
-python manage.py runserver_plus --cert-file=/code/certs/cert.pem --key-file=/code/certs/key.pem 0.0.0.0:8000
+python manage.py runserver_plus --cert-file=$SSL_CERT_FILE --key-file=$SSL_KEY_FILE 0.0.0.0:8000

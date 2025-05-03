@@ -111,9 +111,19 @@ export class UserSearchComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) {
+    // Inicializar currentTexts en el constructor
+    this.currentLanguage = localStorage.getItem('selectedLanguage') || 'es';
+    this.currentTexts = this.translations[this.currentLanguage];
+  }
 
   ngOnInit() {
+    // Obtener el idioma almacenado
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage && this.translations[savedLanguage]) {
+      this.currentLanguage = savedLanguage;
+      this.currentTexts = this.translations[this.currentLanguage];
+    }
     this.loadPendingRequests();
   }
   

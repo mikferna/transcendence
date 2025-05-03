@@ -13,6 +13,7 @@ COPY run.sh /code/django/
 RUN pip install --upgrade pip
 RUN pip install -r /code/django/requirements.txt
 RUN pip install django-extensions Werkzeug pyOpenSSL
+RUN pip install django-cors-headers
 
 RUN chmod +x /code/django/run.sh
 

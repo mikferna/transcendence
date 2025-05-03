@@ -237,15 +237,15 @@
             <h2>{{ currentTexts.game_on }}</h2>
             
             <div class="score-display" *ngIf="playerCount === 2 && !isAgainstAI">
-              <div><span>{{ selectedPlayers[0] ? selectedPlayers[0].username : '' }}</span> <span class="score">{{ player1Score }}</span></div>
+              <div><span>{{ (selectedPlayers[0] ? selectedPlayers[0].username : '') + ' ' }}</span> <span class="score">{{ player1Score }}</span></div>
               <div>{{ currentTexts.vs }}</div>
-              <div><span>{{ selectedPlayers[1] ? selectedPlayers[1].username : '' }}</span> <span class="score">{{ player2Score }}</span></div>
+              <div><span>{{ (selectedPlayers[1] ? selectedPlayers[1].username : '') + ' ' }}</span> <span class="score">{{ player2Score }}</span></div>
             </div>
             
             <div class="score-display" *ngIf="isAgainstAI">
-              <div><span>{{ currentUser?.username }}</span> <span class="score">{{ player1Score }}</span></div>
+              <div><span>{{ (currentUser?.username) + ' ' }}</span> <span class="score">{{ player1Score }}</span></div>
               <div>VS</div>
-              <div><span>AI</span> <span class="score">{{ player2Score }}</span></div>
+              <div><span>{{ (currentTexts.ai) + ' '}}</span> <span class="score">{{ player2Score }}</span></div>
             </div>
             
             <div class="score-display multi-player" *ngIf="playerCount > 2 && !isAgainstAI">

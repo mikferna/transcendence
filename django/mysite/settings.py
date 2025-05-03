@@ -55,12 +55,12 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     # Replace standard session middleware with our enhanced version
     'models.middleware.EnhancedSessionMiddleware',  # Make sure to create middleware.py in your models app
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 # Session settings
@@ -70,6 +70,8 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # Set to 'Strict' in production
 SESSION_COOKIE_SECURE = DEBUG is False  # True in production, False in development
 SESSION_TOKEN_LIFETIME = 14400  # 4 hours in seconds
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 CORS_ALLOWED_ORIGINS = [
     "https://localhost:4200",
@@ -112,7 +114,7 @@ REST_FRAMEWORK = {
 
 # JWT settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -252,3 +254,6 @@ FT_CLIENT_ID = os.getenv('FT_CLIENT_ID')
 FT_CLIENT_SECRET = os.getenv('FT_CLIENT_SECRET')
 FT_REDIRECT_URI = os.getenv('FT_REDIRECT_URI', 'https://localhost:8000/auth/callback/')
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://localhost:4200")
+# Certificados SSL
+CERT_FILE = os.environ.get('SSL_CERT_FILE', '/code/certs/cert.pem')
+KEY_FILE = os.environ.get('SSL_KEY_FILE', '/code/certs/key.pem')

@@ -271,7 +271,7 @@ class deleteProfile(APIView):
 class updateProfile(APIView):
     permission_classes = [IsAuthenticated]
     
-    def post(self, request):
+    def patch(self, request):
         user = request.user
         data_to_update = {}
         
@@ -285,7 +285,7 @@ class updateProfile(APIView):
                 )
             
             # Check if username is already taken by another user
-            if username != instance.username and User.objects.filter(username=username).exists():
+            if username != user.username and User.objects.filter(username=username).exists():
                 return Response(
                     {'error': 'This username is already taken'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -304,7 +304,7 @@ class updateProfile(APIView):
                 )
             
             # Check if email is already taken by another user
-            if email != instance.email and User.objects.filter(email=email).exists():
+            if email != user.email and User.objects.filter(email=email).exists():
                 return Response(
                     {'error': 'This email is already registered'},
                     status=status.HTTP_400_BAD_REQUEST

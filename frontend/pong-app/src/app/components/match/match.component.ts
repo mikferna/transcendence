@@ -310,7 +310,8 @@ translations: any = {
     confirm_abandon_game: '¿Seguro que quieres abandonar el juego en curso?',
     game_end: 'JUEGO TERMINADO',
     winner_win: 'GANADOR',
-    player: 'Jugador'
+    player: 'Jugador',
+    ai: 'IA'
   },
   eus: {
     initialicing_system: 'Sistema abiatzen...',
@@ -368,7 +369,8 @@ translations: any = {
     confirm_abandon_game: 'Ziur zaude uneko partidatik irten nahi duzula?',
     game_end: 'Jokoa amaituta',
     winner_win: 'IRABAZLEA',
-    player: 'Jokalaria'
+    player: 'Jokalaria',
+    ai: 'AA'
   },
   en: {
     initialicing_system: 'Initializing System...',
@@ -426,8 +428,8 @@ translations: any = {
     confirm_abandon_game: 'Are you sure you want to abandon the current game?',
     game_end: 'Game end',
     winner_win: 'WINNER',
-    player: 'Player'
-
+    player: 'Player',
+    ai: 'AI'
   }
 };
 
