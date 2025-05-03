@@ -283,6 +283,14 @@ class updateProfile(APIView):
                     {'error': 'Username cannot exceed 30 characters'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            # Check if username is already taken by another user
+            if username != instance.username and User.objects.filter(username=username).exists():
+                return Response(
+                    {'error': 'This username is already taken'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             data_to_update['username'] = username
         
         # Validate email
@@ -294,6 +302,14 @@ class updateProfile(APIView):
                     {'error': 'Invalid email format'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            # Check if email is already taken by another user
+            if email != instance.email and User.objects.filter(email=email).exists():
+                return Response(
+                    {'error': 'This email is already registered'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             data_to_update['email'] = email
 
         # Validate language

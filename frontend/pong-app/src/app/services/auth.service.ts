@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { TokenService } from './token.service';
@@ -130,6 +130,14 @@ export class AuthService {
     );
   }
 
+  updateCurrentUser(): Observable<any> {
+    return this.getCurrentUser().pipe(
+      tap(user => {
+        console.log('Usuario actualizado:', user);
+      })
+    );
+  }
+
   logout(): Observable<any> {
     return this.http.post(`${this.API_URL}/logout/`, {
       refresh: this.tokenService.getRefreshToken()
@@ -153,14 +161,32 @@ export class AuthService {
     return localStorage.getItem('access_token');
   }
 
-  refreshToken(): Observable<AuthResponse> {
+  refreshToken(): Observable<{ access: string; refresh?: string }> {
     const refreshToken = this.tokenService.getRefreshToken();
-    return this.http.post<AuthResponse>(`${this.API_URL}/token/refresh/`, { refresh: refreshToken })
-      .pipe(
-        tap(response => {
-          this.tokenService.setTokens(response.access, response.refresh);
-        })
-      );
+    
+    if (!refreshToken) {
+      // Si no hay refresh token, logout y devolver un error
+      this.logout().subscribe();
+      return throwError(() => new Error('No refresh token available'));
+    }
+    
+    return this.http.post<{ access: string; refresh?: string }>(
+      `${this.API_URL}/token/refresh/`, 
+      { refresh: refreshToken }
+    ).pipe(
+      tap(response => {
+        // Si recibimos un nuevo token de acceso, actualizar en el servicio
+        if (response.access) {
+          if (response.refresh) {
+            // Si también hay nuevo refresh token (ROTATE_REFRESH_TOKENS=True)
+            this.tokenService.setTokens(response.access, response.refresh);
+          } else {
+            // Si solo hay nuevo token de acceso, mantener el refresh token actual
+            this.tokenService.setTokens(response.access, refreshToken);
+          }
+        }
+      })
+    );
   }
 
   isAuthenticated(): boolean {

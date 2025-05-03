@@ -22,7 +22,7 @@ export class TokenService {
     } catch (error) {
       console.error('Error decoding token:', error);
       // Si hay un error al decodificar el token, establecer una expiración por defecto
-      const defaultExpiry = new Date().getTime() + (60 * 60 * 1000); // 1 hora
+      const defaultExpiry = new Date().getTime() + (15 * 60 * 1000); // 15 minutos
       localStorage.setItem(this.TOKEN_EXPIRY_KEY, defaultExpiry.toString());
     }
   }
@@ -49,14 +49,24 @@ export class TokenService {
     return currentTime >= parseInt(expiryTime);
   }
 
-  shouldRefreshToken(): boolean {
-    if (this.isTokenExpired()) return false;
+  // Nuevo método para comprobar si el token está próximo a expirar (últimos 5 minutos)
+  isTokenNearExpiry(): boolean {
+    const expiryTime = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+    if (!expiryTime) return false;
     
-    const expiryTime = parseInt(localStorage.getItem(this.TOKEN_EXPIRY_KEY) || '0');
     const currentTime = new Date().getTime();
-    const timeUntilExpiry = expiryTime - currentTime;
+    const timeToExpiry = parseInt(expiryTime) - currentTime;
     
-    // Refrescar si quedan menos de 5 minutos
-    return timeUntilExpiry < 5 * 60 * 1000;
+    // Comprobar si estamos en los últimos 5 minutos (300000 ms)
+    return timeToExpiry > 0 && timeToExpiry <= 300000;
   }
-} 
+
+  // Obtener tiempo restante para expiración en milisegundos
+  getTokenTimeRemaining(): number {
+    const expiryTime = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+    if (!expiryTime) return 0;
+    
+    const currentTime = new Date().getTime();
+    return Math.max(0, parseInt(expiryTime) - currentTime);
+  }
+}

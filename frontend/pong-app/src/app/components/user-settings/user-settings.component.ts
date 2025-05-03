@@ -115,26 +115,34 @@ export class UserSettingsComponent implements OnInit {
   }
 
   loadUserData() {
-    this.http.get(`${environment.apiUrl}/current-user/`).subscribe({
-      next: (data: any) => {
-        this.currentUser = data;
-        this.userForm.patchValue({
-          username: data.username,
-          email: data.email,
-          default_language: data.default_language,
-          tournament_name: data.tournament_name
-        });
-        if (data.avatar) {
-          if (!data.avatar.startsWith('http')) {
-            this.avatarPreview = `https://localhost:8000${data.avatar}`;
-          } else {
-            this.avatarPreview = data.avatar;
-          }
+    interface CurrentUser {
+      username: string;
+      email: string;
+      default_language: string;
+      tournament_name?: string;
+      avatar?: string;
+    }
+
+    this.http.get<CurrentUser>(`${environment.apiUrl}/current-user/`).subscribe({
+      next: (data: CurrentUser) => {
+      this.currentUser = data;
+      this.userForm.patchValue({
+        username: data.username,
+        email: data.email,
+        default_language: data.default_language,
+        tournament_name: data.tournament_name
+      });
+      if (data.avatar) {
+        if (!data.avatar.startsWith('http')) {
+        this.avatarPreview = `https://localhost:8000${data.avatar}`;
+        } else {
+        this.avatarPreview = data.avatar;
         }
+      }
       },
-      error: (error) => {
-        console.error('Error al cargar los datos del usuario:', error);
-        this.error = 'Error al cargar los datos del usuario';
+      error: (error: any) => {
+      console.error('Error al cargar los datos del usuario:', error);
+      this.error = 'Error al cargar los datos del usuario';
       }
     });
   }
@@ -166,23 +174,52 @@ export class UserSettingsComponent implements OnInit {
         formData.append('avatar', this.selectedFile);
       }
 
-      this.http.post(`${environment.apiUrl}/user_update/`, formData).subscribe({
-        next: (response: any) => {
+      this.http.patch<{ message: string }>(`${environment.apiUrl}/user_update/`, formData).subscribe({
+        next: (response: { message: string }) => {
           this.message = this.currentTexts.profile_updated;
           this.error = '';
           
-          // Al actualizar la preferencia de idioma
-          const newLanguage = this.userForm.get('default_language')?.value;
+          // Manejo del cambio de idioma
+          const newLanguage: string | null = this.userForm.get('default_language')?.value;
           if (newLanguage) {
-            localStorage.setItem('defaultLanguage', newLanguage);
-            // Preguntar si quiere cambiar también el idioma de sesión
-            if (confirm(this.currentTexts.change_session_language)) {
-              localStorage.setItem('selectedLanguage', newLanguage);
-              window.location.reload();
+        localStorage.setItem('defaultLanguage', newLanguage);
+        // Preguntar si quiere cambiar también el idioma de sesión
+        if (confirm(this.currentTexts.change_session_language)) {
+          localStorage.setItem('selectedLanguage', newLanguage);
+          // Actualizamos los datos del usuario antes de recargar
+          this.authService.updateCurrentUser().subscribe({
+            next: (user: any) => {
+          console.log('Datos de usuario actualizados en toda la aplicación');
+          window.location.reload();
+            },
+            error: (err: any) => {
+          console.error('Error al actualizar los datos de usuario en la aplicación', err);
             }
+          });
+        } else {
+          // Si no quiere cambiar el idioma de sesión, solo actualizamos los datos
+          this.authService.updateCurrentUser().subscribe({
+            next: (user: any) => {
+          console.log('Datos de usuario actualizados en toda la aplicación');
+            },
+            error: (err: any) => {
+          console.error('Error al actualizar los datos de usuario en la aplicación', err);
+            }
+          });
+        }
+          } else {
+        // Si no hay cambio de idioma, solo actualizamos los datos
+        this.authService.updateCurrentUser().subscribe({
+          next: (user: any) => {
+            console.log('Datos de usuario actualizados en toda la aplicación');
+          },
+          error: (err: any) => {
+            console.error('Error al actualizar los datos de usuario en la aplicación', err);
+          }
+        });
           }
         },
-        error: (error) => {
+        error: (error: { error: { error: string } }) => {
           this.error = error.error.error || this.currentTexts.error_updating_profile;
           this.message = '';
         }
