@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -25,6 +25,7 @@ export class RegisterComponent implements OnInit {
       insert_user: 'Usuario',
       user_required: 'El ususario es requerido',
       user_characters: 'El usuario debe tener al menos 3 caracteres',
+      user_contains_forbidden: 'El nombre de usuario no puede contener "42"',
       insert_email: 'Correo Electrónico',
       email_required: 'El correo electrónico es requerido',
       email_characters: 'Ingresa un correo electrónico válido',
@@ -51,6 +52,7 @@ export class RegisterComponent implements OnInit {
         insert_user: 'Erabiltzailea',
         user_required: 'Erabiltzailea beharrezkoa da',
         user_characters: 'Erabiltzaileak gutxienez 3 karaktere izan behar ditu',
+        user_contains_forbidden: 'Erabiltzaile izenak ezin du "42" izan',
         insert_email: 'Posta elektronikoa',
         email_required: 'Posta elektronikoa beharrezkoa da',
         email_characters: 'Sartu baliozko posta elektronikoa',
@@ -77,6 +79,7 @@ export class RegisterComponent implements OnInit {
       insert_user: 'Username',
       user_required: 'A user name is required',
       user_characters: 'The user name must have at least 3 characters',
+      user_contains_forbidden: 'Username cannot contain "42"',
       insert_email: 'Email',
       email_required: 'Email is required',
       email_characters: 'Please enter a valid email address',
@@ -104,9 +107,13 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
-) {
+  ) {
     this.registerForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      username: ['', [
+        Validators.required, 
+        Validators.minLength(3),
+        this.forbiddenUsernameValidator()
+      ]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       password2: ['', Validators.required],
@@ -114,7 +121,7 @@ export class RegisterComponent implements OnInit {
     }, {
       validators: this.passwordMatchValidator // Añadir el validator aquí
     });
-}
+  }
 
   ngOnInit() {
     // Si ya está logueado, redirigir a home
@@ -130,7 +137,14 @@ export class RegisterComponent implements OnInit {
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
     // Imprime el idioma seleccionado en la consola
     console.log('Idioma seleccionado:', this.currentLanguage);
-  
+  }
+
+  // Validador personalizado para prohibir "42" en el nombre de usuario
+  forbiddenUsernameValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const forbidden = control.value && control.value.toString().includes('42');
+      return forbidden ? { 'forbidden42': true } : null;
+    };
   }
 
   passwordMatchValidator(g: FormGroup) {
@@ -145,7 +159,7 @@ export class RegisterComponent implements OnInit {
       
       const { username, email, password, password2, default_language } = this.registerForm.value;
       
-      this.authService.register(username, email, password, password2,default_language).subscribe({
+      this.authService.register(username, email, password, password2, default_language).subscribe({
         next: () => {
           this.isLoading = false;
           // Redirigir al login después de un registro exitoso

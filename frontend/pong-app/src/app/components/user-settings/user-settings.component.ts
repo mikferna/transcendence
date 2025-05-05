@@ -42,7 +42,8 @@ export class UserSettingsComponent implements OnInit {
       basque: 'Euskera',
       english: 'Inglés',
       change_session_language: 'La preferencia de idioma del usuario se ha modificado. ¿Desea cambiar también el idioma de la sesión actual?',
-      change_avatar: 'Cambiar avatar'
+      change_avatar: 'Cambiar avatar',
+      ft_user_restriction: 'Los usuarios 42 no pueden cambiar su nombre de usuario ni correo electrónico'
     },
     eus: {
       account_settings: 'Kontuaren ezarpenak',
@@ -62,7 +63,8 @@ export class UserSettingsComponent implements OnInit {
       basque: 'Euskara',
       english: 'Ingelesa',
       change_session_language: 'Erabiltzailearen hizkuntza lehentasuna aldatu da. Saio honetako hizkuntza ere aldatu nahi duzu?',
-      change_avatar: 'Aldatu irudia'
+      change_avatar: 'Aldatu irudia',
+      ft_user_restriction: '42 erabiltzaileek ezin dute erabiltzaile izena edo posta elektronikoa aldatu'
     },
     en: {
       account_settings: 'Account Settings',
@@ -82,7 +84,8 @@ export class UserSettingsComponent implements OnInit {
       basque: 'Basque',
       english: 'English',
       change_session_language: 'User language preference has been modified. Do you want to change the current session language as well?',
-      change_avatar: 'Change avatar'
+      change_avatar: 'Change avatar',
+      ft_user_restriction: '42 users cannot change their username or email'
     }
   };
 
@@ -121,28 +124,41 @@ export class UserSettingsComponent implements OnInit {
       default_language: string;
       tournament_name?: string;
       avatar?: string;
+      ft_user?: boolean; // Añadir el campo ft_user
     }
 
     this.http.get<CurrentUser>(`${environment.apiUrl}/current-user/`).subscribe({
       next: (data: CurrentUser) => {
-      this.currentUser = data;
-      this.userForm.patchValue({
-        username: data.username,
-        email: data.email,
-        default_language: data.default_language,
-        tournament_name: data.tournament_name
-      });
-      if (data.avatar) {
-        if (!data.avatar.startsWith('http')) {
-        this.avatarPreview = `https://localhost:8000${data.avatar}`;
-        } else {
-        this.avatarPreview = data.avatar;
+        this.currentUser = data;
+        
+        // Imprimir en consola el valor de ft_user
+        console.log('Usuario 42 (ft_user):', this.currentUser.ft_user);
+        
+        this.userForm.patchValue({
+          username: data.username,
+          email: data.email,
+          default_language: data.default_language,
+          tournament_name: data.tournament_name
+        });
+        
+        // Deshabilitar campos si el usuario es ft_user
+        if (data.ft_user) {
+          this.userForm.get('username')?.disable();
+          this.userForm.get('email')?.disable();
+          console.log('Campos username y email deshabilitados por ser usuario 42');
         }
-      }
+        
+        if (data.avatar) {
+          if (!data.avatar.startsWith('http')) {
+            this.avatarPreview = `https://localhost:8000${data.avatar}`;
+          } else {
+            this.avatarPreview = data.avatar;
+          }
+        }
       },
       error: (error: any) => {
-      console.error('Error al cargar los datos del usuario:', error);
-      this.error = 'Error al cargar los datos del usuario';
+        console.error('Error al cargar los datos del usuario:', error);
+        this.error = 'Error al cargar los datos del usuario';
       }
     });
   }
@@ -166,8 +182,15 @@ export class UserSettingsComponent implements OnInit {
   onSubmit() {
     if (this.userForm.valid) {
       const formData = new FormData();
-      formData.append('email', this.userForm.get('email')?.value);
-      formData.append('username', this.userForm.get('username')?.value);
+      
+      // Si el usuario es ft_user, no enviamos username ni email
+      if (!this.currentUser.ft_user) {
+        formData.append('email', this.userForm.get('email')?.value);
+        formData.append('username', this.userForm.get('username')?.value);
+      } else {
+        console.log('No se envían campos username y email porque es usuario 42');
+      }
+      
       formData.append('default_language', this.userForm.get('default_language')?.value);
       
       if (this.selectedFile) {
@@ -182,41 +205,41 @@ export class UserSettingsComponent implements OnInit {
           // Manejo del cambio de idioma
           const newLanguage: string | null = this.userForm.get('default_language')?.value;
           if (newLanguage) {
-        localStorage.setItem('defaultLanguage', newLanguage);
-        // Preguntar si quiere cambiar también el idioma de sesión
-        if (confirm(this.currentTexts.change_session_language)) {
-          localStorage.setItem('selectedLanguage', newLanguage);
-          // Actualizamos los datos del usuario antes de recargar
-          this.authService.updateCurrentUser().subscribe({
-            next: (user: any) => {
-          console.log('Datos de usuario actualizados en toda la aplicación');
-          window.location.reload();
-            },
-            error: (err: any) => {
-          console.error('Error al actualizar los datos de usuario en la aplicación', err);
+            localStorage.setItem('defaultLanguage', newLanguage);
+            // Preguntar si quiere cambiar también el idioma de sesión
+            if (confirm(this.currentTexts.change_session_language)) {
+              localStorage.setItem('selectedLanguage', newLanguage);
+              // Actualizamos los datos del usuario antes de recargar
+              this.authService.updateCurrentUser().subscribe({
+                next: (user: any) => {
+                  console.log('Datos de usuario actualizados en toda la aplicación');
+                  window.location.reload();
+                },
+                error: (err: any) => {
+                  console.error('Error al actualizar los datos de usuario en la aplicación', err);
+                }
+              });
+            } else {
+              // Si no quiere cambiar el idioma de sesión, solo actualizamos los datos
+              this.authService.updateCurrentUser().subscribe({
+                next: (user: any) => {
+                  console.log('Datos de usuario actualizados en toda la aplicación');
+                },
+                error: (err: any) => {
+                  console.error('Error al actualizar los datos de usuario en la aplicación', err);
+                }
+              });
             }
-          });
-        } else {
-          // Si no quiere cambiar el idioma de sesión, solo actualizamos los datos
-          this.authService.updateCurrentUser().subscribe({
-            next: (user: any) => {
-          console.log('Datos de usuario actualizados en toda la aplicación');
-            },
-            error: (err: any) => {
-          console.error('Error al actualizar los datos de usuario en la aplicación', err);
-            }
-          });
-        }
           } else {
-        // Si no hay cambio de idioma, solo actualizamos los datos
-        this.authService.updateCurrentUser().subscribe({
-          next: (user: any) => {
-            console.log('Datos de usuario actualizados en toda la aplicación');
-          },
-          error: (err: any) => {
-            console.error('Error al actualizar los datos de usuario en la aplicación', err);
-          }
-        });
+            // Si no hay cambio de idioma, solo actualizamos los datos
+            this.authService.updateCurrentUser().subscribe({
+              next: (user: any) => {
+                console.log('Datos de usuario actualizados en toda la aplicación');
+              },
+              error: (err: any) => {
+                console.error('Error al actualizar los datos de usuario en la aplicación', err);
+              }
+            });
           }
         },
         error: (error: { error: { error: string } }) => {
@@ -225,5 +248,10 @@ export class UserSettingsComponent implements OnInit {
         }
       });
     }
+  }
+  
+  // Método para verificar si el usuario es ft_user
+  isFtUser(): boolean {
+    return this.currentUser?.ft_user === true;
   }
 }

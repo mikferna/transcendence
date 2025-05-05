@@ -13,6 +13,7 @@
       <div class="validation-error" *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched">
         <span *ngIf="registerForm.get('username')?.errors?.['required']">{{ currentTexts.user_required }}</span>
         <span *ngIf="registerForm.get('username')?.errors?.['minlength']">{{ currentTexts.user_characters }}</span>
+        <span *ngIf="registerForm.get('username')?.errors?.['forbidden42']">{{ currentTexts.user_contains_forbidden }}</span>
       </div>
     </div>
 

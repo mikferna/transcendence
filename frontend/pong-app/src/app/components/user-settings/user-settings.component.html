@@ -1,6 +1,11 @@
 <div class="settings-container">
   <h2>{{ currentTexts.account_settings }}</h2>
   
+  <!-- Mensaje informativo para usuarios ft_user -->
+  <div class="alert alert-info" *ngIf="isFtUser()">
+    {{ currentTexts.ft_user_restriction }}
+  </div>
+  
   <div class="avatar-section">
     <div class="avatar-preview">
       <img [src]="avatarPreview || 'assets/default-avatar.png'" alt="Avatar preview">
@@ -26,6 +31,7 @@
         id="username" 
         formControlName="username" 
         class="form-control"
+        [class.disabled-field]="isFtUser()"
         [class.is-invalid]="userForm.get('username')?.invalid && userForm.get('username')?.touched">
       <div class="invalid-feedback" *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched">
         <div *ngIf="userForm.get('username')?.errors?.['required']">{{ currentTexts.username_required }}</div>
@@ -40,6 +46,7 @@
         id="email" 
         formControlName="email" 
         class="form-control"
+        [class.disabled-field]="isFtUser()"
         [class.is-invalid]="userForm.get('email')?.invalid && userForm.get('email')?.touched">
       <div class="invalid-feedback" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
         <div *ngIf="userForm.get('email')?.errors?.['required']">{{ currentTexts.email_required }}</div>
@@ -60,7 +67,6 @@
         </select>
       </div>
     </div>
-
 
     <div class="alert alert-success" *ngIf="message">{{ message }}</div>
     <div class="alert alert-danger" *ngIf="error">{{ error }}</div>

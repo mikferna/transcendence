@@ -14,6 +14,7 @@ class User(AbstractUser):
         default="avatars/noob.png",
         validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
     )
+    ft_user = models.BooleanField(default=False)
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=100)

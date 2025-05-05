@@ -125,7 +125,7 @@ class FortyTwoCallbackView(APIView):
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=user_info_failed")
 
             user_data = user_response.json()
-            username_42 = user_data.get('login')
+            username_42 = f"[42]{user_data.get('login')}"
             email_42 = user_data.get('email')
             #avatar_42_small = user_data.get('image', {}).get('versions', {}).get('small')
 
@@ -163,10 +163,11 @@ class FortyTwoCallbackView(APIView):
                 user = User.objects.create_user(
                     username=username_42,
                     email=email_42,
-                    password=raw_password
+                    password=raw_password,
                 )
                 # Set initial values for new user
                 user.is_active = True
+                user.ft_user = True
                 user.save()
                 print(f"Usuario registrado exitosamente: {username_42}")
 
@@ -1024,6 +1025,7 @@ class currentUser(APIView):
             'games_won': user.games_won,
             'games_lost': user.games_lost,
             'default_language': user.default_language,
+            'ft_user' : user.ft_user,
         }, status=status.HTTP_200_OK)
 
 class searchUsers(APIView):
