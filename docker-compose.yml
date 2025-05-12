@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_DB: elephant
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-elephant}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     networks:
@@ -19,13 +19,13 @@ services:
       - "8000:8000"
     volumes:
       - .:/code
-      - ./frontend/certs:/code/certs  # Asegúrate de que esté así
+      - ./frontend/certs:/code/certs
     networks:
       - miknet
     depends_on:
       - postgres
     env_file:
-    - .env
+      - .env
 
   angular:
     container_name: frontend
@@ -36,11 +36,13 @@ services:
       - ./frontend/pong-app:/usr/src/app
       - ./frontend/certs:/app/certs
     ports:
-      - "4200:4200"  # Puerto del servidor Angular
+      - "4200:4200"
     networks:
       - miknet
     depends_on:
       - django
+    env_file:
+      - .env
 
   adminer:
     image: adminer
