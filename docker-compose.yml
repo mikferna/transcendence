@@ -17,9 +17,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - .:/code
-      - ./frontend/certs:/code/certs
+    # Los volúmenes se han eliminado para evitar la sincronización en tiempo real
+    # En lugar de usar volúmenes montados, copiaremos los archivos necesarios en run.sh
     networks:
       - miknet
     depends_on:
@@ -32,9 +31,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    volumes:
-      - ./frontend/pong-app:/usr/src/app
-      - ./frontend/certs:/app/certs
+    # Los volúmenes se han eliminado para evitar la sincronización en tiempo real
     ports:
       - "4200:4200"
     networks:
@@ -57,3 +54,6 @@ services:
 networks:
   miknet:
     driver: bridge
+
+volumes:
+  django_data:  # Volumen nombrado para persistencia de datos de media

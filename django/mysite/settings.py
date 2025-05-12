@@ -210,6 +210,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Para collectstatic
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'
@@ -225,11 +226,18 @@ LOGGING = {
             'style': '{',
         },
     },
+    'filters': {
+        'ignore_ssl_warnings': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: 'SSL' not in record.getMessage() and 'certificate unknown' not in record.getMessage(),
+        },
+    },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'filters': ['ignore_ssl_warnings'],
         },
     },
     'loggers': {
