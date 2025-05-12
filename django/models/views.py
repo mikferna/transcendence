@@ -81,15 +81,11 @@ class FortyTwoCallbackView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        print("Entrando en FortyTwoCallbackView") 
         code = request.query_params.get('code')
-        print(f"Código recibido: {code}")
         if not code:
-            print("Código no encontrado, redirigiendo al frontend con error")
             return redirect(f"{settings.FRONTEND_URL}/auth-error?error=missing_code")
 
         try:
-            print("Procesando el código...")
             token_response = requests.post(
                 'https://api.intra.42.fr/oauth/token',
                 data={
@@ -102,17 +98,9 @@ class FortyTwoCallbackView(APIView):
                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
             )
 
-            print(f"Token response status: {token_response.status_code}")
-            print(f"Token response body: {token_response.text}")
-            
             api_access_token = token_response.json().get('access_token')
-            if not api_access_token:
-                print("No se pudo obtener el api_access_token")
-
-            print(f"42 access token is: {api_access_token}")
 
             if token_response.status_code != 200:
-                print("Problema con el intercambio del token...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=token_exchange_failed")
 
             user_response = requests.get(
@@ -121,27 +109,17 @@ class FortyTwoCallbackView(APIView):
             )
 
             if user_response.status_code != 200:
-                print("Problema con la informacion de usuario...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=user_info_failed")
 
             user_data = user_response.json()
             username_42 = f"[42]{user_data.get('login')}"
             email_42 = user_data.get('email')
-            #avatar_42_small = user_data.get('image', {}).get('versions', {}).get('small')
-
-            print(f"Username: {username_42}")
-            print(f"Email: {email_42}")
-            #print(f"Small image avatar URL: {avatar_42_small}")
 
             if not username_42 or not email_42:
-                print("Problema con los datos de usuario...")
                 return redirect(f"{settings.FRONTEND_URL}/auth-error?error=invalid_user_data")
 
-            # Registration process
             try:
-                # Check if user exists
                 user = User.objects.get(username=username_42)
-                print(f"Usuario existente: {username_42}")
             
             except User.DoesNotExist:
 
@@ -156,10 +134,7 @@ class FortyTwoCallbackView(APIView):
                 
                 # Generar y guardar la contraseña antes del hash
                 raw_password = generate_password()
-                print(f"Contraseña generada (sin hash): {raw_password}")
 
-                # Register new user
-                print(f"Registrando nuevo usuario: {username_42}")
                 user = User.objects.create_user(
                     username=username_42,
                     email=email_42,
@@ -169,23 +144,17 @@ class FortyTwoCallbackView(APIView):
                 user.is_active = True
                 user.ft_user = True
                 user.save()
-                print(f"Usuario registrado exitosamente: {username_42}")
 
-            print(f"Usuario existente: {username_42}")
-            print(f"Contraseña hasheada: {user.password}")
-            
             app_refresh_token = RefreshToken.for_user(user)
             app_access_token = str(app_refresh_token.access_token)
             user.is_online = True
             user.save()
-            print(f"TOKEN aplicacion: {app_access_token}")
             
             return redirect(
                 f"{settings.FRONTEND_URL}/auth-success?access={app_access_token}&refresh={str(app_refresh_token)}&ft_token={api_access_token}"
             )
         
         except Exception as e:
-            print(f"Error interno: {str(e)}")
             return redirect(f"{settings.FRONTEND_URL}/auth-error?error=internal_server_error")
 
 class register(APIView):
