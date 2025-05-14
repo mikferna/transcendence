@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'gdz1*#z2%1%*qs1anrs!w)^h7cds1&zo)mjqh$1mtcu!n#b8@q')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = False
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '0.0.0.0,localhost').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
 
 AUTH_USER_MODEL = 'models.User'
 
@@ -48,7 +48,7 @@ INSTALLED_APPS = [
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'False') == 'True'
+SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', '') == 'True'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MIDDLEWARE = [
@@ -65,15 +65,15 @@ MIDDLEWARE = [
 
 # Session settings
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = int(os.environ.get('SESSION_COOKIE_AGE', '86400'))  # 24 hours in seconds
+SESSION_COOKIE_AGE = int(os.environ.get('SESSION_COOKIE_AGE', '0'))
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
+SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', '')
 SESSION_COOKIE_SECURE = DEBUG is False  # True in production, False in development
-SESSION_TOKEN_LIFETIME = int(os.environ.get('SESSION_TOKEN_LIFETIME', '14400'))  # 4 hours in seconds
+SESSION_TOKEN_LIFETIME = int(os.environ.get('SESSION_TOKEN_LIFETIME', '0'))
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'https://localhost:4200,https://127.0.0.1:4200').split(',')
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -111,8 +111,8 @@ REST_FRAMEWORK = {
 
 # JWT settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.environ.get('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', '15'))),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('JWT_REFRESH_TOKEN_LIFETIME_DAYS', '1'))),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.environ.get('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', '0'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(os.environ.get('JWT_REFRESH_TOKEN_LIFETIME_DAYS', '0'))),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
@@ -164,11 +164,11 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'elephant'),
-        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'postgres'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        'NAME': os.environ.get('POSTGRES_DB', ''),
+        'USER': os.environ.get('POSTGRES_USER', ''),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'HOST': os.environ.get('POSTGRES_HOST', ''),
+        'PORT': os.environ.get('POSTGRES_PORT', ''),
     }
 }
 
@@ -257,9 +257,9 @@ LOGGING = {
 # 42 API Credentials 
 FT_CLIENT_ID = os.environ.get('FT_CLIENT_ID', '')
 FT_CLIENT_SECRET = os.environ.get('FT_CLIENT_SECRET', '')
-FT_REDIRECT_URI = os.environ.get('FT_REDIRECT_URI', 'https://localhost:8000/auth/callback/')
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://localhost:4200')
+FT_REDIRECT_URI = os.environ.get('FT_REDIRECT_URI', '')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', '')
 
 # Certificados SSL
-CERT_FILE = os.environ.get('SSL_CERT_FILE', '/code/certs/cert.pem')
-KEY_FILE = os.environ.get('SSL_KEY_FILE', '/code/certs/key.pem')
+CERT_FILE = os.environ.get('SSL_CERT_FILE', '')
+KEY_FILE = os.environ.get('SSL_KEY_FILE', '')

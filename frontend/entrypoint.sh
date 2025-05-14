@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Establecer valores predeterminados si las variables de entorno no están definidas
-SSL_CERT_FILE=${SSL_CERT_FILE:-"/app/certs/cert.pem"}
-SSL_KEY_FILE=${SSL_KEY_FILE:-"/app/certs/key.pem"}
+# Verificar directorio de certificados
 CERT_DIR=$(dirname "$SSL_CERT_FILE")
 
 # Verificar si los certificados existen, si no, crearlos
@@ -20,13 +18,6 @@ fi
 echo "Generando environment.ts con las variables de entorno..."
 ENVIRONMENT_TEMPLATE="/usr/src/app/src/environments/environment.template.ts"
 ENVIRONMENT_FILE="/usr/src/app/src/environments/environment.ts"
-
-# Valores predeterminados para variables de entorno
-PRODUCTION=${PRODUCTION:-false}
-API_URL=${API_URL:-"https://localhost:8000/models"}
-FRONTEND_URL=${FRONTEND_URL:-"https://localhost:4200"}
-FT_CLIENT_ID=${FT_CLIENT_ID:-"u-s4t2ud-e573569fe10e7761c1a6fbbe73ed15cc60bdd17b7d8f0050bcca6e0d7af39ff5"}
-FT_REDIRECT_URI=${FT_REDIRECT_URI:-"https://localhost:8000/models/auth/callback/"}
 
 if [ -f "$ENVIRONMENT_TEMPLATE" ]; then
     echo "Usando valores para variables de entorno:"

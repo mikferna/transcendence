@@ -18,6 +18,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     public authService: AuthService
   ) {} // Inyectamos Router, MatrixService y AuthService
 
+  //- Se ejecuta cuando la vista está completamente cargada
+  //- Inicia el efecto Matrix de fondo con un pequeño retraso
+  //- Configura un detector para ajustar el fondo cuando cambia el tamaño de la ventana
   ngAfterViewInit(): void {
     // Inicializar el fondo de Matrix después de que el DOM está completamente cargado
     setTimeout(() => {
@@ -30,6 +33,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  //- Se ejecuta cuando el componente va a ser eliminado
+  //- Limpia recursos y detiene animaciones para evitar pérdidas de memoria
   ngOnDestroy(): void {
     // Detener la animación de Matrix cuando el componente se destruye
     this.matrixService.stopMatrix();
