@@ -33,7 +33,6 @@ export class HomeComponent implements OnInit {
       this.currentLanguage = savedLanguage;
     }
     this.currentTexts = this.translations[this.currentLanguage];
-    console.log('Idioma seleccionado:', this.currentLanguage);
   }
 
   matchmenu(): void {

@@ -136,7 +136,6 @@ export class RegisterComponent implements OnInit {
     // Nos suscribimos al usuario actual
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
     // Imprime el idioma seleccionado en la consola
-    console.log('Idioma seleccionado:', this.currentLanguage);
   }
 
   // Validador personalizado para prohibir "42" en el nombre de usuario

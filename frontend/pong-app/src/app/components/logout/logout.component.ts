@@ -52,7 +52,6 @@ export class LogoutComponent implements OnInit {
         // La navegación ya se maneja en el AuthService
       },
       error: (error) => {
-        console.error('Error during logout:', error);
         // Aún así intentamos navegar a la página principal
         this.router.navigate(['/']);
       }

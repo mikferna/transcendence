@@ -82,7 +82,6 @@ class MatchSaveQueue {
     const { match, round, onSuccess, onError } = this.queue.shift()!;
 
     if (!this.validateMatch(match)) {
-      console.error('Datos de partido inválidos:', match);
       if (onError) onError(new Error('Datos de partido inválidos'));
       this.processNext();
       return;
@@ -106,20 +105,15 @@ class MatchSaveQueue {
       matchData.is_tournament_final = true;
     }
 
-    console.log(`TORNEO - Guardando partido desde la cola (${round}):`, matchData);
-
     let attempts = 0;
     const maxAttempts = 3;
     
     const attemptSave = () => {
       attempts++;
-      console.log(`Intento ${attempts} de guardar partido (${round})`);
       
       this.matchService.createMultiplayerMatch(matchData).pipe(
         catchError(error => {
-          console.error(`Error en intento ${attempts} de guardar partido (${round}):`, error);
           if (attempts < maxAttempts) {
-            console.log(`Reintentando en 3 segundos...`);
             return of(null).pipe(
               delay(3000),
               switchMap(() => throwError(() => error))
@@ -135,10 +129,8 @@ class MatchSaveQueue {
         })
       ).subscribe({
         next: (response) => {
-          console.log(`Partido de torneo (${round}) guardado correctamente:`, response);
         },
         error: (error) => {
-          console.error(`Error al guardar partido de torneo (${round}):`, error);
           if (onError) onError(error);
         }
       });
@@ -459,7 +451,6 @@ translations: any = {
       try {
         this.gameConfig = JSON.parse(savedConfig);
       } catch (e) {
-        console.error('Error al cargar la configuración:', e);
       }
     }
 
@@ -470,7 +461,6 @@ translations: any = {
     // Nos suscribimos al usuario actual
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
     // Imprime el idioma seleccionado en la consola
-    console.log('Idioma seleccionado:', this.currentLanguage);
   }
   
   toggleConfig(): void {
@@ -519,7 +509,6 @@ translations: any = {
         }
       },
       error: (error) => {
-        console.error('Error al obtener el usuario actual:', error);
       }
     });
   }
@@ -576,7 +565,6 @@ translations: any = {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error al buscar usuarios:', error);
         this.isLoading = false;
       }
     });
@@ -635,7 +623,6 @@ translations: any = {
   
   initPongGame(isAI: boolean, isTournament: boolean = false, tournamentRound?: 'semifinals1' | 'semifinals2' | 'final'): void {
     if (!this.pongCanvasRef) {
-      console.error('Canvas no disponible, reprogramando inicialización...');
       this.schedulePongInit(isAI, isTournament, tournamentRound);
       return;
     }
@@ -713,19 +700,13 @@ translations: any = {
       this.ngZone.runOutsideAngular(() => {
         this.gameLoop(isAI);
       });
-      
-      console.log(`Juego Pong inicializado (${isTournament ? 'Torneo-' + tournamentRound : isAI ? 'VS-IA' : '1v1'})`);
     } catch (error) {
-      console.error('Error al inicializar el juego Pong:', error);
       
       if (isTournament && tournamentRound && this.currentMatch) {
-        console.warn('Fallback a simulación para el partido de torneo');
         this.simulateTournamentMatch();
       } else if (isAI) {
-        console.warn('Fallback a simulación para el partido contra IA');
         this.simulateAIGame();
       } else {
-        console.warn('Fallback a simulación para el partido 1v1');
         this.simulateMultiplayerGame();
       }
     }
@@ -733,7 +714,6 @@ translations: any = {
   
   initPong4PlayersGame(): void {
     if (!this.pongCanvasRef) {
-      console.error('Canvas no disponible, reprogramando inicialización...');
       setTimeout(() => this.initPong4PlayersGame(), 300);
       return;
     }
@@ -833,11 +813,7 @@ translations: any = {
       this.ngZone.runOutsideAngular(() => {
         this.gameLoop4Players();
       });
-      
-      console.log('Juego 1v1v1v1 inicializado');
     } catch (error) {
-      console.error('Error al inicializar el juego 1v1v1v1:', error);
-      console.warn('Fallback a simulación para el modo 1v1v1v1');
       this.simulateMultiplayerGame();
     }
   }
@@ -1029,12 +1005,6 @@ translations: any = {
         // Simular presionar tecla abajo
         this.keysPressed.add('arrowdown');
       }
-      
-      // Registro para depuración
-      console.log(`IA: moviendo paleta hacia ${distance < 0 ? 'arriba' : 'abajo'}, 
-        distancia=${Math.abs(distance).toFixed(1)}, 
-        target=${this.aiTargetY.toFixed(1)}, 
-        actual=${paddleCenter.toFixed(1)}`);
     }
   }
   
@@ -1157,7 +1127,6 @@ translations: any = {
       // Crear un error intencional significativo
       const errorMagnitude = paddleRight.height * (Math.random() > 0.5 ? 1 : -1);
       targetY += errorMagnitude;
-      console.log("IA: Error intencional aplicado");
     }
     
     // D) Agregar variación aleatoria sutil
@@ -1906,7 +1875,6 @@ translations: any = {
         const isPlayer1Winner = winnerIndex === 0;
         this.saveGameResult(isPlayer1Winner, winnerIndex);
       } else {
-        console.error('No se pudo determinar el ganador');
         this.resetGame();
       }
     });
@@ -1921,14 +1889,6 @@ translations: any = {
     const isPlayer1Winner = this.pongGame.winner === 'player1';
     const winner = isPlayer1Winner ? this.currentMatch.player1 : this.currentMatch.player2;
     this.currentMatch.winner = winner;
-    
-    console.log(`Partido ${this.tournamentRound} finalizado:`, {
-      player1: this.currentMatch.player1.username,
-      player2: this.currentMatch.player2.username,
-      score1: this.currentMatch.player1Score,
-      score2: this.currentMatch.player2Score,
-      winner: winner.username
-    });
     
     const completedMatch: TournamentMatch = {
       player1: { ...this.currentMatch.player1 },
@@ -1952,7 +1912,6 @@ translations: any = {
           );
         },
         (error) => {
-          console.error('Error en guardado de semifinal 1, continuando con el torneo:', error);
           this.showAnnouncementBeforeMatch(
             `2do combate: ${this.selectedPlayers[2].username} vs ${this.selectedPlayers[3].username}`,
             () => this.playTournamentMatch(2, 3, 'semifinals2')
@@ -1988,12 +1947,10 @@ translations: any = {
               }
             );
           } catch (error) {
-            console.error('Error preparando la final:', error);
             this.resetGame();
           }
         },
         (error) => {
-          console.error('Error en guardado de semifinal 2, intentando continuar con la final:', error);
           try {
             if (this.tournamentMatches.length < 2) {
               throw new Error('No hay suficientes partidos para la final');
@@ -2016,7 +1973,6 @@ translations: any = {
               }
             );
           } catch (error) {
-            console.error('No se pudo recuperar de error en semifinal 2:', error);
             this.resetGame();
           }
         }
@@ -2036,7 +1992,6 @@ translations: any = {
           );
         },
         (error) => {
-          console.error('Error en guardado de la final:', error);
           this.showAnnouncementBeforeMatch(
             `¡${this.tournamentWinner?.username || 'Error'} es el CAMPEÓN del torneo!`,
             () => {
@@ -2116,7 +2071,6 @@ translations: any = {
   playTournamentMatch(player1Index: number, player2Index: number, round: 'semifinals1' | 'semifinals2' | 'final'): void {
     if (player1Index < 0 || player1Index >= this.selectedPlayers.length || 
         player2Index < 0 || player2Index >= this.selectedPlayers.length) {
-      console.error('Índices de jugadores inválidos:', { player1Index, player2Index });
       this.resetGame();
       return;
     }
@@ -2136,14 +2090,12 @@ translations: any = {
       }, 300);
       
     } catch (error) {
-      console.error('Error al configurar partido:', error);
       this.resetGame();
     }
   }
   
   simulateTournamentMatch(): void {
     if (!this.currentMatch) {
-      console.error('No hay partido actual configurado');
       return;
     }
     
@@ -2164,14 +2116,6 @@ translations: any = {
         const winner = isPlayer1Winner ? this.currentMatch!.player1 : this.currentMatch!.player2;
         this.currentMatch!.winner = winner;
         
-        console.log(`Partido ${this.tournamentRound} finalizado (simulado):`, {
-          player1: this.currentMatch!.player1.username,
-          player2: this.currentMatch!.player2.username,
-          score1: score1,
-          score2: score2,
-          winner: winner.username
-        });
-        
         const completedMatch: TournamentMatch = {
           player1: { ...this.currentMatch!.player1 },
           player2: { ...this.currentMatch!.player2 },
@@ -2183,7 +2127,6 @@ translations: any = {
         this.tournamentMatches.push(completedMatch);
         this.finalizeTournamentMatch();
       } catch (error) {
-        console.error('Error en simulateTournamentMatch:', error);
         this.resetGame();
       }
     }, 3000);
@@ -2208,13 +2151,10 @@ translations: any = {
         this.gameConfig.aiDifficulty
       ).subscribe({
         next: (response) => {
-          console.log('Partido contra IA guardado correctamente:', response);
           alert(`¡Juego terminado! Resultado: ${this.player1Score} - ${this.player2Score}`);
           this.resetGame();
         },
         error: (error) => {
-          console.error('Error al guardar el partido contra IA:', error);
-          alert('Error al guardar el resultado del partido');
         }
       });
     } else {
@@ -2227,12 +2167,10 @@ translations: any = {
       
       // Verificación adicional para asegurarse de que el índice es válido
       if (winnerIndex < 0 || winnerIndex >= this.selectedPlayers.length) {
-        console.error('Índice de ganador no válido:', winnerIndex);
         winnerIndex = 0; // Fallback
       }
       
       const winnerUsername = this.selectedPlayers[winnerIndex].username;
-      console.log(`Guardando partido con ganador: ${winnerUsername} (índice ${winnerIndex}, isPlayer1Winner: ${isPlayer1Winner})`);
       
       let matchData: any = {
         match_type: matchType,
@@ -2255,11 +2193,8 @@ translations: any = {
         matchData.player4_score = this.player4Score;
       }
       
-      console.log('Enviando datos de la partida:', matchData);
-      
       this.matchService.createMultiplayerMatch(matchData).subscribe({
         next: (response) => {
-          console.log('Partido guardado correctamente:', response);
           
           let resultText = `¡Juego terminado! Resultado: ${this.player1Score} - ${this.player2Score}`;
           
@@ -2271,8 +2206,6 @@ translations: any = {
           this.resetGame();
         },
         error: (error) => {
-          console.error('Error al guardar el partido:', error);
-          alert(`Error al guardar el resultado del partido: ${error.error?.error || 'Error interno del servidor'}`);
         }
       });
     }

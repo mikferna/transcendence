@@ -1,9 +1,8 @@
 FROM python:3.9
 
+# Variables de entorno específicas para Python y su comportamiento
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV SSL_CERT_FILE=/code/certs/cert.pem
-ENV SSL_KEY_FILE=/code/certs/key.pem
 
 # Instalar cliente PostgreSQL y herramientas SSL
 RUN apt-get update && apt-get install -y postgresql-client openssl

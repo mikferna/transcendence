@@ -190,8 +190,6 @@ export class HeaderComponent implements OnInit {
     if (this.currentUser && this.currentUser.username) {
       this.router.navigate(['/profile', this.currentUser.username]);
       this.closeAllMenus();
-    } else {
-      console.error('No se pudo obtener el nombre de usuario actual');
     }
   }
 
@@ -213,7 +211,6 @@ export class HeaderComponent implements OnInit {
         this.closeAllMenus();
       },
       error: (error) => {
-        console.error('Error al cerrar sesión:', error);
         if (!localStorage.getItem('is_42_user')) {
           this.router.navigate(['/']);
         }
@@ -234,7 +231,6 @@ export class HeaderComponent implements OnInit {
         this.friendRequests = data;
       },
       error: (error) => {
-        console.error('Error al cargar solicitudes de amistad:', error);
       }
     });
   }
@@ -245,7 +241,6 @@ export class HeaderComponent implements OnInit {
         this.loadFriendRequests();
       },
       error: (error) => {
-        console.error('Error al aceptar solicitud:', error);
       }
     });
   }
@@ -256,7 +251,6 @@ export class HeaderComponent implements OnInit {
         this.loadFriendRequests();
       },
       error: (error) => {
-        console.error('Error al rechazar solicitud:', error);
       }
     });
   }

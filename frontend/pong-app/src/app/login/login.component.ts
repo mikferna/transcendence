@@ -76,8 +76,6 @@ translations: any = {
     }
     // Nos suscribimos al usuario actual
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
-    // Imprime el idioma seleccionado en la consola
-    console.log('Idioma seleccionado:', this.currentLanguage);
   
 
   }
@@ -123,7 +121,6 @@ translations: any = {
       const timestamp = new Date().getTime();
       window.location.href = `${environment.apiUrl}/auth/authorize/?force_verify=true&t=${timestamp}`;
     } catch (error) {
-      console.error('Error initiating 42 login:', error);
     }
   }
   

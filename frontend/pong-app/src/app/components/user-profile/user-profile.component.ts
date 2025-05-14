@@ -144,11 +144,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     }
     // Nos suscribimos al usuario actual
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
-    // Imprime el idioma seleccionado en la consola
-    console.log('Idioma seleccionado:', this.currentLanguage);
-
-    // Verifica que `accessing_system` esté presente
-    console.log('accessing_system:', this.currentTexts?.accessing_system);
   }
   
   ngOnDestroy() {
@@ -168,7 +163,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         this.currentUsername = user.username;
         return;
       } catch (e) {
-        console.error('Error al leer usuario del localStorage:', e);
       }
     }
     
@@ -186,7 +180,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error al obtener usuario actual:', error);
         }
       });
     }
@@ -201,9 +194,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       next: (data: any) => {
         // Obtener información del perfil
         const profileData = data.user || data;
-        
-        // Verificar que tenemos el ID del usuario
-        console.log('Datos recibidos de la API:', profileData);
         
         // Obtener lista de amigos
         this.http.get(`${environment.apiUrl}/friends/${this.username}/list/`).subscribe({
@@ -309,7 +299,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error al actualizar estado online:', error);
         // No mostrar error al usuario para no interrumpir la experiencia
       }
     });

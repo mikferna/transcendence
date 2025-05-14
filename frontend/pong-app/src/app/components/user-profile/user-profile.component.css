@@ -296,6 +296,7 @@
   min-height: 300px;
   display: flex;
   flex-direction: column;
+  overflow: visible; /* Permitir que el scrollbar sea visible */
 }
 
 .section-header {
@@ -446,7 +447,8 @@
   gap: 15px;
   margin-top: 10px;
   max-height: 450px;
-  overflow-y: auto;
+  height: 450px; /* Altura fija para forzar scroll */
+  overflow-y: auto !important; /* Forzar overflow */
   scrollbar-width: thin;
   scrollbar-color: var(--matrix-green) rgba(0, 20, 0, 0.3);
   padding: 10px;
@@ -454,6 +456,43 @@
   padding-bottom: 20px;
   flex-grow: 1;
   min-height: 200px;
+}
+
+/* Asegurar que el scrollbar sea visible */
+.match-history::-webkit-scrollbar {
+  width: 8px !important; /* Hacer más ancho el scrollbar */
+  display: block !important; 
+}
+
+.match-history::-webkit-scrollbar-track {
+  background: rgba(0, 20, 0, 0.5) !important;
+  border-radius: 3px;
+}
+
+.match-history::-webkit-scrollbar-thumb {
+  background-color: var(--matrix-green) !important;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  box-shadow: 0 0 5px var(--matrix-green);
+}
+
+/* Agregar indicador visual de scroll */
+.match-history::after {
+  content: "▼";
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  color: var(--matrix-green);
+  animation: pulse-scroll 1.5s infinite;
+  font-size: 14px;
+  opacity: 0.8;
+  text-shadow: 0 0 5px var(--matrix-green);
+  pointer-events: none; /* No interferir con el scroll */
+}
+
+@keyframes pulse-scroll {
+  0%, 100% { opacity: 0.8; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(3px); }
 }
 
 .match-item {
@@ -793,6 +832,13 @@
 .friend-item:first-child,
 .match-item:first-child {
   animation: new-item-appear 0.5s ease-out;
+}
+
+/* Eliminar la clase hide-scrollbar de los elementos que necesitan scroll */
+.scrollable.hide-scrollbar {
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--matrix-green) rgba(0, 20, 0, 0.3) !important;
 }
 
 /* Responsive Adjustments */

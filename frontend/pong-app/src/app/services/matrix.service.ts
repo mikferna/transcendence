@@ -17,13 +17,10 @@ export class MatrixService {
   constructor() {}
 
   public initMatrix(): void {
-    console.log('Initializing Matrix Service');
     this.canvas = document.getElementById('matrix-canvas') as HTMLCanvasElement;
     if (!this.canvas) {
-        console.error('Matrix canvas not found in DOM');
         return;
     }
-    console.log('Canvas found, setting up context');
     
     this.ctx = this.canvas.getContext('2d')!;
     

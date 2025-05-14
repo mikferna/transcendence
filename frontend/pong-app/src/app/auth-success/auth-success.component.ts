@@ -56,14 +56,7 @@ export class AuthSuccessComponent implements OnInit {
     const refresh = urlParams.get('refresh');
     const api_token = urlParams.get('ft_token');
 
-    console.log('URL Params:', { 
-      access: access ? 'present' : 'missing',
-      refresh: refresh ? 'present' : 'missing',
-      api_token: api_token ? 'present' : 'missing'
-    });
-
     if (access && refresh && api_token) {
-      console.log('Tokens received, storing in localStorage');
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
       localStorage.setItem('ft_api_token', api_token);
@@ -71,7 +64,6 @@ export class AuthSuccessComponent implements OnInit {
       this.isLoading = false;
       this.router.navigate(['/home']);
     } else {
-      console.error('No tokens found in URL parameters');
       this.error = 'No se recibieron los tokens de autenticación';
       this.isLoading = false;
       setTimeout(() => this.router.navigate(['/login']), 3000);

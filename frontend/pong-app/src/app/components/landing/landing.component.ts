@@ -45,7 +45,6 @@ export class LandingComponent {
       const timestamp = new Date().getTime();
       window.location.href = `${environment.apiUrl}/auth/authorize/?force_verify=true&t=${timestamp}`;
     } catch (error) {
-      console.error('Error initiating 42 login:', error);
     }
   }
 }

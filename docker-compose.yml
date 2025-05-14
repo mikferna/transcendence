@@ -18,7 +18,9 @@ services:
     ports:
       - "8000:8000"
     # Los volúmenes se han eliminado para evitar la sincronización en tiempo real
-    # En lugar de usar volúmenes montados, copiaremos los archivos necesarios en run.sh
+    # pero añadimos un volumen para compartir los certificados
+    volumes:
+      - ssl_certs:/code/certs
     networks:
       - miknet
     depends_on:
@@ -34,6 +36,8 @@ services:
     # Los volúmenes se han eliminado para evitar la sincronización en tiempo real
     ports:
       - "4200:4200"
+    volumes:
+      - ssl_certs:/app/certs
     networks:
       - miknet
     depends_on:
@@ -57,3 +61,4 @@ networks:
 
 volumes:
   django_data:  # Volumen nombrado para persistencia de datos de media
+  ssl_certs:    # Volumen compartido para los certificados SSL

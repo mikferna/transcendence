@@ -156,7 +156,7 @@ export class TournamentComponent implements OnInit {
     // Nos suscribimos al usuario actual
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
     // Imprime el idioma seleccionado en la consola
-    console.log('Idioma seleccionado:', this.currentLanguage);
+
   
   }
   
@@ -169,7 +169,6 @@ export class TournamentComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error al obtener el usuario actual:', error);
       }
     });
   }
@@ -192,7 +191,6 @@ export class TournamentComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error al buscar usuarios:', error);
         this.isLoading = false;
       }
     });
@@ -203,11 +201,6 @@ export class TournamentComponent implements OnInit {
       this.selectedPlayers.push(player);
       this.searchQuery = '';
       this.searchResults = [];
-      
-      // Si ya tenemos 4 jugadores, estamos listos para el torneo
-      if (this.selectedPlayers.length === 4) {
-        console.log('Jugadores seleccionados para el torneo:', this.selectedPlayers);
-      }
     }
   }
   
@@ -300,9 +293,7 @@ export class TournamentComponent implements OnInit {
       // Preparar datos para el componente match
       this.currentMatchPlayer1 = currentMatch.player1;
       this.currentMatchPlayer2 = currentMatch.player2;
-      
-      console.log(`Iniciando partida: Ronda ${currentMatch.round}, Match ${currentMatch.matchNumber}`);
-      console.log('Jugadores:', this.currentMatchPlayer1?.username, 'vs', this.currentMatchPlayer2?.username);
+
       
       // Mostrar componente match
       this.showMatchComponent = true;
@@ -409,11 +400,8 @@ export class TournamentComponent implements OnInit {
     
     this.matchService.createMultiplayerMatch(matchData).subscribe({
       next: (response) => {
-        console.log('Partido guardado correctamente:', response);
       },
       error: (error) => {
-        console.error('Error al guardar el partido:', error);
-        alert(this.translations[this.currentLanguage].error_saving_match_result);
       }
     });
   }
@@ -459,7 +447,6 @@ export class TournamentComponent implements OnInit {
     try {
       localStorage.setItem('tournamentState', JSON.stringify(state));
     } catch (e) {
-      console.error('Error guardando estado del torneo:', e);
     }
   }
   
@@ -478,11 +465,9 @@ export class TournamentComponent implements OnInit {
         this.showTournament = state.showTournament;
         this.tournamentInProgress = state.tournamentInProgress;
         this.currentMatchIndex = state.currentMatchIndex;
-        
-        console.log('Estado del torneo cargado:', state);
+
       }
     } catch (e) {
-      console.error('Error cargando estado del torneo:', e);
     }
   }
   

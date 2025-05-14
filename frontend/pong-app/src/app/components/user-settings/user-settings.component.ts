@@ -113,8 +113,6 @@ export class UserSettingsComponent implements OnInit {
     this.loadUserData();
     // Nos suscribimos al usuario actual
     this.currentTexts = this.translations[this.currentLanguage]; // Asigna los textos correspondientes al idioma
-    // Imprime el idioma seleccionado en la consola
-    console.log('Idioma seleccionado:', this.currentLanguage);
   }
 
   loadUserData() {
@@ -131,9 +129,6 @@ export class UserSettingsComponent implements OnInit {
       next: (data: CurrentUser) => {
         this.currentUser = data;
         
-        // Imprimir en consola el valor de ft_user
-        console.log('Usuario 42 (ft_user):', this.currentUser.ft_user);
-        
         this.userForm.patchValue({
           username: data.username,
           email: data.email,
@@ -145,7 +140,6 @@ export class UserSettingsComponent implements OnInit {
         if (data.ft_user) {
           this.userForm.get('username')?.disable();
           this.userForm.get('email')?.disable();
-          console.log('Campos username y email deshabilitados por ser usuario 42');
         }
         
         if (data.avatar) {
@@ -157,7 +151,6 @@ export class UserSettingsComponent implements OnInit {
         }
       },
       error: (error: any) => {
-        console.error('Error al cargar los datos del usuario:', error);
         this.error = 'Error al cargar los datos del usuario';
       }
     });
@@ -187,8 +180,6 @@ export class UserSettingsComponent implements OnInit {
       if (!this.currentUser.ft_user) {
         formData.append('email', this.userForm.get('email')?.value);
         formData.append('username', this.userForm.get('username')?.value);
-      } else {
-        console.log('No se envían campos username y email porque es usuario 42');
       }
       
       formData.append('default_language', this.userForm.get('default_language')?.value);
@@ -212,21 +203,17 @@ export class UserSettingsComponent implements OnInit {
               // Actualizamos los datos del usuario antes de recargar
               this.authService.updateCurrentUser().subscribe({
                 next: (user: any) => {
-                  console.log('Datos de usuario actualizados en toda la aplicación');
                   window.location.reload();
                 },
                 error: (err: any) => {
-                  console.error('Error al actualizar los datos de usuario en la aplicación', err);
                 }
               });
             } else {
               // Si no quiere cambiar el idioma de sesión, solo actualizamos los datos
               this.authService.updateCurrentUser().subscribe({
                 next: (user: any) => {
-                  console.log('Datos de usuario actualizados en toda la aplicación');
                 },
                 error: (err: any) => {
-                  console.error('Error al actualizar los datos de usuario en la aplicación', err);
                 }
               });
             }
@@ -234,10 +221,8 @@ export class UserSettingsComponent implements OnInit {
             // Si no hay cambio de idioma, solo actualizamos los datos
             this.authService.updateCurrentUser().subscribe({
               next: (user: any) => {
-                console.log('Datos de usuario actualizados en toda la aplicación');
               },
               error: (err: any) => {
-                console.error('Error al actualizar los datos de usuario en la aplicación', err);
               }
             });
           }

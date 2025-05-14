@@ -48,7 +48,6 @@ export class UserSettingsComponent implements OnInit {
       },
       error: (error) => {
         this.error = 'Error al cargar los datos del usuario';
-        console.error('Error:', error);
       }
     });
   }

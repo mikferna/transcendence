@@ -16,9 +16,9 @@ fi
 
 pip install --upgrade pip
 
-# Esperar a que PostgreSQL esté listo
+# Esperar a que PostgreSQL esté listo - usando variables de entorno
 echo "Esperando a que PostgreSQL esté disponible..."
-until PGPASSWORD=postgres psql -h postgres -U postgres -d elephant -c '\q' 2>/dev/null; do
+until PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -c '\q' 2>/dev/null; do
   echo "PostgreSQL no disponible todavía - esperando..."
   sleep 3
 done

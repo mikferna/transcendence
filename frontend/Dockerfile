@@ -17,8 +17,8 @@ RUN npm install
 # Copiar los certificados SSL si existen o usar los auto-generados
 COPY ./certs /app/certs
 
-# Instalar OpenSSL para generar certificados si no existen
-RUN apt-get update && apt-get install -y openssl
+# Instalar OpenSSL para generar certificados y gettext-base para envsubst
+RUN apt-get update && apt-get install -y openssl gettext-base
 
 # Modificar el archivo angular.json para habilitar SSL
 RUN node -e "const fs = require('fs'); const angularConfigPath = './angular.json'; \

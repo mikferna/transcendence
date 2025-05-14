@@ -37,7 +37,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   // Método para navegar a las rutas
   selectMode(mode: string) {
-    console.log("Modo seleccionado:", mode);
     this.router.navigate([`/${mode}`]); // Redirige a la ruta correspondiente
   }
 

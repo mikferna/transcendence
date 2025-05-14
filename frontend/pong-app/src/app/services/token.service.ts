@@ -20,7 +20,6 @@ export class TokenService {
       const expiryTime = decodedToken.exp * 1000; // Convertir a milisegundos
       localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiryTime.toString());
     } catch (error) {
-      console.error('Error decoding token:', error);
       // Si hay un error al decodificar el token, establecer una expiración por defecto
       const defaultExpiry = new Date().getTime() + (15 * 60 * 1000); // 15 minutos
       localStorage.setItem(this.TOKEN_EXPIRY_KEY, defaultExpiry.toString());

@@ -137,7 +137,6 @@ export class UserSearchComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error al cargar solicitudes pendientes:', error);
       }
     });
   }
@@ -182,7 +181,6 @@ export class UserSearchComponent implements OnInit {
       error: (error) => {
         this.error = 'Error al buscar usuarios';
         this.loading = false;
-        console.error('Error:', error);
       }
     });
   }
@@ -233,7 +231,6 @@ export class UserSearchComponent implements OnInit {
         user.sending_request = false; // Restablecer después del éxito
       },
       error: (error: HttpErrorResponse) => {
-        console.error('Error al enviar solicitud:', error);
         
         // Si recibimos error por solicitud duplicada (400 con mensaje específico)
         if (error.status === 400 && error.error?.error === 'Friend request already sent') {
@@ -267,7 +264,6 @@ export class UserSearchComponent implements OnInit {
         user.sending_request = false;
       },
       error: (error) => {
-        console.error('Error al aceptar solicitud:', error);
         user.sending_request = false;
       }
     });
@@ -287,7 +283,6 @@ export class UserSearchComponent implements OnInit {
         user.sending_request = false;
       },
       error: (error) => {
-        console.error('Error al rechazar solicitud:', error);
         user.sending_request = false;
       }
     });
@@ -309,7 +304,6 @@ export class UserSearchComponent implements OnInit {
           user.sending_request = false;
         },
         error: (error) => {
-          console.error('Error al eliminar amigo:', error);
           user.sending_request = false;
         }
       });

@@ -64,7 +64,7 @@
           <div class="corner-decoration bottom-left"></div>
           <div class="corner-decoration bottom-right"></div>
         </div>       
-        <div class="match-history scrollable hide-scrollbar">         
+        <div class="match-history scrollable">         
           <div *ngFor="let match of profile.match_history" class="match-item" [class.win]="match.winner_username === profile.username">           
             <div class="match-players">
               <!-- Partida 1v1 -->
